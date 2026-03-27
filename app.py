@@ -73,36 +73,26 @@ def login():
             password = st.text_input("Contraseña", type="password")
             submitted = st.form_submit_button("Ingresar", use_container_width=True, type="primary")
 
-        if submitted:
-            try:
-     # Después de hacer login exitosamente
-res = supabase.auth.sign_in_with_password({"email": email, "password": password})
-st.session_state["session"] = res.session
-st.session_state["user_id"] = res.user.id
-
-# Obtener datos del usuario - CORREGIDO
-perfil = supabase.table("usuarios").select("*").eq("id", res.user.id).execute()
-
-# Verificar si encontró el perfil
-if perfil.data:
-    st.session_state["perfil"] = perfil.data[0]
-    st.session_state["rol"] = perfil.data[0]["rol"]
-    st.session_state["establecimiento_id"] = perfil.data[0].get("establecimiento_id")
-    st.session_state["establecimiento_nombre"] = perfil.data[0].get("establecimiento_nombre")
-    st.rerun()  # Recargar la app
-else:
-    st.error("No se encontró tu perfil. Contacta al administrador.")
-
-def logout():
-    supabase.auth.sign_out()
-    for key in ["session", "user_id", "perfil", "rol", "establecimiento_id", "establecimiento_nombre", "pagina"]:
-        st.session_state.pop(key, None)
-    st.rerun()
-
-
-def check_auth():
-    return "session" in st.session_state and st.session_state["session"] is not None
-
+ if submitted:
+    try:
+        res = supabase.auth.sign_in_with_password({"email": email, "password": password})
+        st.session_state["session"] = res.session
+        st.session_state["user_id"] = res.user.id
+        
+        # Obtener datos del usuario
+        perfil = supabase.table("usuarios").select("*").eq("id", res.user.id).execute()
+        
+        if perfil.data:
+            st.session_state["perfil"] = perfil.data[0]
+            st.session_state["rol"] = perfil.data[0]["rol"]
+            st.session_state["establecimiento_id"] = perfil.data[0].get("establecimiento_id")
+            st.session_state["establecimiento_nombre"] = perfil.data[0].get("establecimiento_nombre")
+            st.rerun()
+        else:
+            st.error("No se encontró tu perfil. Verifica que tu usuario esté registrado en la tabla 'usuarios'")
+            
+    except Exception as e:
+        st.error(f"Error al iniciar sesión: {e}")
 
 # ══════════════════════════════════════════════════════════════
 # SIDEBAR / NAVEGACIÓN
