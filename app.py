@@ -1,13 +1,15 @@
 """
 SISTEMA DE CONTROL DE STOCK AGRÍCOLA
 App principal Streamlit — La Sonia / San Guillermo / Camba Pora
-Versión con logo grande encima del título y burbujas más transparentes
+Versión con logo mejorado, gráficos por establecimiento y menú
 """
 
 import streamlit as st
 from supabase import create_client, Client
 from datetime import date, timedelta
 import pandas as pd
+import plotly.express as px
+import plotly.graph_objects as go
 from io import BytesIO
 
 # ── Configuración de página ────────────────────────────────────
@@ -30,7 +32,7 @@ supabase = get_supabase()
 
 
 # ══════════════════════════════════════════════════════════════
-# CSS MEJORADO
+# CSS MEJORADO - Logo grande, textos negros y oliva
 # ══════════════════════════════════════════════════════════════
 
 st.markdown("""
@@ -102,38 +104,39 @@ st.markdown("""
         background: rgba(190, 210, 170, 0.85) !important;
     }
     
-    /* Texto en tarjetas */
+    /* Texto en tarjetas - NEGRO y más grande */
     .metric-card, .metric-card * {
-        color: #1a2a1a !important;
+        color: #000000 !important;
         text-align: center !important;
     }
     
     .metric-value {
-        font-size: 2.2rem;
+        font-size: 2.5rem !important;
         font-weight: bold;
-        color: #2c5e2e !important;
+        color: #1a4a1a !important;
         margin: 0.5rem 0;
         text-align: center !important;
     }
     
     .metric-label {
-        font-size: 1rem;
-        color: #3a5a2a !important;
+        font-size: 1.1rem !important;
+        color: #000000 !important;
         text-transform: uppercase;
         letter-spacing: 0.5px;
         font-weight: 600;
         text-align: center !important;
     }
     
-    /* BURBUJAS MARRÓN CLARO para títulos */
+    /* BURBUJAS MARRÓN CLARO para títulos - texto color OLIVA */
     .title-bubble {
         background: rgba(180, 140, 100, 0.95);
         border: 1px solid rgba(120, 90, 60, 0.4);
         border-radius: 30px;
-        padding: 0.5rem 2rem;
+        padding: 0.8rem 2rem;
         display: inline-block;
         box-shadow: 0 2px 8px rgba(0,0,0,0.1);
         transition: all 0.3s ease;
+        text-align: center;
     }
     
     .title-bubble:hover {
@@ -144,10 +147,17 @@ st.markdown("""
     
     .title-bubble h1 {
         margin: 0;
-        color: #f5e6d3 !important;
-        text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
-        font-weight: 600;
+        color: #3a5a2a !important;
+        text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+        font-weight: 700;
         font-size: 2rem;
+    }
+    
+    .title-bubble p {
+        margin: 0.5rem 0 0 0;
+        color: #3a5a2a !important;
+        font-size: 1rem;
+        font-weight: 500;
     }
     
     /* Contenedor del título con logo - LOGO GRANDE ENCIMA */
@@ -160,10 +170,15 @@ st.markdown("""
     }
     
     .title-logo {
-        width: 120px;
+        width: 150px;
         height: auto;
-        filter: drop-shadow(2px 2px 6px rgba(0,0,0,0.2));
-        margin-bottom: 10px;
+        filter: drop-shadow(2px 2px 8px rgba(0,0,0,0.25));
+        margin-bottom: 15px;
+        transition: transform 0.3s ease;
+    }
+    
+    .title-logo:hover {
+        transform: scale(1.02);
     }
     
     /* Títulos de página alineados a la izquierda */
@@ -434,7 +449,7 @@ def login():
 
 
 # ══════════════════════════════════════════════════════════════
-# SIDEBAR CON LOGO
+# SIDEBAR CON LOGO Y "MENU"
 # ══════════════════════════════════════════════════════════════
 
 def sidebar():
@@ -442,7 +457,7 @@ def sidebar():
         st.markdown("""
         <div class="sidebar-header">
             <div style="display: flex; align-items: center; justify-content: center; gap: 10px;">
-                <img src="https://raw.githubusercontent.com/marcasosguemes-cell/Stock-SECCO-AGRO/main/Logo.png" style="width: 35px; height: auto; border-radius: 8px;" alt="Logo">
+                <img src="https://raw.githubusercontent.com/marcasosguemes-cell/Stock-SECCO-AGRO/main/Logo.png" style="width: 40px; height: auto; border-radius: 8px;" alt="Logo">
                 <h1 style="font-size: 1.3rem; margin: 0; color: #d4a017 !important;">Stock Agrícola</h1>
             </div>
             <p style="margin: 0; font-size: 0.8rem;">SECCO AGRO</p>
@@ -486,7 +501,8 @@ def sidebar():
                 ("👥", "Usuarios", "Gestión de usuarios"),
             ]
         
-        st.markdown("### 📌 Navegación")
+        # Cambiado "Navegación" por "MENU"
+        st.markdown("### 📌 MENU")
         for emoji, nombre, tooltip in paginas:
             if st.button(f"{emoji}  {nombre}", key=f"nav_{nombre}", help=tooltip):
                 st.session_state["pagina"] = nombre
@@ -537,6 +553,35 @@ def get_movimientos(establecimiento_id=None, limit=200):
     except:
         return []
 
+def get_stock_por_establecimiento():
+    """Obtiene stock agrupado por establecimiento"""
+    movimientos = get_movimientos()
+    if not movimientos:
+        return pd.DataFrame()
+    
+    df = pd.DataFrame(movimientos)
+    
+    # Calcular stock por establecimiento
+    ingresos = df[df["tipo"] == "ingreso"].groupby("establecimiento_id")["cantidad"].sum()
+    egresos = df[df["tipo"] == "egreso"].groupby("establecimiento_id")["cantidad"].sum()
+    
+    stock = {}
+    for establecimiento in set(ingresos.index) | set(egresos.index):
+        stock[establecimiento] = ingresos.get(establecimiento, 0) - egresos.get(establecimiento, 0)
+    
+    # Obtener nombres de establecimientos
+    establecimientos = get_establecimientos()
+    nombre_map = {e["id"]: e["nombre"] for e in establecimientos}
+    
+    result = []
+    for est_id, cantidad in stock.items():
+        result.append({
+            "establecimiento": nombre_map.get(est_id, "Desconocido"),
+            "stock": cantidad
+        })
+    
+    return pd.DataFrame(result)
+
 
 def estab_filter():
     if "rol" not in st.session_state:
@@ -547,30 +592,25 @@ def estab_filter():
 
 
 # ══════════════════════════════════════════════════════════════
-# DASHBOARD CON BURBUJA MARRÓN EN EL TÍTULO
+# DASHBOARD CON GRÁFICOS POR ESTABLECIMIENTO
 # ══════════════════════════════════════════════════════════════
 
 def pagina_dashboard():
     st.markdown('<div class="main-content">', unsafe_allow_html=True)
     
-    # Título con burbuja marrón
+    # Título con burbuja marrón que incluye título y subtítulo
     st.markdown("""
-    <div style="margin-bottom: 0.5rem;">
+    <div style="margin-bottom: 2rem; display: flex; justify-content: center;">
         <div class="title-bubble">
             <h1>📊 Dashboard de Stock</h1>
+            <p>📋 Resumen general del inventario agrícola</p>
         </div>
     </div>
-    """, unsafe_allow_html=True)
-    
-    # Texto descriptivo en verde oliva debajo de la burbuja
-    st.markdown("""
-    <p style="color: #3a5a2a; font-size: 1rem; margin-bottom: 2rem; text-align: left; font-weight: 500;">
-        📋 Resumen general del inventario agrícola
-    </p>
     """, unsafe_allow_html=True)
 
     movimientos = get_movimientos(estab_filter())
     
+    # Métricas generales
     col1, col2, col3, col4 = st.columns(4)
     
     if movimientos:
@@ -623,6 +663,53 @@ def pagina_dashboard():
     
     st.markdown("---")
     
+    # SECCIÓN: Stock por Establecimiento
+    st.markdown('<h3 class="section-title">🏢 Stock por Establecimiento</h3>', unsafe_allow_html=True)
+    
+    stock_por_establecimiento = get_stock_por_establecimiento()
+    
+    if not stock_por_establecimiento.empty:
+        # Gráfico de barras con Plotly
+        fig_bar = px.bar(
+            stock_por_establecimiento,
+            x="establecimiento",
+            y="stock",
+            title="Distribución de Stock por Establecimiento",
+            labels={"establecimiento": "Establecimiento", "stock": "Stock (unidades)"},
+            color="establecimiento",
+            color_discrete_sequence=px.colors.qualitative.Set2
+        )
+        fig_bar.update_layout(
+            plot_bgcolor="rgba(180, 200, 160, 0.3)",
+            paper_bgcolor="rgba(255, 255, 255, 0.7)",
+            font=dict(color="#1a2a1a", size=12)
+        )
+        st.plotly_chart(fig_bar, use_container_width=True)
+        
+        # Gráfico de torta para proporciones
+        fig_pie = px.pie(
+            stock_por_establecimiento,
+            values="stock",
+            names="establecimiento",
+            title="Proporción de Stock por Establecimiento",
+            color_discrete_sequence=px.colors.qualitative.Set3
+        )
+        fig_pie.update_layout(
+            plot_bgcolor="rgba(180, 200, 160, 0.3)",
+            paper_bgcolor="rgba(255, 255, 255, 0.7)",
+            font=dict(color="#1a2a1a", size=12)
+        )
+        st.plotly_chart(fig_pie, use_container_width=True)
+        
+        # Mostrar tabla de datos
+        st.markdown("### 📊 Detalle de Stock por Establecimiento")
+        st.dataframe(stock_por_establecimiento, use_container_width=True)
+    else:
+        st.info("💡 Sin datos de stock por establecimiento. Registrá movimientos para ver estadísticas.")
+    
+    st.markdown("---")
+    
+    # Últimos movimientos
     if movimientos:
         df = pd.DataFrame(movimientos)
         df["fecha"] = pd.to_datetime(df["fecha"])
@@ -651,6 +738,7 @@ def pagina_dashboard():
 
 # ══════════════════════════════════════════════════════════════
 # NUEVO INGRESO, EGRESO, HISTORIAL, ALERTAS, REPORTES, ADMIN
+# (Mantener las mismas funciones que en el código anterior)
 # ══════════════════════════════════════════════════════════════
 
 def pagina_ingreso():
