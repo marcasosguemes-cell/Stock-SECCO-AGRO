@@ -75,25 +75,23 @@ def login():
 
         if submitted:
             try:
-                res = supabase.auth.sign_in_with_password({"email": email, "password": password})
-                st.session_state["session"] = res.session
-                st.session_state["user_id"] = res.user.id
+     # Después de hacer login exitosamente
+res = supabase.auth.sign_in_with_password({"email": email, "password": password})
+st.session_state["session"] = res.session
+st.session_state["user_id"] = res.user.id
 
-                # Obtener datos del usuario
-                perfil = supabase.table("usuarios").select("*,establecimientos(nombre)") \
-                    .eq("id", res.user.id).single().execute()
+# Obtener datos del usuario - CORREGIDO
+perfil = supabase.table("usuarios").select("*").eq("id", res.user.id).execute()
 
-                st.session_state["perfil"] = perfil.data
-                st.session_state["rol"] = perfil.data["rol"]
-                st.session_state["establecimiento_id"] = perfil.data.get("establecimiento_id")
-                st.session_state["establecimiento_nombre"] = (
-                    perfil.data["establecimientos"]["nombre"]
-                    if perfil.data.get("establecimientos") else "Todos"
-                )
-                st.rerun()
-            except Exception as e:
-                st.error(f"Error de autenticación: {e}")
-
+# Verificar si encontró el perfil
+if perfil.data:
+    st.session_state["perfil"] = perfil.data[0]
+    st.session_state["rol"] = perfil.data[0]["rol"]
+    st.session_state["establecimiento_id"] = perfil.data[0].get("establecimiento_id")
+    st.session_state["establecimiento_nombre"] = perfil.data[0].get("establecimiento_nombre")
+    st.rerun()  # Recargar la app
+else:
+    st.error("No se encontró tu perfil. Contacta al administrador.")
 
 def logout():
     supabase.auth.sign_out()
