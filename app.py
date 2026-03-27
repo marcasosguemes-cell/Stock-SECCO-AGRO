@@ -1,7 +1,7 @@
 """
 SISTEMA DE CONTROL DE STOCK AGRÍCOLA
 App principal Streamlit — La Sonia / San Guillermo / Camba Pora
-Versión con UI mejorada
+Versión con UI mejorada e imagen de fondo personalizada
 """
 
 import streamlit as st
@@ -30,155 +30,114 @@ supabase = get_supabase()
 
 
 # ══════════════════════════════════════════════════════════════
-# CSS MEJORADO - DISEÑO PROFESIONAL
+# CSS MEJORADO CON IMAGEN DE FONDO PERSONALIZADA
 # ══════════════════════════════════════════════════════════════
 
 st.markdown("""
 <style>
-    /* Variables de color */
-    :root {
-        --primary-green: #2c5e2e;
-        --primary-green-light: #3d7a3f;
-        --primary-green-dark: #1e401f;
-        --secondary-gold: #d4a017;
-        --background-light: #f5f9f5;
-        --background-white: #ffffff;
-        --text-dark: #1a2e1a;
-        --text-gray: #4a5b4a;
-        --sidebar-bg: #1a2e1a;
-        --sidebar-text: #e8f0e8;
-        --card-shadow: 0 4px 12px rgba(0,0,0,0.08);
-        --hover-shadow: 0 6px 16px rgba(0,0,0,0.12);
+    /* Fondo con tu imagen personalizada */
+    .stApp {
+        background-image: url('https://i.imgur.com/bFwiqHN.jpeg');
+        background-size: cover;
+        background-position: center;
+        background-attachment: fixed;
+        background-repeat: no-repeat;
     }
     
-    /* Sidebar mejorado */
+    /* Capa semitransparente para mejorar legibilidad */
+    .stApp::before {
+        content: '';
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.4);
+        z-index: -1;
+    }
+    
+    /* Sidebar con efecto vidrio */
     [data-testid="stSidebar"] {
-        background: linear-gradient(180deg, var(--sidebar-bg) 0%, #0f1f0f 100%);
-        border-right: 1px solid rgba(255,255,255,0.1);
+        background: rgba(26, 46, 26, 0.92) !important;
+        backdrop-filter: blur(10px);
+        border-right: 1px solid rgba(212, 160, 23, 0.3);
     }
     
     [data-testid="stSidebar"] * {
-        color: var(--sidebar-text) !important;
+        color: #f0f8f0 !important;
+        text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
     }
     
     [data-testid="stSidebar"] .stButton button {
         background: rgba(255,255,255,0.05);
         border: 1px solid rgba(255,255,255,0.2);
-        color: var(--sidebar-text) !important;
         width: 100%;
         text-align: left;
         padding: 0.75rem 1rem;
         border-radius: 10px;
         margin: 4px 0;
         transition: all 0.3s ease;
-        font-weight: 500;
     }
     
     [data-testid="stSidebar"] .stButton button:hover {
-        background: var(--primary-green-light);
-        border-color: var(--secondary-gold);
+        background: rgba(61, 122, 63, 0.8);
+        border-color: #d4a017;
         transform: translateX(4px);
     }
     
-    /* Header del sidebar */
-    .sidebar-header {
-        text-align: center;
-        padding: 1rem 0;
-        border-bottom: 2px solid var(--secondary-gold);
-        margin-bottom: 1.5rem;
-    }
-    
-    .sidebar-header h1 {
-        font-size: 1.5rem;
-        margin: 0;
-        color: var(--secondary-gold) !important;
-    }
-    
-    .sidebar-header p {
-        font-size: 0.8rem;
-        opacity: 0.8;
-        margin: 0;
-    }
-    
-    /* Perfil en sidebar */
-    .profile-card {
-        background: rgba(255,255,255,0.1);
-        border-radius: 12px;
-        padding: 1rem;
-        margin: 1rem 0;
-        text-align: center;
-        backdrop-filter: blur(5px);
-    }
-    
-    .profile-name {
-        font-size: 1.1rem;
-        font-weight: bold;
-        margin: 0;
-    }
-    
-    .profile-role {
-        font-size: 0.8rem;
-        opacity: 0.8;
-        margin: 0;
-    }
-    
-    .profile-location {
-        font-size: 0.75rem;
-        margin-top: 0.5rem;
-    }
-    
-    /* Cards y contenedores */
-    .metric-card {
-        background: var(--background-white);
+    /* Cards y formularios semitransparentes */
+    .metric-card, [data-testid="stForm"], .profile-card {
+        background: rgba(255, 255, 255, 0.95) !important;
+        backdrop-filter: blur(4px);
+        border: 1px solid rgba(44, 94, 46, 0.2);
         border-radius: 16px;
-        padding: 1.2rem;
-        box-shadow: var(--card-shadow);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
         transition: all 0.3s ease;
-        border: 1px solid rgba(44,94,46,0.1);
     }
     
     .metric-card:hover {
         transform: translateY(-4px);
-        box-shadow: var(--hover-shadow);
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
     }
     
     .metric-value {
         font-size: 2rem;
         font-weight: bold;
-        color: var(--primary-green);
+        color: #2c5e2e;
         margin: 0.5rem 0;
     }
     
     .metric-label {
         font-size: 0.85rem;
-        color: var(--text-gray);
+        color: #4a5b4a;
         text-transform: uppercase;
         letter-spacing: 0.5px;
     }
     
-    /* Títulos */
+    /* Títulos con sombra */
     .main-title {
         font-size: 2rem;
         font-weight: 700;
-        background: linear-gradient(135deg, var(--primary-green) 0%, var(--primary-green-light) 100%);
+        background: linear-gradient(135deg, #2c5e2e, #d4a017);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         background-clip: text;
         margin-bottom: 0.5rem;
+        text-shadow: none;
     }
     
     .section-title {
         font-size: 1.3rem;
         font-weight: 600;
-        color: var(--primary-green-dark);
-        border-left: 4px solid var(--secondary-gold);
+        color: #1e401f;
+        border-left: 4px solid #d4a017;
         padding-left: 1rem;
         margin: 1.5rem 0 1rem 0;
     }
     
-    /* Botones principales */
+    /* Botones */
     .stButton > button {
-        background: linear-gradient(135deg, var(--primary-green) 0%, var(--primary-green-light) 100%);
+        background: linear-gradient(135deg, #2c5e2e, #3d7a3f) !important;
         color: white !important;
         border: none;
         border-radius: 10px;
@@ -189,38 +148,21 @@ st.markdown("""
     
     .stButton > button:hover {
         transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(44,94,46,0.3);
-    }
-    
-    /* Forms */
-    [data-testid="stForm"] {
-        background: var(--background-white);
-        border-radius: 20px;
-        padding: 1.5rem;
-        box-shadow: var(--card-shadow);
-        border: 1px solid rgba(44,94,46,0.1);
+        box-shadow: 0 4px 12px rgba(44, 94, 46, 0.4);
     }
     
     /* Tablas */
     .stDataFrame {
+        background: rgba(255, 255, 255, 0.92);
         border-radius: 12px;
-        overflow: hidden;
+        padding: 0.5rem;
     }
     
     /* Alertas */
     .stAlert {
+        background: rgba(255, 255, 255, 0.95) !important;
+        backdrop-filter: blur(4px);
         border-radius: 10px;
-        border-left: 4px solid;
-    }
-    
-    /* Footer */
-    .footer {
-        text-align: center;
-        padding: 2rem;
-        color: var(--text-gray);
-        font-size: 0.8rem;
-        border-top: 1px solid rgba(44,94,46,0.2);
-        margin-top: 2rem;
     }
     
     /* Badges */
@@ -233,16 +175,28 @@ st.markdown("""
     }
     
     .badge-admin {
-        background: linear-gradient(135deg, var(--secondary-gold), #b8860b);
+        background: linear-gradient(135deg, #d4a017, #b8860b);
         color: white;
     }
     
     .badge-operator {
-        background: linear-gradient(135deg, var(--primary-green), var(--primary-green-light));
+        background: linear-gradient(135deg, #2c5e2e, #3d7a3f);
         color: white;
     }
     
-    /* Animaciones */
+    /* Footer */
+    .footer {
+        text-align: center;
+        padding: 2rem;
+        color: #4a5b4a;
+        font-size: 0.8rem;
+        border-top: 1px solid rgba(44, 94, 46, 0.2);
+        margin-top: 2rem;
+        background: rgba(255, 255, 255, 0.85);
+        border-radius: 12px;
+    }
+    
+    /* Animación */
     @keyframes fadeIn {
         from { opacity: 0; transform: translateY(20px); }
         to { opacity: 1; transform: translateY(0); }
@@ -250,6 +204,32 @@ st.markdown("""
     
     .main-content {
         animation: fadeIn 0.5s ease-out;
+    }
+    
+    /* Perfil card en sidebar */
+    .profile-card {
+        text-align: center;
+        padding: 1rem;
+        margin: 1rem 0;
+        background: rgba(255, 255, 255, 0.15) !important;
+    }
+    
+    .profile-name {
+        font-size: 1.1rem;
+        font-weight: bold;
+    }
+    
+    .sidebar-header {
+        text-align: center;
+        padding: 1rem 0;
+        border-bottom: 2px solid #d4a017;
+        margin-bottom: 1.5rem;
+    }
+    
+    .sidebar-header h1 {
+        font-size: 1.5rem;
+        margin: 0;
+        color: #d4a017 !important;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -318,7 +298,6 @@ def verificar_perfil():
 
 def login():
     """Pantalla de login con diseño mejorado"""
-    # Hero section
     col1, col2, col3 = st.columns([1, 1.8, 1])
     with col2:
         st.markdown("""
@@ -360,7 +339,6 @@ def login():
                 except Exception as e:
                     st.error(f"❌ Error al iniciar sesión: {e}")
         
-        # Footer
         st.markdown("""
         <div style="text-align: center; margin-top: 2rem; padding-top: 1rem; border-top: 1px solid #e0e8e0;">
             <p style="color: #6b8f71; font-size: 0.75rem;">Sistema de Control de Stock Agrícola</p>
@@ -374,7 +352,6 @@ def login():
 
 def sidebar():
     with st.sidebar:
-        # Header
         st.markdown("""
         <div class="sidebar-header">
             <h1>🌾 Stock Agrícola</h1>
@@ -390,7 +367,6 @@ def sidebar():
         rol = st.session_state.get("rol", "")
         estab = st.session_state.get("establecimiento_nombre", "Todos")
         
-        # Profile card
         badge_class = "badge-admin" if rol == "admin" else "badge-operator"
         badge_text = "Administrador" if rol == "admin" else "Operador"
         
@@ -404,7 +380,6 @@ def sidebar():
         
         st.markdown("---")
         
-        # Navegación
         paginas = [
             ("📊", "Dashboard", "Resumen general"),
             ("📥", "Nuevo Ingreso", "Registrar entrada de productos"),
@@ -428,7 +403,6 @@ def sidebar():
         
         st.markdown("---")
         
-        # Footer sidebar
         st.markdown("""
         <div style="margin-top: auto; padding-top: 2rem;">
             <p style="font-size: 0.7rem; text-align: center; opacity: 0.6;">
@@ -443,7 +417,7 @@ def sidebar():
 
 
 # ══════════════════════════════════════════════════════════════
-# HELPERS DE DATOS (igual que antes)
+# HELPERS DE DATOS
 # ══════════════════════════════════════════════════════════════
 
 def get_establecimientos():
@@ -483,7 +457,7 @@ def estab_filter():
 
 
 # ══════════════════════════════════════════════════════════════
-# DASHBOARD MEJORADO
+# DASHBOARD
 # ══════════════════════════════════════════════════════════════
 
 def pagina_dashboard():
@@ -493,7 +467,6 @@ def pagina_dashboard():
 
     movimientos = get_movimientos(estab_filter())
     
-    # Métricas en cards
     col1, col2, col3, col4 = st.columns(4)
     
     if movimientos:
@@ -502,7 +475,6 @@ def pagina_dashboard():
         total_egresos = len(df[df["tipo"] == "egreso"])
         total_movimientos = len(df)
         
-        # Calcular stock actual
         ingresos_sum = df[df["tipo"] == "ingreso"]["cantidad"].sum()
         egresos_sum = df[df["tipo"] == "egreso"]["cantidad"].sum()
         stock_total = ingresos_sum - egresos_sum
@@ -547,7 +519,6 @@ def pagina_dashboard():
     
     st.markdown("---")
     
-    # Últimos movimientos
     if movimientos:
         df = pd.DataFrame(movimientos)
         df["fecha"] = pd.to_datetime(df["fecha"])
@@ -558,7 +529,6 @@ def pagina_dashboard():
         display_df = ultimos[["fecha", "tipo", "cantidad", "observaciones"]].copy()
         display_df.columns = ["Fecha", "Tipo", "Cantidad", "Observaciones"]
         
-        # Aplicar colores según tipo
         def color_tipo(val):
             if val == "ingreso":
                 return "color: #2c5e2e"
@@ -576,7 +546,7 @@ def pagina_dashboard():
 
 
 # ══════════════════════════════════════════════════════════════
-# NUEVO INGRESO MEJORADO
+# NUEVO INGRESO
 # ══════════════════════════════════════════════════════════════
 
 def pagina_ingreso():
@@ -626,7 +596,7 @@ def pagina_ingreso():
         col3, col4, col5 = st.columns(3)
         
         with col3:
-            cantidad = st.number_input("📦 Cantidad *", min_value=0.001, step=0.5, format="%.3f", help="Ingresa la cantidad de unidades")
+            cantidad = st.number_input("📦 Cantidad *", min_value=0.001, step=0.5, format="%.3f")
         
         with col4:
             fecha = st.date_input("📅 Fecha *", value=date.today())
@@ -669,7 +639,7 @@ def pagina_ingreso():
 
 
 # ══════════════════════════════════════════════════════════════
-# NUEVO EGRESO MEJORADO
+# NUEVO EGRESO
 # ══════════════════════════════════════════════════════════════
 
 def pagina_egreso():
@@ -713,7 +683,7 @@ def pagina_egreso():
         col3, col4 = st.columns(2)
         
         with col3:
-            cantidad = st.number_input("📦 Cantidad *", min_value=0.001, step=0.5, format="%.3f", help="Ingresa la cantidad a retirar")
+            cantidad = st.number_input("📦 Cantidad *", min_value=0.001, step=0.5, format="%.3f")
         
         with col4:
             fecha = st.date_input("📅 Fecha *", value=date.today())
@@ -745,7 +715,7 @@ def pagina_egreso():
 
 
 # ══════════════════════════════════════════════════════════════
-# HISTORIAL MEJORADO
+# HISTORIAL
 # ══════════════════════════════════════════════════════════════
 
 def pagina_historial():
@@ -791,7 +761,7 @@ def pagina_historial():
 
 
 # ══════════════════════════════════════════════════════════════
-# ALERTAS MEJORADO
+# ALERTAS
 # ══════════════════════════════════════════════════════════════
 
 def pagina_alertas():
@@ -814,7 +784,7 @@ def pagina_alertas():
 
 
 # ══════════════════════════════════════════════════════════════
-# REPORTES MEJORADO
+# REPORTES
 # ══════════════════════════════════════════════════════════════
 
 def pagina_reportes():
