@@ -1,7 +1,7 @@
 """
 SISTEMA DE CONTROL DE STOCK AGRÍCOLA
 App principal Streamlit — La Sonia / San Guillermo / Camba Pora
-Versión con logo y texto centrado
+Versión con logo, burbujas verdes y fondo como marca de agua
 """
 
 import streamlit as st
@@ -30,12 +30,12 @@ supabase = get_supabase()
 
 
 # ══════════════════════════════════════════════════════════════
-# CSS MEJORADO - Logo y texto centrado
+# CSS MEJORADO - Logo, burbujas verdes, fondo marca de agua
 # ══════════════════════════════════════════════════════════════
 
 st.markdown("""
 <style>
-    /* Fondo con tu imagen - MODO MARCA DE AGUA */
+    /* Fondo con tu imagen - MODO MARCA DE AGUA (más suave) */
     .stApp {
         background-image: url('https://raw.githubusercontent.com/marcasosguemes-cell/Stock-SECCO-AGRO/main/Fondo.PNG') !important;
         background-size: cover !important;
@@ -44,7 +44,7 @@ st.markdown("""
         background-repeat: no-repeat !important;
     }
     
-    /* Capa blanca para reducir intensidad de la imagen */
+    /* Capa blanca más intensa para que sea como marca de agua */
     .stApp::before {
         content: '';
         position: fixed;
@@ -52,7 +52,7 @@ st.markdown("""
         left: 0;
         right: 0;
         bottom: 0;
-        background: rgba(255, 255, 255, 0.85);
+        background: rgba(255, 255, 255, 0.92);
         z-index: -1;
         pointer-events: none;
     }
@@ -70,40 +70,41 @@ st.markdown("""
     }
     
     [data-testid="stSidebar"] .stButton button {
-        background: rgba(255,255,255,0.05);
-        border: 1px solid rgba(255,255,255,0.2);
+        background: rgba(212, 160, 23, 0.15);
+        border: 1px solid rgba(212, 160, 23, 0.3);
         width: 100%;
         text-align: left;
         padding: 0.75rem 1rem;
-        border-radius: 10px;
-        margin: 4px 0;
+        border-radius: 12px;
+        margin: 6px 0;
         transition: all 0.3s ease;
     }
     
     [data-testid="stSidebar"] .stButton button:hover {
-        background: rgba(61, 122, 63, 0.8);
+        background: rgba(212, 160, 23, 0.35);
         border-color: #d4a017;
         transform: translateX(4px);
     }
     
-    /* Cards y formularios - fondo blanco sólido */
+    /* Cards y formularios - VERDE OLIVA CLARO */
     .metric-card, [data-testid="stForm"], .profile-card {
-        background: rgba(255, 255, 255, 0.98) !important;
-        border: 1px solid rgba(44, 94, 46, 0.2);
-        border-radius: 16px;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        background: rgba(180, 200, 160, 0.95) !important;
+        border: 1px solid rgba(100, 120, 80, 0.3);
+        border-radius: 20px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
         transition: all 0.3s ease;
         text-align: center !important;
     }
     
     .metric-card:hover {
         transform: translateY(-4px);
-        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+        background: rgba(190, 210, 170, 0.98) !important;
     }
     
-    /* Texto en tarjetas - NEGRO con tamaño aumentado y centrado */
+    /* Texto en tarjetas - NEGRO para contraste */
     .metric-card, .metric-card * {
-        color: #1a1a1a !important;
+        color: #1a2a1a !important;
         text-align: center !important;
     }
     
@@ -117,14 +118,14 @@ st.markdown("""
     
     .metric-label {
         font-size: 1rem;
-        color: #2c5e2e !important;
+        color: #3a5a2a !important;
         text-transform: uppercase;
         letter-spacing: 0.5px;
         font-weight: 600;
         text-align: center !important;
     }
     
-    /* Contenedor del título con logo (solo para login) */
+    /* Contenedor del título con logo (login) */
     .title-container {
         display: flex;
         align-items: center;
@@ -135,7 +136,7 @@ st.markdown("""
     }
     
     .title-logo {
-        width: 60px;
+        width: 65px;
         height: auto;
         filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.2));
     }
@@ -153,7 +154,7 @@ st.markdown("""
         text-align: left !important;
     }
     
-    /* Título de página con logo (solo para login) */
+    /* Título con logo para login */
     .main-title-with-logo {
         font-size: 2rem;
         font-weight: 700;
@@ -183,7 +184,7 @@ st.markdown("""
     
     /* Texto en formularios */
     [data-testid="stForm"] label, [data-testid="stForm"] .stMarkdown {
-        color: #1a1a1a !important;
+        color: #1a2a1a !important;
         font-weight: 500;
     }
     
@@ -192,7 +193,7 @@ st.markdown("""
         background: linear-gradient(135deg, #2c5e2e, #3d7a3f) !important;
         color: white !important;
         border: none;
-        border-radius: 10px;
+        border-radius: 12px;
         padding: 0.6rem 1.2rem;
         font-weight: 600;
         transition: all 0.3s ease;
@@ -205,23 +206,23 @@ st.markdown("""
     
     /* Tablas */
     .stDataFrame {
-        background: rgba(255, 255, 255, 0.98);
-        border-radius: 12px;
+        background: rgba(180, 200, 160, 0.95);
+        border-radius: 16px;
         padding: 0.5rem;
     }
     
     .stDataFrame * {
-        color: #1a1a1a !important;
+        color: #1a2a1a !important;
     }
     
     /* Alertas */
     .stAlert {
-        background: rgba(255, 255, 255, 0.98) !important;
-        border-radius: 10px;
+        background: rgba(180, 200, 160, 0.95) !important;
+        border-radius: 12px;
     }
     
     .stAlert * {
-        color: #1a1a1a !important;
+        color: #1a2a1a !important;
     }
     
     /* Badges */
@@ -249,14 +250,14 @@ st.markdown("""
         padding: 2rem;
         color: #4a5b4a !important;
         font-size: 0.8rem;
-        border-top: 1px solid rgba(44, 94, 46, 0.2);
+        border-top: 1px solid rgba(100, 120, 80, 0.3);
         margin-top: 2rem;
-        background: rgba(255, 255, 255, 0.95);
-        border-radius: 12px;
+        background: rgba(180, 200, 160, 0.9);
+        border-radius: 16px;
     }
     
     .footer p {
-        color: #4a5b4a !important;
+        color: #2a3a1a !important;
     }
     
     /* Perfil card en sidebar */
@@ -264,7 +265,8 @@ st.markdown("""
         text-align: center;
         padding: 1rem;
         margin: 1rem 0;
-        background: rgba(255, 255, 255, 0.15) !important;
+        background: rgba(180, 200, 160, 0.25) !important;
+        border-radius: 16px;
     }
     
     .profile-name {
@@ -281,7 +283,7 @@ st.markdown("""
     }
     
     .sidebar-header h1 {
-        font-size: 1.5rem;
+        font-size: 1.3rem;
         margin: 0;
         color: #d4a017 !important;
     }
@@ -298,12 +300,19 @@ st.markdown("""
     
     /* Inputs */
     input, textarea, select {
-        color: #1a1a1a !important;
-        background-color: white !important;
+        color: #1a2a1a !important;
+        background-color: rgba(240, 248, 220, 0.9) !important;
+        border-radius: 10px !important;
     }
     
     ::placeholder {
-        color: #999 !important;
+        color: #6a7a5a !important;
+    }
+    
+    /* Selectbox */
+    .stSelectbox div[data-baseweb="select"] {
+        background-color: rgba(240, 248, 220, 0.9) !important;
+        border-radius: 10px !important;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -367,17 +376,17 @@ def verificar_perfil():
 
 
 # ══════════════════════════════════════════════════════════════
-# LOGIN CON LOGO
+# LOGIN CON LOGO (usando GitHub para evitar bloqueos)
 # ══════════════════════════════════════════════════════════════
 
 def login():
     """Pantalla de login con logo"""
     col1, col2, col3 = st.columns([1, 1.8, 1])
     with col2:
-        # Título con logo centrado
+        # Título con logo - usando GitHub como respaldo
         st.markdown("""
         <div class="title-container">
-            <img src="https://i.imgur.com/XuzO6ET.png" class="title-logo" alt="Logo">
+            <img src="https://raw.githubusercontent.com/marcasosguemes-cell/Stock-SECCO-AGRO/main/Fondo.PNG" class="title-logo" alt="Logo Stock Agrícola" style="width: 65px; height: auto; border-radius: 12px;">
             <h1 class="main-title-with-logo">Stock Agrícola</h1>
         </div>
         <p style="text-align: center; color: #4a5b4a; font-size: 1rem; margin-top: 0.5rem;">La Sonia · San Guillermo · Camba Pora</p>
@@ -416,7 +425,7 @@ def login():
                     st.error(f"❌ Error al iniciar sesión: {e}")
         
         st.markdown("""
-        <div style="text-align: center; margin-top: 2rem; padding-top: 1rem; border-top: 1px solid #e0e8e0;">
+        <div style="text-align: center; margin-top: 2rem; padding-top: 1rem; border-top: 1px solid #c0d0b0;">
             <p style="color: #6b8f71; font-size: 0.75rem;">Sistema de Control de Stock Agrícola</p>
         </div>
         """, unsafe_allow_html=True)
@@ -431,7 +440,7 @@ def sidebar():
         st.markdown("""
         <div class="sidebar-header">
             <div style="display: flex; align-items: center; justify-content: center; gap: 10px;">
-                <img src="https://i.imgur.com/XuzO6ET.png" style="width: 35px; height: auto;" alt="Logo">
+                <img src="https://raw.githubusercontent.com/marcasosguemes-cell/Stock-SECCO-AGRO/main/Fondo.PNG" style="width: 35px; height: auto; border-radius: 8px;" alt="Logo">
                 <h1 style="font-size: 1.3rem; margin: 0; color: #d4a017 !important;">Stock Agrícola</h1>
             </div>
             <p style="margin: 0; font-size: 0.8rem;">SECCO AGRO</p>
@@ -536,13 +545,12 @@ def estab_filter():
 
 
 # ══════════════════════════════════════════════════════════════
-# DASHBOARD (título a la izquierda)
+# DASHBOARD
 # ══════════════════════════════════════════════════════════════
 
 def pagina_dashboard():
     st.markdown('<div class="main-content">', unsafe_allow_html=True)
     
-    # Título sin logo, alineado a la izquierda
     st.markdown('<h1 class="main-title">📊 Dashboard de Stock</h1>', unsafe_allow_html=True)
     st.markdown('<p style="color: #6b8f71; margin-bottom: 2rem;">Resumen general del inventario agrícola</p>', unsafe_allow_html=True)
 
@@ -856,8 +864,8 @@ def pagina_alertas():
         return
     
     st.markdown("""
-    <div style="background: linear-gradient(135deg, #fef9e6, #fff); padding: 1.5rem; border-radius: 16px; margin-bottom: 2rem;">
-        <p style="margin: 0; color: #d4a017;">🔔 Las alertas te ayudan a mantener el control de tu inventario</p>
+    <div style="background: rgba(180, 200, 160, 0.9); padding: 1.5rem; border-radius: 16px; margin-bottom: 2rem;">
+        <p style="margin: 0; color: #2c5e2e;">🔔 Las alertas te ayudan a mantener el control de tu inventario</p>
     </div>
     """, unsafe_allow_html=True)
     
