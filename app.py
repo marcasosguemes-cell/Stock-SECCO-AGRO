@@ -79,7 +79,6 @@ def login():
         st.session_state["session"] = res.session
         st.session_state["user_id"] = res.user.id
         
-        # Obtener datos del usuario
         perfil = supabase.table("usuarios").select("*").eq("id", res.user.id).execute()
         
         if perfil.data:
