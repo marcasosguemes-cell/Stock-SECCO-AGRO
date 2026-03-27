@@ -1,7 +1,7 @@
 """
 SISTEMA DE CONTROL DE STOCK AGRÍCOLA
 App principal Streamlit — La Sonia / San Guillermo / Camba Pora
-Versión con logo, burbujas verdes y fondo como marca de agua
+Versión con logo correcto
 """
 
 import streamlit as st
@@ -30,12 +30,12 @@ supabase = get_supabase()
 
 
 # ══════════════════════════════════════════════════════════════
-# CSS MEJORADO - Logo, burbujas verdes, fondo marca de agua
+# CSS MEJORADO
 # ══════════════════════════════════════════════════════════════
 
 st.markdown("""
 <style>
-    /* Fondo con tu imagen - MODO MARCA DE AGUA (más suave) */
+    /* Fondo con tu imagen - MODO MARCA DE AGUA */
     .stApp {
         background-image: url('https://raw.githubusercontent.com/marcasosguemes-cell/Stock-SECCO-AGRO/main/Fondo.PNG') !important;
         background-size: cover !important;
@@ -102,7 +102,7 @@ st.markdown("""
         background: rgba(190, 210, 170, 0.98) !important;
     }
     
-    /* Texto en tarjetas - NEGRO para contraste */
+    /* Texto en tarjetas */
     .metric-card, .metric-card * {
         color: #1a2a1a !important;
         text-align: center !important;
@@ -177,15 +177,9 @@ st.markdown("""
         text-align: left !important;
     }
     
-    /* Texto normal en NEGRO */
+    /* Texto normal */
     p, span, div, label, .stMarkdown, .stText, .stNumberInput, .stSelectbox, .stDateInput {
         color: #1a1a1a !important;
-    }
-    
-    /* Texto en formularios */
-    [data-testid="stForm"] label, [data-testid="stForm"] .stMarkdown {
-        color: #1a2a1a !important;
-        font-weight: 500;
     }
     
     /* Botones */
@@ -221,10 +215,6 @@ st.markdown("""
         border-radius: 12px;
     }
     
-    .stAlert * {
-        color: #1a2a1a !important;
-    }
-    
     /* Badges */
     .badge {
         display: inline-block;
@@ -254,10 +244,6 @@ st.markdown("""
         margin-top: 2rem;
         background: rgba(180, 200, 160, 0.9);
         border-radius: 16px;
-    }
-    
-    .footer p {
-        color: #2a3a1a !important;
     }
     
     /* Perfil card en sidebar */
@@ -301,16 +287,6 @@ st.markdown("""
     /* Inputs */
     input, textarea, select {
         color: #1a2a1a !important;
-        background-color: rgba(240, 248, 220, 0.9) !important;
-        border-radius: 10px !important;
-    }
-    
-    ::placeholder {
-        color: #6a7a5a !important;
-    }
-    
-    /* Selectbox */
-    .stSelectbox div[data-baseweb="select"] {
         background-color: rgba(240, 248, 220, 0.9) !important;
         border-radius: 10px !important;
     }
@@ -376,17 +352,17 @@ def verificar_perfil():
 
 
 # ══════════════════════════════════════════════════════════════
-# LOGIN CON LOGO (usando GitHub para evitar bloqueos)
+# LOGIN CON LOGO CORRECTO
 # ══════════════════════════════════════════════════════════════
 
 def login():
     """Pantalla de login con logo"""
     col1, col2, col3 = st.columns([1, 1.8, 1])
     with col2:
-        # Título con logo - usando GitHub como respaldo
+        # Título con logo - usando tu logo de Imgur
         st.markdown("""
         <div class="title-container">
-            <img src="https://raw.githubusercontent.com/marcasosguemes-cell/Stock-SECCO-AGRO/main/Fondo.PNG" class="title-logo" alt="Logo Stock Agrícola" style="width: 65px; height: auto; border-radius: 12px;">
+            <img src="https://i.imgur.com/XuzO6ET.png" class="title-logo" alt="Logo Stock Agrícola">
             <h1 class="main-title-with-logo">Stock Agrícola</h1>
         </div>
         <p style="text-align: center; color: #4a5b4a; font-size: 1rem; margin-top: 0.5rem;">La Sonia · San Guillermo · Camba Pora</p>
@@ -432,7 +408,7 @@ def login():
 
 
 # ══════════════════════════════════════════════════════════════
-# SIDEBAR CON LOGO
+# SIDEBAR CON LOGO CORRECTO
 # ══════════════════════════════════════════════════════════════
 
 def sidebar():
@@ -440,7 +416,7 @@ def sidebar():
         st.markdown("""
         <div class="sidebar-header">
             <div style="display: flex; align-items: center; justify-content: center; gap: 10px;">
-                <img src="https://raw.githubusercontent.com/marcasosguemes-cell/Stock-SECCO-AGRO/main/Fondo.PNG" style="width: 35px; height: auto; border-radius: 8px;" alt="Logo">
+                <img src="https://i.imgur.com/XuzO6ET.png" style="width: 35px; height: auto; border-radius: 8px;" alt="Logo">
                 <h1 style="font-size: 1.3rem; margin: 0; color: #d4a017 !important;">Stock Agrícola</h1>
             </div>
             <p style="margin: 0; font-size: 0.8rem;">SECCO AGRO</p>
@@ -505,7 +481,7 @@ def sidebar():
 
 
 # ══════════════════════════════════════════════════════════════
-# HELPERS DE DATOS
+# HELPERS DE DATOS (igual que antes)
 # ══════════════════════════════════════════════════════════════
 
 def get_establecimientos():
@@ -575,7 +551,7 @@ def pagina_dashboard():
         <div class="metric-card">
             <div class="metric-label">📦 Stock Total</div>
             <div class="metric-value">{stock_total:,.0f}</div>
-            <div style="font-size:0.8rem; color:#4a5b4a;">unidades en inventario</div>
+            <div style="font-size:0.8rem;">unidades en inventario</div>
         </div>
         """, unsafe_allow_html=True)
     
@@ -584,7 +560,7 @@ def pagina_dashboard():
         <div class="metric-card">
             <div class="metric-label">📥 Ingresos</div>
             <div class="metric-value">{total_ingresos}</div>
-            <div style="font-size:0.8rem; color:#4a5b4a;">movimientos registrados</div>
+            <div style="font-size:0.8rem;">movimientos registrados</div>
         </div>
         """, unsafe_allow_html=True)
     
@@ -593,7 +569,7 @@ def pagina_dashboard():
         <div class="metric-card">
             <div class="metric-label">📤 Egresos</div>
             <div class="metric-value">{total_egresos}</div>
-            <div style="font-size:0.8rem; color:#4a5b4a;">movimientos registrados</div>
+            <div style="font-size:0.8rem;">movimientos registrados</div>
         </div>
         """, unsafe_allow_html=True)
     
@@ -602,7 +578,7 @@ def pagina_dashboard():
         <div class="metric-card">
             <div class="metric-label">🔄 Total Movimientos</div>
             <div class="metric-value">{total_movimientos}</div>
-            <div style="font-size:0.8rem; color:#4a5b4a;">operaciones realizadas</div>
+            <div style="font-size:0.8rem;">operaciones realizadas</div>
         </div>
         """, unsafe_allow_html=True)
     
@@ -635,7 +611,8 @@ def pagina_dashboard():
 
 
 # ══════════════════════════════════════════════════════════════
-# NUEVO INGRESO
+# NUEVO INGRESO, EGRESO, HISTORIAL, ALERTAS, REPORTES, ADMIN
+# (Mantener las mismas funciones que en el código anterior)
 # ══════════════════════════════════════════════════════════════
 
 def pagina_ingreso():
@@ -727,10 +704,6 @@ def pagina_ingreso():
                 st.error(f"❌ Error al guardar: {e}")
 
 
-# ══════════════════════════════════════════════════════════════
-# NUEVO EGRESO
-# ══════════════════════════════════════════════════════════════
-
 def pagina_egreso():
     st.markdown('<h1 class="main-title">📤 Registrar Egreso</h1>', unsafe_allow_html=True)
     st.markdown('<p style="color: #6b8f71; margin-bottom: 2rem;">Registra la salida de productos del inventario</p>', unsafe_allow_html=True)
@@ -803,10 +776,6 @@ def pagina_egreso():
                 st.error(f"❌ Error al guardar: {e}")
 
 
-# ══════════════════════════════════════════════════════════════
-# HISTORIAL
-# ══════════════════════════════════════════════════════════════
-
 def pagina_historial():
     st.markdown('<h1 class="main-title">📋 Historial de Movimientos</h1>', unsafe_allow_html=True)
     st.markdown('<p style="color: #6b8f71; margin-bottom: 2rem;">Consulta todos los movimientos de stock</p>', unsafe_allow_html=True)
@@ -849,10 +818,6 @@ def pagina_historial():
         )
 
 
-# ══════════════════════════════════════════════════════════════
-# ALERTAS
-# ══════════════════════════════════════════════════════════════
-
 def pagina_alertas():
     st.markdown('<h1 class="main-title">⚠️ Alertas de Stock</h1>', unsafe_allow_html=True)
     st.markdown('<p style="color: #6b8f71; margin-bottom: 2rem;">Monitoreo de stock bajo y productos críticos</p>', unsafe_allow_html=True)
@@ -871,10 +836,6 @@ def pagina_alertas():
     
     st.success("✅ Sistema funcionando correctamente. Las alertas se mostrarán cuando haya stock bajo o productos por vencer.")
 
-
-# ══════════════════════════════════════════════════════════════
-# REPORTES
-# ══════════════════════════════════════════════════════════════
 
 def pagina_reportes():
     st.markdown('<h1 class="main-title">📈 Reportes y Estadísticas</h1>', unsafe_allow_html=True)
@@ -898,10 +859,6 @@ def pagina_reportes():
     chart_data = df.groupby(["mes", "tipo"])["cantidad"].sum().unstack()
     st.bar_chart(chart_data)
 
-
-# ══════════════════════════════════════════════════════════════
-# PÁGINAS ADMIN
-# ══════════════════════════════════════════════════════════════
 
 def pagina_proveedores():
     st.markdown('<h1 class="main-title">🏭 Gestión de Proveedores</h1>', unsafe_allow_html=True)
