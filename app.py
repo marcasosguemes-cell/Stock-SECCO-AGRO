@@ -25,6 +25,40 @@ def get_supabase() -> Client:
 
 supabase = get_supabase()
 
+
+# ══════════════════════════════════════════════════════════════
+# FUNCIONES DE AUTENTICACIÓN
+# ══════════════════════════════════════════════════════════════
+
+def check_auth():
+    """Verifica si el usuario está autenticado"""
+    try:
+        if "session" in st.session_state and st.session_state["session"]:
+            return True
+        
+        session = supabase.auth.get_session()
+        if session:
+            st.session_state["session"] = session
+            st.session_state["user_id"] = session.user.id
+            return True
+        
+        return False
+    except Exception:
+        return False
+
+
+def logout():
+    """Cierra la sesión del usuario"""
+    try:
+        supabase.auth.sign_out()
+        for key in ["session", "user_id", "perfil", "rol", "establecimiento_id", "establecimiento_nombre", "pagina"]:
+            if key in st.session_state:
+                del st.session_state[key]
+        st.rerun()
+    except Exception as e:
+        st.error(f"Error al cerrar sesión: {e}")
+
+
 # ── CSS personalizado ──────────────────────────────────────────
 st.markdown("""
 <style>
@@ -56,46 +90,44 @@ st.markdown("""
 
 
 # ══════════════════════════════════════════════════════════════
-# AUTENTICACIÓN
+# AUTENTICACIÓN - LOGIN
 # ══════════════════════════════════════════════════════════════
 
 def login():
-    with st.form("login_form"):
-        email = st.text_input("Email", placeholder="usuario@ejemplo.com")
-        password = st.text_input("Contraseña", type="password")
-        submitted = st.form_submit_button("Ingresar", use_container_width=True, type="primary")
+    """Pantalla de login"""
+    col1, col2, col3 = st.columns([1, 1.5, 1])
+    with col2:
+        st.markdown("<br><br>", unsafe_allow_html=True)
+        st.markdown('<p class="titulo-app">🌾 Stock Agrícola</p>', unsafe_allow_html=True)
+        st.markdown('<p class="subtitulo">La Sonia · San Guillermo · Camba Porca</p>', unsafe_allow_html=True)
+        st.markdown("---")
         
-        if submitted:
-            try:
-                res = supabase.auth.sign_in_with_password({"email": email, "password": password})
-                st.session_state["session"] = res.session
-                st.session_state["user_id"] = res.user.id
-                
-                perfil = supabase.table("usuarios").select("*").eq("id", res.user.id).execute()
-                
-                if perfil.data:
-                    st.session_state["perfil"] = perfil.data[0]
-                    st.session_state["rol"] = perfil.data[0]["rol"]
-                    st.session_state["establecimiento_id"] = perfil.data[0].get("establecimiento_id")
-                    st.session_state["establecimiento_nombre"] = perfil.data[0].get("establecimiento_nombre")
-                    st.rerun()
-                else:
-                    st.error("No se encontró tu perfil. Verifica que tu usuario esté registrado en la tabla 'usuarios'")
+        with st.form("login_form"):
+            email = st.text_input("Email", placeholder="usuario@ejemplo.com")
+            password = st.text_input("Contraseña", type="password")
+            submitted = st.form_submit_button("Ingresar", use_container_width=True, type="primary")
+            
+            if submitted:
+                try:
+                    res = supabase.auth.sign_in_with_password({"email": email, "password": password})
+                    st.session_state["session"] = res.session
+                    st.session_state["user_id"] = res.user.id
                     
-            except Exception as e:
-                st.error(f"Error al iniciar sesión: {e}")
+                    perfil = supabase.table("usuarios").select("*").eq("id", res.user.id).execute()
+                    
+                    if perfil.data:
+                        st.session_state["perfil"] = perfil.data[0]
+                        st.session_state["rol"] = perfil.data[0]["rol"]
+                        st.session_state["establecimiento_id"] = perfil.data[0].get("establecimiento_id")
+                        st.session_state["establecimiento_nombre"] = perfil.data[0].get("establecimiento_nombre")
+                        st.session_state["pagina"] = "Dashboard"
+                        st.rerun()
+                    else:
+                        st.error("No se encontró tu perfil. Verifica que tu usuario esté registrado en la tabla 'usuarios'")
+                        
+                except Exception as e:
+                    st.error(f"Error al iniciar sesión: {e}")
 
-# SIDEBAR / NAVEGACIÓN
-
-def sidebar():
-    with st.sidebar:
-        st.markdown("#")
-        perfil = st.session_state.get("perfil", {})
-        rol = st.session_state.get("rol", "")
-        estado = st.session_state.get("establecimiento_nombre", "Todos")
-        st.markdown(f"{perfil.get('nombre', 'Usuario')}")
-        st.markdown(f"<span style='color:red;'>Estadísticas</span>", unsafe_allow_html=True)
-        st.markdown(f"<span style='color:green;'>Administrador</span>", unsafe_allow_html=True)
 
 # ══════════════════════════════════════════════════════════════
 # SIDEBAR / NAVEGACIÓN
@@ -630,7 +662,7 @@ def pagina_reportes():
         st.dataframe(pivot, use_container_width=True)
 
     # Exportar Excel siempre disponible
-    if "df" in dir() and not df.empty:
+    if "df" in locals() and not df.empty:
         buffer = BytesIO()
         with pd.ExcelWriter(buffer, engine="openpyxl") as writer:
             df.to_excel(writer, index=False, sheet_name=reporte[:30])
