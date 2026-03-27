@@ -1,7 +1,7 @@
 """
 SISTEMA DE CONTROL DE STOCK AGRÍCOLA
 App principal Streamlit — La Sonia / San Guillermo / Camba Pora
-Versión con UI mejorada e imagen de fondo personalizada
+Versión con imagen como marca de agua y texto optimizado
 """
 
 import streamlit as st
@@ -30,12 +30,12 @@ supabase = get_supabase()
 
 
 # ══════════════════════════════════════════════════════════════
-# CSS MEJORADO CON IMAGEN DE FONDO DESDE GITHUB
+# CSS MEJORADO - Imagen como marca de agua + texto negro
 # ══════════════════════════════════════════════════════════════
 
 st.markdown("""
 <style>
-    /* Fondo con tu imagen desde GitHub */
+    /* Fondo con tu imagen - MODO MARCA DE AGUA */
     .stApp {
         background-image: url('https://raw.githubusercontent.com/marcasosguemes-cell/Stock-SECCO-AGRO/main/Fondo.PNG') !important;
         background-size: cover !important;
@@ -44,7 +44,7 @@ st.markdown("""
         background-repeat: no-repeat !important;
     }
     
-    /* Capa semitransparente para mejorar legibilidad */
+    /* Capa blanca para que la imagen sea más sutil (marca de agua) */
     .stApp::before {
         content: '';
         position: fixed;
@@ -52,7 +52,7 @@ st.markdown("""
         left: 0;
         right: 0;
         bottom: 0;
-        background: rgba(0, 0, 0, 0.4);
+        background: rgba(255, 255, 255, 0.75);
         z-index: -1;
         pointer-events: none;
     }
@@ -86,10 +86,9 @@ st.markdown("""
         transform: translateX(4px);
     }
     
-    /* Cards y formularios semitransparentes */
+    /* Cards y formularios - fondo blanco sólido */
     .metric-card, [data-testid="stForm"], .profile-card {
-        background: rgba(255, 255, 255, 0.95) !important;
-        backdrop-filter: blur(4px);
+        background: rgba(255, 255, 255, 0.98) !important;
         border: 1px solid rgba(44, 94, 46, 0.2);
         border-radius: 16px;
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
@@ -101,38 +100,57 @@ st.markdown("""
         box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
     }
     
+    /* Texto en tarjetas - NEGRO */
+    .metric-card, .metric-card * {
+        color: #1a1a1a !important;
+    }
+    
     .metric-value {
         font-size: 2rem;
         font-weight: bold;
-        color: #2c5e2e;
+        color: #2c5e2e !important;
         margin: 0.5rem 0;
     }
     
     .metric-label {
         font-size: 0.85rem;
-        color: #4a5b4a;
+        color: #4a5b4a !important;
         text-transform: uppercase;
         letter-spacing: 0.5px;
+        font-weight: 500;
     }
     
-    /* Títulos */
+    /* Títulos verdes con sombra */
     .main-title {
         font-size: 2rem;
         font-weight: 700;
-        background: linear-gradient(135deg, #2c5e2e, #d4a017);
+        background: linear-gradient(135deg, #1a4a1a, #2c5e2e);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         background-clip: text;
         margin-bottom: 0.5rem;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
     }
     
     .section-title {
         font-size: 1.3rem;
         font-weight: 600;
-        color: #1e401f;
+        color: #1a4a1a !important;
         border-left: 4px solid #d4a017;
         padding-left: 1rem;
         margin: 1.5rem 0 1rem 0;
+        text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.05);
+    }
+    
+    /* Texto normal en NEGRO */
+    p, span, div, label, .stMarkdown, .stText, .stNumberInput, .stSelectbox, .stDateInput {
+        color: #1a1a1a !important;
+    }
+    
+    /* Texto en formularios */
+    [data-testid="stForm"] label, [data-testid="stForm"] .stMarkdown {
+        color: #1a1a1a !important;
+        font-weight: 500;
     }
     
     /* Botones */
@@ -153,16 +171,23 @@ st.markdown("""
     
     /* Tablas */
     .stDataFrame {
-        background: rgba(255, 255, 255, 0.92);
+        background: rgba(255, 255, 255, 0.98);
         border-radius: 12px;
         padding: 0.5rem;
     }
     
+    .stDataFrame * {
+        color: #1a1a1a !important;
+    }
+    
     /* Alertas */
     .stAlert {
-        background: rgba(255, 255, 255, 0.95) !important;
-        backdrop-filter: blur(4px);
+        background: rgba(255, 255, 255, 0.98) !important;
         border-radius: 10px;
+    }
+    
+    .stAlert * {
+        color: #1a1a1a !important;
     }
     
     /* Badges */
@@ -176,24 +201,28 @@ st.markdown("""
     
     .badge-admin {
         background: linear-gradient(135deg, #d4a017, #b8860b);
-        color: white;
+        color: white !important;
     }
     
     .badge-operator {
         background: linear-gradient(135deg, #2c5e2e, #3d7a3f);
-        color: white;
+        color: white !important;
     }
     
     /* Footer */
     .footer {
         text-align: center;
         padding: 2rem;
-        color: #4a5b4a;
+        color: #4a5b4a !important;
         font-size: 0.8rem;
         border-top: 1px solid rgba(44, 94, 46, 0.2);
         margin-top: 2rem;
-        background: rgba(255, 255, 255, 0.85);
+        background: rgba(255, 255, 255, 0.95);
         border-radius: 12px;
+    }
+    
+    .footer p {
+        color: #4a5b4a !important;
     }
     
     /* Perfil card en sidebar */
@@ -207,6 +236,7 @@ st.markdown("""
     .profile-name {
         font-size: 1.1rem;
         font-weight: bold;
+        color: #f0f8f0 !important;
     }
     
     .sidebar-header {
@@ -222,7 +252,7 @@ st.markdown("""
         color: #d4a017 !important;
     }
     
-    /* Ajustes para el contenido principal */
+    /* Animación */
     .main-content {
         animation: fadeIn 0.5s ease-out;
     }
@@ -232,9 +262,14 @@ st.markdown("""
         to { opacity: 1; transform: translateY(0); }
     }
     
-    /* Asegurar que los elementos de Streamlit sean legibles */
-    .stMarkdown, .stText, .stNumberInput, .stSelectbox, .stDateInput {
-        color: #1a2e1a;
+    /* Inputs */
+    input, textarea, select {
+        color: #1a1a1a !important;
+        background-color: white !important;
+    }
+    
+    ::placeholder {
+        color: #999 !important;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -298,16 +333,16 @@ def verificar_perfil():
 
 
 # ══════════════════════════════════════════════════════════════
-# LOGIN MEJORADO
+# LOGIN
 # ══════════════════════════════════════════════════════════════
 
 def login():
-    """Pantalla de login con diseño mejorado"""
+    """Pantalla de login"""
     col1, col2, col3 = st.columns([1, 1.8, 1])
     with col2:
         st.markdown("""
         <div style="text-align: center; padding: 2rem 0;">
-            <h1 style="font-size: 3rem; margin: 0; background: linear-gradient(135deg, #2c5e2e, #d4a017); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">🌾 Stock Agrícola</h1>
+            <h1 style="font-size: 3rem; margin: 0; background: linear-gradient(135deg, #1a4a1a, #2c5e2e); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">🌾 Stock Agrícola</h1>
             <p style="color: #4a5b4a; font-size: 1rem; margin-top: 0.5rem;">La Sonia · San Guillermo · Camba Pora</p>
         </div>
         """, unsafe_allow_html=True)
@@ -352,7 +387,7 @@ def login():
 
 
 # ══════════════════════════════════════════════════════════════
-# SIDEBAR MEJORADO
+# SIDEBAR
 # ══════════════════════════════════════════════════════════════
 
 def sidebar():
