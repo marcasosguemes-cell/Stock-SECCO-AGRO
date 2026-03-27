@@ -30,14 +30,14 @@ supabase = get_supabase()
 
 
 # ══════════════════════════════════════════════════════════════
-# CSS MEJORADO CON IMAGEN DE FONDO
+# CSS MEJORADO CON IMAGEN DE FONDO DESDE GITHUB
 # ══════════════════════════════════════════════════════════════
 
 st.markdown("""
 <style>
-    /* Fondo con imagen - usando Pexels como respaldo confiable */
+    /* Fondo con tu imagen desde GitHub */
     .stApp {
-        background-image: url('https://images.pexels.com/photos/1431331/pexels-photo-1431331.jpeg?auto=compress&cs=tinysrgb&w=1920') !important;
+        background-image: url('https://raw.githubusercontent.com/marcasosguemes-cell/Stock-SECCO-AGRO/main/Fondo.PNG') !important;
         background-size: cover !important;
         background-position: center !important;
         background-attachment: fixed !important;
