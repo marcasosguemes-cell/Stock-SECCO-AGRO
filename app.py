@@ -1,7 +1,7 @@
 """
 SISTEMA DE CONTROL DE STOCK AGRÍCOLA
 App principal Streamlit — La Sonia / San Guillermo / Camba Pora
-Versión con logo grande en sidebar y burbujas marrones en todas las páginas
+Versión con logo grande, fondo muy apagado y subtítulos en burbuja
 """
 
 import streamlit as st
@@ -30,12 +30,12 @@ supabase = get_supabase()
 
 
 # ══════════════════════════════════════════════════════════════
-# CSS MEJORADO
+# CSS MEJORADO - Fondo muy apagado, logo grande
 # ══════════════════════════════════════════════════════════════
 
 st.markdown("""
 <style>
-    /* Fondo con tu imagen - MODO MARCA DE AGUA */
+    /* Fondo con tu imagen - MODO MARCA DE AGUA MUY APAGADA */
     .stApp {
         background-image: url('https://raw.githubusercontent.com/marcasosguemes-cell/Stock-SECCO-AGRO/main/Fondo.PNG') !important;
         background-size: cover !important;
@@ -44,7 +44,7 @@ st.markdown("""
         background-repeat: no-repeat !important;
     }
     
-    /* Capa blanca MUY intensa para que sea como marca de agua */
+    /* Capa blanca MUY intensa para que el fondo sea muy apagado */
     .stApp::before {
         content: '';
         position: fixed;
@@ -52,7 +52,7 @@ st.markdown("""
         left: 0;
         right: 0;
         bottom: 0;
-        background: rgba(255, 255, 255, 0.96);
+        background: rgba(255, 255, 255, 0.98);
         z-index: -1;
         pointer-events: none;
     }
@@ -301,7 +301,7 @@ st.markdown("""
         color: #f0f8f0 !important;
     }
     
-    /* Sidebar header con logo GRANDE */
+    /* Sidebar header con logo GRANDE - SIN SECCO AGRO */
     .sidebar-header {
         text-align: center;
         padding: 1rem 0;
@@ -313,7 +313,7 @@ st.markdown("""
     }
     
     .sidebar-header img {
-        width: 80px !important;
+        width: 100px !important;
         height: auto !important;
         border-radius: 12px;
         margin-bottom: 10px;
@@ -459,7 +459,7 @@ def login():
 
 
 # ══════════════════════════════════════════════════════════════
-# SIDEBAR CON LOGO GRANDE
+# SIDEBAR CON LOGO GRANDE (SIN SECCO AGRO)
 # ══════════════════════════════════════════════════════════════
 
 def sidebar():
@@ -468,7 +468,6 @@ def sidebar():
         <div class="sidebar-header">
             <img src="https://raw.githubusercontent.com/marcasosguemes-cell/Stock-SECCO-AGRO/main/Logo.png" alt="Logo">
             <h1>Stock Agrícola</h1>
-            <p style="margin: 5px 0 0 0; font-size: 0.8rem;">SECCO AGRO</p>
         </div>
         """, unsafe_allow_html=True)
         
@@ -520,7 +519,7 @@ def sidebar():
         <div style="margin-top: auto; padding-top: 2rem;">
             <p style="font-size: 0.7rem; text-align: center; opacity: 0.6;">
                 Versión 2.0<br>
-                © 2024 SECCO AGRO
+                © 2024
             </p>
         </div>
         """, unsafe_allow_html=True)
@@ -1147,7 +1146,7 @@ def main():
     # Footer
     st.markdown("""
     <div class="footer">
-        <p>🌾 Sistema de Control de Stock Agrícola - SECCO AGRO</p>
+        <p>🌾 Sistema de Control de Stock Agrícola</p>
         <p>La Sonia · San Guillermo · Camba Pora</p>
     </div>
     """, unsafe_allow_html=True)
