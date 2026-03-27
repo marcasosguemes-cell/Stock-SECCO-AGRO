@@ -1,7 +1,7 @@
 """
 SISTEMA DE CONTROL DE STOCK AGRÍCOLA
 App principal Streamlit — La Sonia / San Guillermo / Camba Pora
-Versión con logo, fondo más suave y burbujas marrón
+Versión con logo más grande y burbujas marrón en Dashboard
 """
 
 import streamlit as st
@@ -30,12 +30,12 @@ supabase = get_supabase()
 
 
 # ══════════════════════════════════════════════════════════════
-# CSS MEJORADO - Logo correcto, fondo más suave, burbujas marrón
+# CSS MEJORADO
 # ══════════════════════════════════════════════════════════════
 
 st.markdown("""
 <style>
-    /* Fondo con tu imagen - MODO MARCA DE AGUA (más suave) */
+    /* Fondo con tu imagen - MODO MARCA DE AGUA */
     .stApp {
         background-image: url('https://raw.githubusercontent.com/marcasosguemes-cell/Stock-SECCO-AGRO/main/Fondo.PNG') !important;
         background-size: cover !important;
@@ -125,43 +125,44 @@ st.markdown("""
         text-align: center !important;
     }
     
-    /* BURBUJAS MARRÓN CLARO para títulos de categorías */
-    .category-bubble {
+    /* BURBUJAS MARRÓN CLARO para títulos */
+    .title-bubble {
         background: rgba(180, 140, 100, 0.95);
         border: 1px solid rgba(120, 90, 60, 0.4);
         border-radius: 30px;
-        padding: 0.5rem 1.5rem;
-        margin: 0.5rem 0;
+        padding: 0.5rem 2rem;
         display: inline-block;
         box-shadow: 0 2px 8px rgba(0,0,0,0.1);
         transition: all 0.3s ease;
     }
     
-    .category-bubble:hover {
+    .title-bubble:hover {
         transform: translateY(-2px);
         background: rgba(190, 150, 110, 0.98);
         box-shadow: 0 4px 12px rgba(0,0,0,0.15);
     }
     
-    .category-bubble h3, .category-bubble h2 {
+    .title-bubble h1 {
         margin: 0;
         color: #f5e6d3 !important;
         text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
         font-weight: 600;
+        font-size: 2rem;
     }
     
-    /* Contenedor del título con logo (login) */
+    /* Contenedor del título con logo (login) - LOGO MÁS GRANDE */
     .title-container {
         display: flex;
         align-items: center;
         justify-content: center;
-        gap: 15px;
+        gap: 20px;
         margin-bottom: 0.5rem;
         flex-wrap: wrap;
+        position: relative;
     }
     
     .title-logo {
-        width: 65px;
+        width: 100px;
         height: auto;
         filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.2));
     }
@@ -377,14 +378,14 @@ def verificar_perfil():
 
 
 # ══════════════════════════════════════════════════════════════
-# LOGIN CON LOGO CORRECTO (desde GitHub)
+# LOGIN CON LOGO MÁS GRANDE
 # ══════════════════════════════════════════════════════════════
 
 def login():
-    """Pantalla de login con logo"""
+    """Pantalla de login con logo grande"""
     col1, col2, col3 = st.columns([1, 1.8, 1])
     with col2:
-        # Título con logo - usando tu logo de GitHub
+        # Título con logo más grande
         st.markdown("""
         <div class="title-container">
             <img src="https://raw.githubusercontent.com/marcasosguemes-cell/Stock-SECCO-AGRO/main/Logo.png" class="title-logo" alt="Logo Stock Agrícola">
@@ -433,7 +434,7 @@ def login():
 
 
 # ══════════════════════════════════════════════════════════════
-# SIDEBAR CON LOGO CORRECTO
+# SIDEBAR CON LOGO
 # ══════════════════════════════════════════════════════════════
 
 def sidebar():
@@ -546,13 +547,20 @@ def estab_filter():
 
 
 # ══════════════════════════════════════════════════════════════
-# DASHBOARD CON BURBUJAS MARRÓN PARA CATEGORÍAS
+# DASHBOARD CON BURBUJA MARRÓN EN EL TÍTULO
 # ══════════════════════════════════════════════════════════════
 
 def pagina_dashboard():
     st.markdown('<div class="main-content">', unsafe_allow_html=True)
     
-    st.markdown('<h1 class="main-title">📊 Dashboard de Stock</h1>', unsafe_allow_html=True)
+    # Título con burbuja marrón
+    st.markdown("""
+    <div style="margin-bottom: 2rem;">
+        <div class="title-bubble">
+            <h1>📊 Dashboard de Stock</h1>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
     st.markdown('<p style="color: #6b8f71; margin-bottom: 2rem;">Resumen general del inventario agrícola</p>', unsafe_allow_html=True)
 
     movimientos = get_movimientos(estab_filter())
@@ -609,18 +617,6 @@ def pagina_dashboard():
     
     st.markdown("---")
     
-    # Mostrar categorías con burbujas marrón claro
-    st.markdown("""
-    <div style="display: flex; flex-wrap: wrap; gap: 15px; justify-content: center; margin: 1rem 0 2rem 0;">
-        <div class="category-bubble"><h3>🌾 Herbicidas</h3></div>
-        <div class="category-bubble"><h3>🍄 Fungicidas</h3></div>
-        <div class="category-bubble"><h3>🐛 Insecticidas</h3></div>
-        <div class="category-bubble"><h3>💪 Fertilizantes</h3></div>
-        <div class="category-bubble"><h3>🌱 Semillas</h3></div>
-        <div class="category-bubble"><h3>📦 Otros</h3></div>
-    </div>
-    """, unsafe_allow_html=True)
-    
     if movimientos:
         df = pd.DataFrame(movimientos)
         df["fecha"] = pd.to_datetime(df["fecha"])
@@ -648,7 +644,8 @@ def pagina_dashboard():
 
 
 # ══════════════════════════════════════════════════════════════
-# NUEVO INGRESO
+# NUEVO INGRESO, EGRESO, HISTORIAL, ALERTAS, REPORTES, ADMIN
+# (Mantener las mismas funciones que en el código anterior)
 # ══════════════════════════════════════════════════════════════
 
 def pagina_ingreso():
@@ -740,10 +737,6 @@ def pagina_ingreso():
                 st.error(f"❌ Error al guardar: {e}")
 
 
-# ══════════════════════════════════════════════════════════════
-# NUEVO EGRESO
-# ══════════════════════════════════════════════════════════════
-
 def pagina_egreso():
     st.markdown('<h1 class="main-title">📤 Registrar Egreso</h1>', unsafe_allow_html=True)
     st.markdown('<p style="color: #6b8f71; margin-bottom: 2rem;">Registra la salida de productos del inventario</p>', unsafe_allow_html=True)
@@ -816,10 +809,6 @@ def pagina_egreso():
                 st.error(f"❌ Error al guardar: {e}")
 
 
-# ══════════════════════════════════════════════════════════════
-# HISTORIAL
-# ══════════════════════════════════════════════════════════════
-
 def pagina_historial():
     st.markdown('<h1 class="main-title">📋 Historial de Movimientos</h1>', unsafe_allow_html=True)
     st.markdown('<p style="color: #6b8f71; margin-bottom: 2rem;">Consulta todos los movimientos de stock</p>', unsafe_allow_html=True)
@@ -862,10 +851,6 @@ def pagina_historial():
         )
 
 
-# ══════════════════════════════════════════════════════════════
-# ALERTAS
-# ══════════════════════════════════════════════════════════════
-
 def pagina_alertas():
     st.markdown('<h1 class="main-title">⚠️ Alertas de Stock</h1>', unsafe_allow_html=True)
     st.markdown('<p style="color: #6b8f71; margin-bottom: 2rem;">Monitoreo de stock bajo y productos críticos</p>', unsafe_allow_html=True)
@@ -884,10 +869,6 @@ def pagina_alertas():
     
     st.success("✅ Sistema funcionando correctamente. Las alertas se mostrarán cuando haya stock bajo o productos por vencer.")
 
-
-# ══════════════════════════════════════════════════════════════
-# REPORTES
-# ══════════════════════════════════════════════════════════════
 
 def pagina_reportes():
     st.markdown('<h1 class="main-title">📈 Reportes y Estadísticas</h1>', unsafe_allow_html=True)
@@ -911,10 +892,6 @@ def pagina_reportes():
     chart_data = df.groupby(["mes", "tipo"])["cantidad"].sum().unstack()
     st.bar_chart(chart_data)
 
-
-# ══════════════════════════════════════════════════════════════
-# PÁGINAS ADMIN
-# ══════════════════════════════════════════════════════════════
 
 def pagina_proveedores():
     st.markdown('<h1 class="main-title">🏭 Gestión de Proveedores</h1>', unsafe_allow_html=True)
