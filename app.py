@@ -30,12 +30,12 @@ supabase = get_supabase()
 
 
 # ══════════════════════════════════════════════════════════════
-# CSS MEJORADO - Imagen como marca de agua + texto negro
+# CSS MEJORADO - Imagen más suave + texto optimizado
 # ══════════════════════════════════════════════════════════════
 
 st.markdown("""
 <style>
-    /* Fondo con tu imagen - MODO MARCA DE AGUA */
+    /* Fondo con tu imagen - MODO MARCA DE AGUA (más suave) */
     .stApp {
         background-image: url('https://raw.githubusercontent.com/marcasosguemes-cell/Stock-SECCO-AGRO/main/Fondo.PNG') !important;
         background-size: cover !important;
@@ -44,7 +44,7 @@ st.markdown("""
         background-repeat: no-repeat !important;
     }
     
-    /* Capa blanca para que la imagen sea más sutil (marca de agua) */
+    /* Capa blanca para reducir intensidad de la imagen (85% más blanca) */
     .stApp::before {
         content: '';
         position: fixed;
@@ -52,14 +52,14 @@ st.markdown("""
         left: 0;
         right: 0;
         bottom: 0;
-        background: rgba(255, 255, 255, 0.75);
+        background: rgba(255, 255, 255, 0.85);
         z-index: -1;
         pointer-events: none;
     }
     
-    /* Sidebar con efecto vidrio */
+    /* Sidebar con color AZUL MARINO */
     [data-testid="stSidebar"] {
-        background: rgba(26, 46, 26, 0.92) !important;
+        background: rgba(25, 35, 55, 0.95) !important;
         backdrop-filter: blur(10px);
         border-right: 1px solid rgba(212, 160, 23, 0.3);
     }
@@ -100,24 +100,24 @@ st.markdown("""
         box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
     }
     
-    /* Texto en tarjetas - NEGRO */
+    /* Texto en tarjetas - NEGRO con tamaño aumentado */
     .metric-card, .metric-card * {
         color: #1a1a1a !important;
     }
     
     .metric-value {
-        font-size: 2rem;
+        font-size: 2.2rem;
         font-weight: bold;
         color: #2c5e2e !important;
         margin: 0.5rem 0;
     }
     
     .metric-label {
-        font-size: 0.85rem;
-        color: #4a5b4a !important;
+        font-size: 1rem;
+        color: #2c5e2e !important;
         text-transform: uppercase;
         letter-spacing: 0.5px;
-        font-weight: 500;
+        font-weight: 600;
     }
     
     /* Títulos verdes con sombra */
@@ -526,7 +526,7 @@ def pagina_dashboard():
         <div class="metric-card">
             <div class="metric-label">📦 Stock Total</div>
             <div class="metric-value">{stock_total:,.0f}</div>
-            <div style="font-size:0.7rem;">unidades en inventario</div>
+            <div style="font-size:0.8rem; color:#4a5b4a;">unidades en inventario</div>
         </div>
         """, unsafe_allow_html=True)
     
@@ -535,7 +535,7 @@ def pagina_dashboard():
         <div class="metric-card">
             <div class="metric-label">📥 Ingresos</div>
             <div class="metric-value">{total_ingresos}</div>
-            <div style="font-size:0.7rem;">movimientos registrados</div>
+            <div style="font-size:0.8rem; color:#4a5b4a;">movimientos registrados</div>
         </div>
         """, unsafe_allow_html=True)
     
@@ -544,7 +544,7 @@ def pagina_dashboard():
         <div class="metric-card">
             <div class="metric-label">📤 Egresos</div>
             <div class="metric-value">{total_egresos}</div>
-            <div style="font-size:0.7rem;">movimientos registrados</div>
+            <div style="font-size:0.8rem; color:#4a5b4a;">movimientos registrados</div>
         </div>
         """, unsafe_allow_html=True)
     
@@ -553,7 +553,7 @@ def pagina_dashboard():
         <div class="metric-card">
             <div class="metric-label">🔄 Total Movimientos</div>
             <div class="metric-value">{total_movimientos}</div>
-            <div style="font-size:0.7rem;">operaciones realizadas</div>
+            <div style="font-size:0.8rem; color:#4a5b4a;">operaciones realizadas</div>
         </div>
         """, unsafe_allow_html=True)
     
