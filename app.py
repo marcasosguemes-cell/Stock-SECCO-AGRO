@@ -1,7 +1,7 @@
 """
 SISTEMA DE CONTROL DE STOCK AGRÍCOLA
 App principal Streamlit — La Sonia / San Guillermo / Camba Pora
-Versión con logo personalizado
+Versión con logo y texto centrado
 """
 
 import streamlit as st
@@ -30,7 +30,7 @@ supabase = get_supabase()
 
 
 # ══════════════════════════════════════════════════════════════
-# CSS MEJORADO - Con logo en el título
+# CSS MEJORADO - Logo y texto centrado
 # ══════════════════════════════════════════════════════════════
 
 st.markdown("""
@@ -93,6 +93,7 @@ st.markdown("""
         border-radius: 16px;
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
         transition: all 0.3s ease;
+        text-align: center !important;
     }
     
     .metric-card:hover {
@@ -100,9 +101,10 @@ st.markdown("""
         box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
     }
     
-    /* Texto en tarjetas - NEGRO con tamaño aumentado */
+    /* Texto en tarjetas - NEGRO con tamaño aumentado y centrado */
     .metric-card, .metric-card * {
         color: #1a1a1a !important;
+        text-align: center !important;
     }
     
     .metric-value {
@@ -110,6 +112,7 @@ st.markdown("""
         font-weight: bold;
         color: #2c5e2e !important;
         margin: 0.5rem 0;
+        text-align: center !important;
     }
     
     .metric-label {
@@ -118,9 +121,10 @@ st.markdown("""
         text-transform: uppercase;
         letter-spacing: 0.5px;
         font-weight: 600;
+        text-align: center !important;
     }
     
-    /* Contenedor del título con logo */
+    /* Contenedor del título con logo (solo para login) */
     .title-container {
         display: flex;
         align-items: center;
@@ -136,8 +140,21 @@ st.markdown("""
         filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.2));
     }
     
-    /* Títulos verdes con sombra */
+    /* Títulos de página alineados a la izquierda */
     .main-title {
+        font-size: 2rem;
+        font-weight: 700;
+        background: linear-gradient(135deg, #1a4a1a, #2c5e2e);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        margin: 0 0 0.5rem 0;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        text-align: left !important;
+    }
+    
+    /* Título de página con logo (solo para login) */
+    .main-title-with-logo {
         font-size: 2rem;
         font-weight: 700;
         background: linear-gradient(135deg, #1a4a1a, #2c5e2e);
@@ -156,6 +173,7 @@ st.markdown("""
         padding-left: 1rem;
         margin: 1.5rem 0 1rem 0;
         text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.05);
+        text-align: left !important;
     }
     
     /* Texto normal en NEGRO */
@@ -356,11 +374,11 @@ def login():
     """Pantalla de login con logo"""
     col1, col2, col3 = st.columns([1, 1.8, 1])
     with col2:
-        # Título con logo
+        # Título con logo centrado
         st.markdown("""
         <div class="title-container">
             <img src="https://i.imgur.com/XuzO6ET.png" class="title-logo" alt="Logo">
-            <h1 class="main-title" style="font-size: 2.5rem;">Stock Agrícola</h1>
+            <h1 class="main-title-with-logo">Stock Agrícola</h1>
         </div>
         <p style="text-align: center; color: #4a5b4a; font-size: 1rem; margin-top: 0.5rem;">La Sonia · San Guillermo · Camba Pora</p>
         """, unsafe_allow_html=True)
@@ -405,15 +423,18 @@ def login():
 
 
 # ══════════════════════════════════════════════════════════════
-# SIDEBAR
+# SIDEBAR CON LOGO
 # ══════════════════════════════════════════════════════════════
 
 def sidebar():
     with st.sidebar:
         st.markdown("""
         <div class="sidebar-header">
-            <h1>🌾 Stock Agrícola</h1>
-            <p>SECCO AGRO</p>
+            <div style="display: flex; align-items: center; justify-content: center; gap: 10px;">
+                <img src="https://i.imgur.com/XuzO6ET.png" style="width: 35px; height: auto;" alt="Logo">
+                <h1 style="font-size: 1.3rem; margin: 0; color: #d4a017 !important;">Stock Agrícola</h1>
+            </div>
+            <p style="margin: 0; font-size: 0.8rem;">SECCO AGRO</p>
         </div>
         """, unsafe_allow_html=True)
         
@@ -515,20 +536,15 @@ def estab_filter():
 
 
 # ══════════════════════════════════════════════════════════════
-# DASHBOARD CON LOGO
+# DASHBOARD (título a la izquierda)
 # ══════════════════════════════════════════════════════════════
 
 def pagina_dashboard():
     st.markdown('<div class="main-content">', unsafe_allow_html=True)
     
-    # Título con logo en Dashboard
-    st.markdown("""
-    <div class="title-container">
-        <img src="https://i.imgur.com/XuzO6ET.png" class="title-logo" alt="Logo">
-        <h1 class="main-title">📊 Dashboard de Stock</h1>
-    </div>
-    <p style="color: #6b8f71; margin-bottom: 2rem;">Resumen general del inventario agrícola</p>
-    """, unsafe_allow_html=True)
+    # Título sin logo, alineado a la izquierda
+    st.markdown('<h1 class="main-title">📊 Dashboard de Stock</h1>', unsafe_allow_html=True)
+    st.markdown('<p style="color: #6b8f71; margin-bottom: 2rem;">Resumen general del inventario agrícola</p>', unsafe_allow_html=True)
 
     movimientos = get_movimientos(estab_filter())
     
@@ -611,17 +627,12 @@ def pagina_dashboard():
 
 
 # ══════════════════════════════════════════════════════════════
-# NUEVO INGRESO (con logo en título)
+# NUEVO INGRESO
 # ══════════════════════════════════════════════════════════════
 
 def pagina_ingreso():
-    st.markdown("""
-    <div class="title-container">
-        <img src="https://i.imgur.com/XuzO6ET.png" class="title-logo" alt="Logo">
-        <h1 class="main-title">📥 Registrar Ingreso</h1>
-    </div>
-    <p style="color: #6b8f71; margin-bottom: 2rem;">Registra la entrada de productos al inventario</p>
-    """, unsafe_allow_html=True)
+    st.markdown('<h1 class="main-title">📥 Registrar Ingreso</h1>', unsafe_allow_html=True)
+    st.markdown('<p style="color: #6b8f71; margin-bottom: 2rem;">Registra la entrada de productos al inventario</p>', unsafe_allow_html=True)
 
     establecimientos = get_establecimientos()
     categorias = get_categorias()
@@ -709,17 +720,12 @@ def pagina_ingreso():
 
 
 # ══════════════════════════════════════════════════════════════
-# NUEVO EGRESO (con logo en título)
+# NUEVO EGRESO
 # ══════════════════════════════════════════════════════════════
 
 def pagina_egreso():
-    st.markdown("""
-    <div class="title-container">
-        <img src="https://i.imgur.com/XuzO6ET.png" class="title-logo" alt="Logo">
-        <h1 class="main-title">📤 Registrar Egreso</h1>
-    </div>
-    <p style="color: #6b8f71; margin-bottom: 2rem;">Registra la salida de productos del inventario</p>
-    """, unsafe_allow_html=True)
+    st.markdown('<h1 class="main-title">📤 Registrar Egreso</h1>', unsafe_allow_html=True)
+    st.markdown('<p style="color: #6b8f71; margin-bottom: 2rem;">Registra la salida de productos del inventario</p>', unsafe_allow_html=True)
 
     establecimientos = get_establecimientos()
     categorias = get_categorias()
@@ -790,17 +796,12 @@ def pagina_egreso():
 
 
 # ══════════════════════════════════════════════════════════════
-# HISTORIAL (con logo en título)
+# HISTORIAL
 # ══════════════════════════════════════════════════════════════
 
 def pagina_historial():
-    st.markdown("""
-    <div class="title-container">
-        <img src="https://i.imgur.com/XuzO6ET.png" class="title-logo" alt="Logo">
-        <h1 class="main-title">📋 Historial de Movimientos</h1>
-    </div>
-    <p style="color: #6b8f71; margin-bottom: 2rem;">Consulta todos los movimientos de stock</p>
-    """, unsafe_allow_html=True)
+    st.markdown('<h1 class="main-title">📋 Historial de Movimientos</h1>', unsafe_allow_html=True)
+    st.markdown('<p style="color: #6b8f71; margin-bottom: 2rem;">Consulta todos los movimientos de stock</p>', unsafe_allow_html=True)
 
     movimientos = get_movimientos(estab_filter(), limit=500)
     
@@ -841,17 +842,12 @@ def pagina_historial():
 
 
 # ══════════════════════════════════════════════════════════════
-# ALERTAS (con logo en título)
+# ALERTAS
 # ══════════════════════════════════════════════════════════════
 
 def pagina_alertas():
-    st.markdown("""
-    <div class="title-container">
-        <img src="https://i.imgur.com/XuzO6ET.png" class="title-logo" alt="Logo">
-        <h1 class="main-title">⚠️ Alertas de Stock</h1>
-    </div>
-    <p style="color: #6b8f71; margin-bottom: 2rem;">Monitoreo de stock bajo y productos críticos</p>
-    """, unsafe_allow_html=True)
+    st.markdown('<h1 class="main-title">⚠️ Alertas de Stock</h1>', unsafe_allow_html=True)
+    st.markdown('<p style="color: #6b8f71; margin-bottom: 2rem;">Monitoreo de stock bajo y productos críticos</p>', unsafe_allow_html=True)
     
     movimientos = get_movimientos(estab_filter())
     
@@ -869,17 +865,12 @@ def pagina_alertas():
 
 
 # ══════════════════════════════════════════════════════════════
-# REPORTES (con logo en título)
+# REPORTES
 # ══════════════════════════════════════════════════════════════
 
 def pagina_reportes():
-    st.markdown("""
-    <div class="title-container">
-        <img src="https://i.imgur.com/XuzO6ET.png" class="title-logo" alt="Logo">
-        <h1 class="main-title">📈 Reportes y Estadísticas</h1>
-    </div>
-    <p style="color: #6b8f71; margin-bottom: 2rem;">Análisis detallado de movimientos y tendencias</p>
-    """, unsafe_allow_html=True)
+    st.markdown('<h1 class="main-title">📈 Reportes y Estadísticas</h1>', unsafe_allow_html=True)
+    st.markdown('<p style="color: #6b8f71; margin-bottom: 2rem;">Análisis detallado de movimientos y tendencias</p>', unsafe_allow_html=True)
     
     movimientos = get_movimientos(estab_filter())
     
@@ -901,17 +892,12 @@ def pagina_reportes():
 
 
 # ══════════════════════════════════════════════════════════════
-# PÁGINAS ADMIN (con logo en títulos)
+# PÁGINAS ADMIN
 # ══════════════════════════════════════════════════════════════
 
 def pagina_proveedores():
-    st.markdown("""
-    <div class="title-container">
-        <img src="https://i.imgur.com/XuzO6ET.png" class="title-logo" alt="Logo">
-        <h1 class="main-title">🏭 Gestión de Proveedores</h1>
-    </div>
-    <p style="color: #6b8f71; margin-bottom: 2rem;">Administra los proveedores de insumos agrícolas</p>
-    """, unsafe_allow_html=True)
+    st.markdown('<h1 class="main-title">🏭 Gestión de Proveedores</h1>', unsafe_allow_html=True)
+    st.markdown('<p style="color: #6b8f71; margin-bottom: 2rem;">Administra los proveedores de insumos agrícolas</p>', unsafe_allow_html=True)
     
     proveedores = get_proveedores()
     
@@ -932,13 +918,8 @@ def pagina_proveedores():
 
 
 def pagina_productos():
-    st.markdown("""
-    <div class="title-container">
-        <img src="https://i.imgur.com/XuzO6ET.png" class="title-logo" alt="Logo">
-        <h1 class="main-title">📦 Catálogo de Productos</h1>
-    </div>
-    <p style="color: #6b8f71; margin-bottom: 2rem;">Administra el catálogo de productos agrícolas</p>
-    """, unsafe_allow_html=True)
+    st.markdown('<h1 class="main-title">📦 Catálogo de Productos</h1>', unsafe_allow_html=True)
+    st.markdown('<p style="color: #6b8f71; margin-bottom: 2rem;">Administra el catálogo de productos agrícolas</p>', unsafe_allow_html=True)
     
     categorias = get_categorias()
     cat_options = {c["nombre"]: c["id"] for c in categorias}
@@ -967,13 +948,8 @@ def pagina_productos():
 
 
 def pagina_usuarios():
-    st.markdown("""
-    <div class="title-container">
-        <img src="https://i.imgur.com/XuzO6ET.png" class="title-logo" alt="Logo">
-        <h1 class="main-title">👥 Gestión de Usuarios</h1>
-    </div>
-    <p style="color: #6b8f71; margin-bottom: 2rem;">Administra los usuarios del sistema</p>
-    """, unsafe_allow_html=True)
+    st.markdown('<h1 class="main-title">👥 Gestión de Usuarios</h1>', unsafe_allow_html=True)
+    st.markdown('<p style="color: #6b8f71; margin-bottom: 2rem;">Administra los usuarios del sistema</p>', unsafe_allow_html=True)
     
     st.info("📝 Para crear nuevos usuarios, usá el panel de Supabase Authentication y luego completá sus datos en la tabla `usuarios`.")
     
