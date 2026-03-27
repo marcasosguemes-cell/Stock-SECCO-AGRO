@@ -60,38 +60,42 @@ st.markdown("""
 # ══════════════════════════════════════════════════════════════
 
 def login():
-    """Pantalla de login."""
-    col1, col2, col3 = st.columns([1, 1.5, 1])
-    with col2:
-        st.markdown("<br><br>", unsafe_allow_html=True)
-        st.markdown('<p class="titulo-app">🌾 Stock Agrícola</p>', unsafe_allow_html=True)
-        st.markdown('<p class="subtitulo">La Sonia · San Guillermo · Camba Pora</p>', unsafe_allow_html=True)
-        st.markdown("---")
-
-        with st.form("login_form"):
-            email = st.text_input("Email", placeholder="usuario@ejemplo.com")
-            password = st.text_input("Contraseña", type="password")
-            submitted = st.form_submit_button("Ingresar", use_container_width=True, type="primary")
-
- if submitted:
-    try:
-        res = supabase.auth.sign_in_with_password({"email": email, "password": password})
-        st.session_state["session"] = res.session
-        st.session_state["user_id"] = res.user.id
+    with st.form("login_form"):
+        email = st.text_input("Email", placeholder="usuario@ejemplo.com")
+        password = st.text_input("Contraseña", type="password")
+        submitted = st.form_submit_button("Ingresar", use_container_width=True, type="primary")
         
-        perfil = supabase.table("usuarios").select("*").eq("id", res.user.id).execute()
-        
-        if perfil.data:
-            st.session_state["perfil"] = perfil.data[0]
-            st.session_state["rol"] = perfil.data[0]["rol"]
-            st.session_state["establecimiento_id"] = perfil.data[0].get("establecimiento_id")
-            st.session_state["establecimiento_nombre"] = perfil.data[0].get("establecimiento_nombre")
-            st.rerun()
-        else:
-            st.error("No se encontró tu perfil. Verifica que tu usuario esté registrado en la tabla 'usuarios'")
-            
-    except Exception as e:
-        st.error(f"Error al iniciar sesión: {e}")
+        if submitted:
+            try:
+                res = supabase.auth.sign_in_with_password({"email": email, "password": password})
+                st.session_state["session"] = res.session
+                st.session_state["user_id"] = res.user.id
+                
+                perfil = supabase.table("usuarios").select("*").eq("id", res.user.id).execute()
+                
+                if perfil.data:
+                    st.session_state["perfil"] = perfil.data[0]
+                    st.session_state["rol"] = perfil.data[0]["rol"]
+                    st.session_state["establecimiento_id"] = perfil.data[0].get("establecimiento_id")
+                    st.session_state["establecimiento_nombre"] = perfil.data[0].get("establecimiento_nombre")
+                    st.rerun()
+                else:
+                    st.error("No se encontró tu perfil. Verifica que tu usuario esté registrado en la tabla 'usuarios'")
+                    
+            except Exception as e:
+                st.error(f"Error al iniciar sesión: {e}")
+
+# SIDEBAR / NAVEGACIÓN
+
+def sidebar():
+    with st.sidebar:
+        st.markdown("#")
+        perfil = st.session_state.get("perfil", {})
+        rol = st.session_state.get("rol", "")
+        estado = st.session_state.get("establecimiento_nombre", "Todos")
+        st.markdown(f"{perfil.get('nombre', 'Usuario')}")
+        st.markdown(f"<span style='color:red;'>Estadísticas</span>", unsafe_allow_html=True)
+        st.markdown(f"<span style='color:green;'>Administrador</span>", unsafe_allow_html=True)
 
 # ══════════════════════════════════════════════════════════════
 # SIDEBAR / NAVEGACIÓN
