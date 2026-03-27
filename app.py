@@ -30,18 +30,18 @@ supabase = get_supabase()
 
 
 # ══════════════════════════════════════════════════════════════
-# CSS MEJORADO CON IMAGEN DE FONDO PERSONALIZADA
+# CSS MEJORADO CON IMAGEN DE FONDO
 # ══════════════════════════════════════════════════════════════
 
 st.markdown("""
 <style>
-    /* Fondo con tu imagen personalizada */
+    /* Fondo con imagen - usando Pexels como respaldo confiable */
     .stApp {
-        background-image: url('https://i.imgur.com/bFwiqHN.jpeg');
-        background-size: cover;
-        background-position: center;
-        background-attachment: fixed;
-        background-repeat: no-repeat;
+        background-image: url('https://images.pexels.com/photos/1431331/pexels-photo-1431331.jpeg?auto=compress&cs=tinysrgb&w=1920') !important;
+        background-size: cover !important;
+        background-position: center !important;
+        background-attachment: fixed !important;
+        background-repeat: no-repeat !important;
     }
     
     /* Capa semitransparente para mejorar legibilidad */
@@ -54,6 +54,7 @@ st.markdown("""
         bottom: 0;
         background: rgba(0, 0, 0, 0.4);
         z-index: -1;
+        pointer-events: none;
     }
     
     /* Sidebar con efecto vidrio */
@@ -114,7 +115,7 @@ st.markdown("""
         letter-spacing: 0.5px;
     }
     
-    /* Títulos con sombra */
+    /* Títulos */
     .main-title {
         font-size: 2rem;
         font-weight: 700;
@@ -123,7 +124,6 @@ st.markdown("""
         -webkit-text-fill-color: transparent;
         background-clip: text;
         margin-bottom: 0.5rem;
-        text-shadow: none;
     }
     
     .section-title {
@@ -196,16 +196,6 @@ st.markdown("""
         border-radius: 12px;
     }
     
-    /* Animación */
-    @keyframes fadeIn {
-        from { opacity: 0; transform: translateY(20px); }
-        to { opacity: 1; transform: translateY(0); }
-    }
-    
-    .main-content {
-        animation: fadeIn 0.5s ease-out;
-    }
-    
     /* Perfil card en sidebar */
     .profile-card {
         text-align: center;
@@ -230,6 +220,21 @@ st.markdown("""
         font-size: 1.5rem;
         margin: 0;
         color: #d4a017 !important;
+    }
+    
+    /* Ajustes para el contenido principal */
+    .main-content {
+        animation: fadeIn 0.5s ease-out;
+    }
+    
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    
+    /* Asegurar que los elementos de Streamlit sean legibles */
+    .stMarkdown, .stText, .stNumberInput, .stSelectbox, .stDateInput {
+        color: #1a2e1a;
     }
 </style>
 """, unsafe_allow_html=True)
