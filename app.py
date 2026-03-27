@@ -1,15 +1,13 @@
 """
 SISTEMA DE CONTROL DE STOCK AGRÍCOLA
 App principal Streamlit — La Sonia / San Guillermo / Camba Pora
-Versión con logo mejorado, gráficos por establecimiento y menú
+Versión con logo grande en sidebar y burbujas marrones en todas las páginas
 """
 
 import streamlit as st
 from supabase import create_client, Client
 from datetime import date, timedelta
 import pandas as pd
-import plotly.express as px
-import plotly.graph_objects as go
 from io import BytesIO
 
 # ── Configuración de página ────────────────────────────────────
@@ -32,7 +30,7 @@ supabase = get_supabase()
 
 
 # ══════════════════════════════════════════════════════════════
-# CSS MEJORADO - Logo grande, textos negros y oliva
+# CSS MEJORADO
 # ══════════════════════════════════════════════════════════════
 
 st.markdown("""
@@ -137,6 +135,7 @@ st.markdown("""
         box-shadow: 0 2px 8px rgba(0,0,0,0.1);
         transition: all 0.3s ease;
         text-align: center;
+        margin-bottom: 1rem;
     }
     
     .title-bubble:hover {
@@ -302,15 +301,26 @@ st.markdown("""
         color: #f0f8f0 !important;
     }
     
+    /* Sidebar header con logo GRANDE */
     .sidebar-header {
         text-align: center;
         padding: 1rem 0;
         border-bottom: 2px solid #d4a017;
         margin-bottom: 1.5rem;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .sidebar-header img {
+        width: 80px !important;
+        height: auto !important;
+        border-radius: 12px;
+        margin-bottom: 10px;
     }
     
     .sidebar-header h1 {
-        font-size: 1.3rem;
+        font-size: 1.5rem;
         margin: 0;
         color: #d4a017 !important;
     }
@@ -449,18 +459,16 @@ def login():
 
 
 # ══════════════════════════════════════════════════════════════
-# SIDEBAR CON LOGO Y "MENU"
+# SIDEBAR CON LOGO GRANDE
 # ══════════════════════════════════════════════════════════════
 
 def sidebar():
     with st.sidebar:
         st.markdown("""
         <div class="sidebar-header">
-            <div style="display: flex; align-items: center; justify-content: center; gap: 10px;">
-                <img src="https://raw.githubusercontent.com/marcasosguemes-cell/Stock-SECCO-AGRO/main/Logo.png" style="width: 40px; height: auto; border-radius: 8px;" alt="Logo">
-                <h1 style="font-size: 1.3rem; margin: 0; color: #d4a017 !important;">Stock Agrícola</h1>
-            </div>
-            <p style="margin: 0; font-size: 0.8rem;">SECCO AGRO</p>
+            <img src="https://raw.githubusercontent.com/marcasosguemes-cell/Stock-SECCO-AGRO/main/Logo.png" alt="Logo">
+            <h1>Stock Agrícola</h1>
+            <p style="margin: 5px 0 0 0; font-size: 0.8rem;">SECCO AGRO</p>
         </div>
         """, unsafe_allow_html=True)
         
@@ -501,7 +509,6 @@ def sidebar():
                 ("👥", "Usuarios", "Gestión de usuarios"),
             ]
         
-        # Cambiado "Navegación" por "MENU"
         st.markdown("### 📌 MENU")
         for emoji, nombre, tooltip in paginas:
             if st.button(f"{emoji}  {nombre}", key=f"nav_{nombre}", help=tooltip):
@@ -553,6 +560,7 @@ def get_movimientos(establecimiento_id=None, limit=200):
     except:
         return []
 
+
 def get_stock_por_establecimiento():
     """Obtiene stock agrupado por establecimiento"""
     movimientos = get_movimientos()
@@ -560,6 +568,10 @@ def get_stock_por_establecimiento():
         return pd.DataFrame()
     
     df = pd.DataFrame(movimientos)
+    
+    # Asegurarse de que la columna establecimiento_id existe
+    if "establecimiento_id" not in df.columns:
+        return pd.DataFrame()
     
     # Calcular stock por establecimiento
     ingresos = df[df["tipo"] == "ingreso"].groupby("establecimiento_id")["cantidad"].sum()
@@ -592,15 +604,15 @@ def estab_filter():
 
 
 # ══════════════════════════════════════════════════════════════
-# DASHBOARD CON GRÁFICOS POR ESTABLECIMIENTO
+# DASHBOARD CON BURBUJA MARRÓN A LA IZQUIERDA
 # ══════════════════════════════════════════════════════════════
 
 def pagina_dashboard():
     st.markdown('<div class="main-content">', unsafe_allow_html=True)
     
-    # Título con burbuja marrón que incluye título y subtítulo
+    # Título con burbuja marrón a la izquierda
     st.markdown("""
-    <div style="margin-bottom: 2rem; display: flex; justify-content: center;">
+    <div>
         <div class="title-bubble">
             <h1>📊 Dashboard de Stock</h1>
             <p>📋 Resumen general del inventario agrícola</p>
@@ -668,41 +680,11 @@ def pagina_dashboard():
     
     stock_por_establecimiento = get_stock_por_establecimiento()
     
-    if not stock_por_establecimiento.empty:
-        # Gráfico de barras con Plotly
-        fig_bar = px.bar(
-            stock_por_establecimiento,
-            x="establecimiento",
-            y="stock",
-            title="Distribución de Stock por Establecimiento",
-            labels={"establecimiento": "Establecimiento", "stock": "Stock (unidades)"},
-            color="establecimiento",
-            color_discrete_sequence=px.colors.qualitative.Set2
-        )
-        fig_bar.update_layout(
-            plot_bgcolor="rgba(180, 200, 160, 0.3)",
-            paper_bgcolor="rgba(255, 255, 255, 0.7)",
-            font=dict(color="#1a2a1a", size=12)
-        )
-        st.plotly_chart(fig_bar, use_container_width=True)
+    if not stock_por_establecimiento.empty and len(stock_por_establecimiento) > 0:
+        st.markdown("### 📊 Distribución de Stock por Establecimiento")
+        st.bar_chart(stock_por_establecimiento.set_index("establecimiento"))
         
-        # Gráfico de torta para proporciones
-        fig_pie = px.pie(
-            stock_por_establecimiento,
-            values="stock",
-            names="establecimiento",
-            title="Proporción de Stock por Establecimiento",
-            color_discrete_sequence=px.colors.qualitative.Set3
-        )
-        fig_pie.update_layout(
-            plot_bgcolor="rgba(180, 200, 160, 0.3)",
-            paper_bgcolor="rgba(255, 255, 255, 0.7)",
-            font=dict(color="#1a2a1a", size=12)
-        )
-        st.plotly_chart(fig_pie, use_container_width=True)
-        
-        # Mostrar tabla de datos
-        st.markdown("### 📊 Detalle de Stock por Establecimiento")
+        st.markdown("### 📋 Detalle de Stock por Establecimiento")
         st.dataframe(stock_por_establecimiento, use_container_width=True)
     else:
         st.info("💡 Sin datos de stock por establecimiento. Registrá movimientos para ver estadísticas.")
@@ -737,13 +719,18 @@ def pagina_dashboard():
 
 
 # ══════════════════════════════════════════════════════════════
-# NUEVO INGRESO, EGRESO, HISTORIAL, ALERTAS, REPORTES, ADMIN
-# (Mantener las mismas funciones que en el código anterior)
+# NUEVO INGRESO CON BURBUJA MARRÓN
 # ══════════════════════════════════════════════════════════════
 
 def pagina_ingreso():
-    st.markdown('<h1 class="main-title">📥 Registrar Ingreso</h1>', unsafe_allow_html=True)
-    st.markdown('<p style="color: #6b8f71; margin-bottom: 2rem;">Registra la entrada de productos al inventario</p>', unsafe_allow_html=True)
+    st.markdown("""
+    <div>
+        <div class="title-bubble">
+            <h1>📥 Registrar Ingreso</h1>
+            <p>📋 Registra la entrada de productos al inventario</p>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
 
     establecimientos = get_establecimientos()
     categorias = get_categorias()
@@ -830,9 +817,19 @@ def pagina_ingreso():
                 st.error(f"❌ Error al guardar: {e}")
 
 
+# ══════════════════════════════════════════════════════════════
+# NUEVO EGRESO CON BURBUJA MARRÓN
+# ══════════════════════════════════════════════════════════════
+
 def pagina_egreso():
-    st.markdown('<h1 class="main-title">📤 Registrar Egreso</h1>', unsafe_allow_html=True)
-    st.markdown('<p style="color: #6b8f71; margin-bottom: 2rem;">Registra la salida de productos del inventario</p>', unsafe_allow_html=True)
+    st.markdown("""
+    <div>
+        <div class="title-bubble">
+            <h1>📤 Registrar Egreso</h1>
+            <p>📋 Registra la salida de productos del inventario</p>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
 
     establecimientos = get_establecimientos()
     categorias = get_categorias()
@@ -902,9 +899,19 @@ def pagina_egreso():
                 st.error(f"❌ Error al guardar: {e}")
 
 
+# ══════════════════════════════════════════════════════════════
+# HISTORIAL CON BURBUJA MARRÓN
+# ══════════════════════════════════════════════════════════════
+
 def pagina_historial():
-    st.markdown('<h1 class="main-title">📋 Historial de Movimientos</h1>', unsafe_allow_html=True)
-    st.markdown('<p style="color: #6b8f71; margin-bottom: 2rem;">Consulta todos los movimientos de stock</p>', unsafe_allow_html=True)
+    st.markdown("""
+    <div>
+        <div class="title-bubble">
+            <h1>📋 Historial de Movimientos</h1>
+            <p>📋 Consulta todos los movimientos de stock</p>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
 
     movimientos = get_movimientos(estab_filter(), limit=500)
     
@@ -944,9 +951,19 @@ def pagina_historial():
         )
 
 
+# ══════════════════════════════════════════════════════════════
+# ALERTAS CON BURBUJA MARRÓN
+# ══════════════════════════════════════════════════════════════
+
 def pagina_alertas():
-    st.markdown('<h1 class="main-title">⚠️ Alertas de Stock</h1>', unsafe_allow_html=True)
-    st.markdown('<p style="color: #6b8f71; margin-bottom: 2rem;">Monitoreo de stock bajo y productos críticos</p>', unsafe_allow_html=True)
+    st.markdown("""
+    <div>
+        <div class="title-bubble">
+            <h1>⚠️ Alertas de Stock</h1>
+            <p>📋 Monitoreo de stock bajo y productos críticos</p>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
     
     movimientos = get_movimientos(estab_filter())
     
@@ -963,9 +980,19 @@ def pagina_alertas():
     st.success("✅ Sistema funcionando correctamente. Las alertas se mostrarán cuando haya stock bajo o productos por vencer.")
 
 
+# ══════════════════════════════════════════════════════════════
+# REPORTES CON BURBUJA MARRÓN
+# ══════════════════════════════════════════════════════════════
+
 def pagina_reportes():
-    st.markdown('<h1 class="main-title">📈 Reportes y Estadísticas</h1>', unsafe_allow_html=True)
-    st.markdown('<p style="color: #6b8f71; margin-bottom: 2rem;">Análisis detallado de movimientos y tendencias</p>', unsafe_allow_html=True)
+    st.markdown("""
+    <div>
+        <div class="title-bubble">
+            <h1>📈 Reportes y Estadísticas</h1>
+            <p>📋 Análisis detallado de movimientos y tendencias</p>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
     
     movimientos = get_movimientos(estab_filter())
     
@@ -986,9 +1013,19 @@ def pagina_reportes():
     st.bar_chart(chart_data)
 
 
+# ══════════════════════════════════════════════════════════════
+# PROVEEDORES CON BURBUJA MARRÓN
+# ══════════════════════════════════════════════════════════════
+
 def pagina_proveedores():
-    st.markdown('<h1 class="main-title">🏭 Gestión de Proveedores</h1>', unsafe_allow_html=True)
-    st.markdown('<p style="color: #6b8f71; margin-bottom: 2rem;">Administra los proveedores de insumos agrícolas</p>', unsafe_allow_html=True)
+    st.markdown("""
+    <div>
+        <div class="title-bubble">
+            <h1>🏭 Gestión de Proveedores</h1>
+            <p>📋 Administra los proveedores de insumos agrícolas</p>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
     
     proveedores = get_proveedores()
     
@@ -1008,9 +1045,19 @@ def pagina_proveedores():
         st.info("💡 No hay proveedores cargados. Agregá proveedores usando el panel superior.")
 
 
+# ══════════════════════════════════════════════════════════════
+# PRODUCTOS CON BURBUJA MARRÓN
+# ══════════════════════════════════════════════════════════════
+
 def pagina_productos():
-    st.markdown('<h1 class="main-title">📦 Catálogo de Productos</h1>', unsafe_allow_html=True)
-    st.markdown('<p style="color: #6b8f71; margin-bottom: 2rem;">Administra el catálogo de productos agrícolas</p>', unsafe_allow_html=True)
+    st.markdown("""
+    <div>
+        <div class="title-bubble">
+            <h1>📦 Catálogo de Productos</h1>
+            <p>📋 Administra el catálogo de productos agrícolas</p>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
     
     categorias = get_categorias()
     cat_options = {c["nombre"]: c["id"] for c in categorias}
@@ -1038,9 +1085,19 @@ def pagina_productos():
         st.info("💡 No hay productos cargados. Agregá productos usando el panel superior.")
 
 
+# ══════════════════════════════════════════════════════════════
+# USUARIOS CON BURBUJA MARRÓN
+# ══════════════════════════════════════════════════════════════
+
 def pagina_usuarios():
-    st.markdown('<h1 class="main-title">👥 Gestión de Usuarios</h1>', unsafe_allow_html=True)
-    st.markdown('<p style="color: #6b8f71; margin-bottom: 2rem;">Administra los usuarios del sistema</p>', unsafe_allow_html=True)
+    st.markdown("""
+    <div>
+        <div class="title-bubble">
+            <h1>👥 Gestión de Usuarios</h1>
+            <p>📋 Administra los usuarios del sistema</p>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
     
     st.info("📝 Para crear nuevos usuarios, usá el panel de Supabase Authentication y luego completá sus datos en la tabla `usuarios`.")
     
