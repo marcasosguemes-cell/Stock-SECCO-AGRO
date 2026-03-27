@@ -59,6 +59,30 @@ def logout():
         st.error(f"Error al cerrar sesión: {e}")
 
 
+def verificar_perfil():
+    """Verifica que el perfil del usuario esté cargado"""
+    if "rol" not in st.session_state or "perfil" not in st.session_state:
+        user_id = st.session_state.get("user_id")
+        if user_id:
+            try:
+                perfil = supabase.table("usuarios").select("*").eq("id", user_id).execute()
+                if perfil.data:
+                    st.session_state["perfil"] = perfil.data[0]
+                    st.session_state["rol"] = perfil.data[0]["rol"]
+                    st.session_state["establecimiento_id"] = perfil.data[0].get("establecimiento_id")
+                    st.session_state["establecimiento_nombre"] = perfil.data[0].get("establecimiento_nombre")
+                    return True
+                else:
+                    st.error("Perfil no encontrado")
+                    logout()
+                    return False
+            except Exception as e:
+                st.error(f"Error al cargar perfil: {e}")
+                return False
+        return False
+    return True
+
+
 # ── CSS personalizado ──────────────────────────────────────────
 st.markdown("""
 <style>
@@ -136,11 +160,17 @@ def login():
 def sidebar():
     with st.sidebar:
         st.markdown("### 🌾 Stock Agrícola")
+        
+        # Verificar que exista el perfil
+        if "perfil" not in st.session_state:
+            st.warning("Cargando...")
+            return
+            
         perfil = st.session_state.get("perfil", {})
         rol = st.session_state.get("rol", "")
         estab = st.session_state.get("establecimiento_nombre", "Todos")
 
-        st.markdown(f"**👤 {perfil.get('nombre','Usuario')}**")
+        st.markdown(f"**👤 {perfil.get('nombre', 'Usuario')}**")
         st.markdown(f"📍 {estab}")
         st.markdown(f"🔑 {'Administrador' if rol == 'admin' else 'Operador'}")
         st.markdown("---")
@@ -206,9 +236,13 @@ def get_movimientos(establecimiento_id=None, limit=200):
 
 def estab_filter():
     """Retorna el establecimiento_id a filtrar según rol."""
-    if st.session_state["rol"] == "admin":
+    # Verificar que exista el rol en session_state
+    if "rol" not in st.session_state:
+        return None
+    
+    if st.session_state.get("rol") == "admin":
         return None  # Admin ve todo
-    return st.session_state["establecimiento_id"]
+    return st.session_state.get("establecimiento_id")
 
 
 # ══════════════════════════════════════════════════════════════
@@ -247,11 +281,11 @@ def pagina_dashboard():
     categorias = ["Todas"] + df["categoria"].unique().tolist()
     cat_sel = col_f1.selectbox("Categoría", categorias)
 
-    if st.session_state["rol"] == "admin":
+    if st.session_state.get("rol") == "admin":
         establecs = ["Todos"] + df["establecimiento"].unique().tolist()
         estab_sel = col_f2.selectbox("Establecimiento", establecs)
     else:
-        estab_sel = st.session_state["establecimiento_nombre"]
+        estab_sel = st.session_state.get("establecimiento_nombre", "Todos")
 
     alerta_sel = col_f3.selectbox("Alerta", ["Todos", "vencido", "vence_pronto", "stock_bajo", "ok"])
 
@@ -314,13 +348,13 @@ def pagina_ingreso():
         col1, col2 = st.columns(2)
 
         # Establecimiento
-        if st.session_state["rol"] == "admin":
+        if st.session_state.get("rol") == "admin":
             estab_opciones = {e["nombre"]: e["id"] for e in establecs}
             estab_sel = col1.selectbox("Establecimiento *", list(estab_opciones.keys()))
             establecimiento_id = estab_opciones[estab_sel]
         else:
-            establecimiento_id = st.session_state["establecimiento_id"]
-            col1.info(f"📍 {st.session_state['establecimiento_nombre']}")
+            establecimiento_id = st.session_state.get("establecimiento_id")
+            col1.info(f"📍 {st.session_state.get('establecimiento_nombre', '')}")
 
         # Categoría → producto en cascada
         cat_opciones = {c["nombre"]: c["id"] for c in categorias}
@@ -388,7 +422,7 @@ def pagina_ingreso():
                 "fecha_factura": str(fecha_factura) if fecha_factura else None,
                 "fecha": str(fecha_mov),
                 "observaciones": observaciones or None,
-                "usuario_id": st.session_state["user_id"],
+                "usuario_id": st.session_state.get("user_id"),
             }
             supabase.table("movimientos").insert(payload).execute()
             st.success(f"✅ Ingreso registrado: {cantidad} unidades de **{prod_sel}**")
@@ -411,13 +445,13 @@ def pagina_egreso():
         st.subheader("Producto")
         col1, col2 = st.columns(2)
 
-        if st.session_state["rol"] == "admin":
+        if st.session_state.get("rol") == "admin":
             estab_opciones = {e["nombre"]: e["id"] for e in establecs}
             estab_sel = col1.selectbox("Establecimiento *", list(estab_opciones.keys()))
             establecimiento_id = estab_opciones[estab_sel]
         else:
-            establecimiento_id = st.session_state["establecimiento_id"]
-            col1.info(f"📍 {st.session_state['establecimiento_nombre']}")
+            establecimiento_id = st.session_state.get("establecimiento_id")
+            col1.info(f"📍 {st.session_state.get('establecimiento_nombre', '')}")
 
         cat_opciones = {c["nombre"]: c["id"] for c in categorias}
         cat_sel = col2.selectbox("Categoría *", list(cat_opciones.keys()))
@@ -464,7 +498,7 @@ def pagina_egreso():
                 "numero_remito": numero_remito or None,
                 "fecha": str(fecha_mov),
                 "observaciones": observaciones or None,
-                "usuario_id": st.session_state["user_id"],
+                "usuario_id": st.session_state.get("user_id"),
             }
             supabase.table("movimientos").insert(payload).execute()
             st.success(f"✅ Egreso registrado: {cantidad} unidades de **{prod_sel}**")
@@ -492,10 +526,10 @@ def pagina_historial():
     col1, col2, col3, col4 = st.columns(4)
     tipo_sel = col1.selectbox("Tipo", ["Todos", "ingreso", "egreso"])
     cat_sel = col2.selectbox("Categoría", ["Todas"] + df["categoria"].unique().tolist())
-    if st.session_state["rol"] == "admin":
+    if st.session_state.get("rol") == "admin":
         estab_sel = col3.selectbox("Establecimiento", ["Todos"] + df["establecimiento"].unique().tolist())
     else:
-        estab_sel = st.session_state["establecimiento_nombre"]
+        estab_sel = st.session_state.get("establecimiento_nombre", "Todos")
 
     # Filtrar
     df_f = df.copy()
@@ -778,6 +812,10 @@ def main():
         login()
         return
 
+    # Verificar que el perfil esté cargado
+    if not verificar_perfil():
+        return
+
     sidebar()
 
     pagina = st.session_state.get("pagina", "Dashboard")
@@ -795,7 +833,9 @@ def main():
         "Usuarios": pagina_usuarios if rol == "admin" else pagina_dashboard,
     }
 
-    rutas.get(pagina, pagina_dashboard)()
+    # Ejecutar la página correspondiente
+    pagina_funcion = rutas.get(pagina, pagina_dashboard)
+    pagina_funcion()
 
 
 if __name__ == "__main__":
