@@ -1,7 +1,7 @@
 """
 SISTEMA DE CONTROL DE STOCK AGRÍCOLA
 App principal Streamlit — La Sonia / San Guillermo / Camba Pora
-Versión con logo más grande y burbujas marrón en Dashboard
+Versión con logo grande encima del título y burbujas más transparentes
 """
 
 import streamlit as st
@@ -86,9 +86,9 @@ st.markdown("""
         transform: translateX(4px);
     }
     
-    /* Cards y formularios - VERDE OLIVA CLARO */
+    /* Cards y formularios - VERDE OLIVA CLARO MÁS TRANSPARENTE */
     .metric-card, [data-testid="stForm"], .profile-card {
-        background: rgba(180, 200, 160, 0.95) !important;
+        background: rgba(180, 200, 160, 0.75) !important;
         border: 1px solid rgba(100, 120, 80, 0.3);
         border-radius: 20px;
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
@@ -99,7 +99,7 @@ st.markdown("""
     .metric-card:hover {
         transform: translateY(-4px);
         box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
-        background: rgba(190, 210, 170, 0.98) !important;
+        background: rgba(190, 210, 170, 0.85) !important;
     }
     
     /* Texto en tarjetas */
@@ -150,21 +150,20 @@ st.markdown("""
         font-size: 2rem;
     }
     
-    /* Contenedor del título con logo (login) - LOGO MÁS GRANDE */
+    /* Contenedor del título con logo - LOGO GRANDE ENCIMA */
     .title-container {
         display: flex;
+        flex-direction: column;
         align-items: center;
         justify-content: center;
-        gap: 20px;
-        margin-bottom: 0.5rem;
-        flex-wrap: wrap;
-        position: relative;
+        margin-bottom: 1rem;
     }
     
     .title-logo {
-        width: 100px;
+        width: 120px;
         height: auto;
-        filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.2));
+        filter: drop-shadow(2px 2px 6px rgba(0,0,0,0.2));
+        margin-bottom: 10px;
     }
     
     /* Títulos de página alineados a la izquierda */
@@ -190,6 +189,7 @@ st.markdown("""
         background-clip: text;
         margin: 0;
         text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        text-align: center;
     }
     
     .section-title {
@@ -226,7 +226,7 @@ st.markdown("""
     
     /* Tablas */
     .stDataFrame {
-        background: rgba(180, 200, 160, 0.95);
+        background: rgba(180, 200, 160, 0.75);
         border-radius: 16px;
         padding: 0.5rem;
     }
@@ -237,7 +237,7 @@ st.markdown("""
     
     /* Alertas */
     .stAlert {
-        background: rgba(180, 200, 160, 0.95) !important;
+        background: rgba(180, 200, 160, 0.75) !important;
         border-radius: 12px;
     }
     
@@ -268,7 +268,7 @@ st.markdown("""
         font-size: 0.8rem;
         border-top: 1px solid rgba(100, 120, 80, 0.3);
         margin-top: 2rem;
-        background: rgba(180, 200, 160, 0.9);
+        background: rgba(180, 200, 160, 0.7);
         border-radius: 16px;
     }
     
@@ -378,14 +378,14 @@ def verificar_perfil():
 
 
 # ══════════════════════════════════════════════════════════════
-# LOGIN CON LOGO MÁS GRANDE
+# LOGIN CON LOGO GRANDE ENCIMA
 # ══════════════════════════════════════════════════════════════
 
 def login():
-    """Pantalla de login con logo grande"""
+    """Pantalla de login con logo grande encima"""
     col1, col2, col3 = st.columns([1, 1.8, 1])
     with col2:
-        # Título con logo más grande
+        # Logo grande encima del título
         st.markdown("""
         <div class="title-container">
             <img src="https://raw.githubusercontent.com/marcasosguemes-cell/Stock-SECCO-AGRO/main/Logo.png" class="title-logo" alt="Logo Stock Agrícola">
@@ -555,13 +555,19 @@ def pagina_dashboard():
     
     # Título con burbuja marrón
     st.markdown("""
-    <div style="margin-bottom: 2rem;">
+    <div style="margin-bottom: 0.5rem;">
         <div class="title-bubble">
             <h1>📊 Dashboard de Stock</h1>
         </div>
     </div>
     """, unsafe_allow_html=True)
-    st.markdown('<p style="color: #6b8f71; margin-bottom: 2rem;">Resumen general del inventario agrícola</p>', unsafe_allow_html=True)
+    
+    # Texto descriptivo en verde oliva debajo de la burbuja
+    st.markdown("""
+    <p style="color: #3a5a2a; font-size: 1rem; margin-bottom: 2rem; text-align: left; font-weight: 500;">
+        📋 Resumen general del inventario agrícola
+    </p>
+    """, unsafe_allow_html=True)
 
     movimientos = get_movimientos(estab_filter())
     
@@ -645,7 +651,6 @@ def pagina_dashboard():
 
 # ══════════════════════════════════════════════════════════════
 # NUEVO INGRESO, EGRESO, HISTORIAL, ALERTAS, REPORTES, ADMIN
-# (Mantener las mismas funciones que en el código anterior)
 # ══════════════════════════════════════════════════════════════
 
 def pagina_ingreso():
@@ -862,7 +867,7 @@ def pagina_alertas():
         return
     
     st.markdown("""
-    <div style="background: rgba(180, 200, 160, 0.9); padding: 1.5rem; border-radius: 16px; margin-bottom: 2rem;">
+    <div style="background: rgba(180, 200, 160, 0.7); padding: 1.5rem; border-radius: 16px; margin-bottom: 2rem;">
         <p style="margin: 0; color: #2c5e2e;">🔔 Las alertas te ayudan a mantener el control de tu inventario</p>
     </div>
     """, unsafe_allow_html=True)
