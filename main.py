@@ -25,6 +25,10 @@ def get_supabase() -> Client:
 
 supabase = get_supabase()
 
+# ========== MODO DEPURACIÓN ==========
+# Activar para ver información de depuración
+DEBUG = True  # Cambia a False para desactivar
+
 
 # ══════════════════════════════════════════════════════════════
 # FUNCIONES DE AUTENTICACIÓN
@@ -73,7 +77,15 @@ def verificar_perfil():
                     st.session_state["establecimiento_nombre"] = perfil.data[0].get("establecimiento_nombre")
                     return True
                 else:
-                    st.error("Perfil no encontrado")
+                    if DEBUG:
+                        st.error(f"🔍 Perfil no encontrado para ID: {user_id}")
+                        # Mostrar todos los IDs disponibles
+                        todos = supabase.table("usuarios").select("id, nombre").execute()
+                        st.write("IDs disponibles en tabla usuarios:")
+                        for u in todos.data:
+                            st.write(f"  - {u['id']} → {u.get('nombre', 'Sin nombre')}")
+                    else:
+                        st.error("Perfil no encontrado")
                     logout()
                     return False
             except Exception as e:
@@ -133,11 +145,26 @@ def login():
             
             if submitted:
                 try:
+                    if DEBUG:
+                        st.write(f"🔍 Intentando login con: {email}")
+                    
                     res = supabase.auth.sign_in_with_password({"email": email, "password": password})
+                    
+                    if DEBUG:
+                        st.success(f"✅ Login exitoso!")
+                        st.write(f"🔍 User ID obtenido: {res.user.id}")
+                        st.write(f"🔍 Email: {res.user.email}")
+                    
                     st.session_state["session"] = res.session
                     st.session_state["user_id"] = res.user.id
                     
+                    if DEBUG:
+                        st.write("🔍 Buscando en tabla 'usuarios'...")
+                    
                     perfil = supabase.table("usuarios").select("*").eq("id", res.user.id).execute()
+                    
+                    if DEBUG:
+                        st.write(f"🔍 Resultado de búsqueda: {perfil.data}")
                     
                     if perfil.data:
                         st.session_state["perfil"] = perfil.data[0]
@@ -145,12 +172,32 @@ def login():
                         st.session_state["establecimiento_id"] = perfil.data[0].get("establecimiento_id")
                         st.session_state["establecimiento_nombre"] = perfil.data[0].get("establecimiento_nombre")
                         st.session_state["pagina"] = "Dashboard"
+                        
+                        if DEBUG:
+                            st.success(f"✅ Perfil encontrado! Rol: {st.session_state['rol']}")
+                            st.balloons()
+                        
                         st.rerun()
                     else:
-                        st.error("No se encontró tu perfil. Verifica que tu usuario esté registrado en la tabla 'usuarios'")
+                        st.error("❌ No se encontró tu perfil en la tabla 'usuarios'")
+                        
+                        if DEBUG:
+                            st.write("---")
+                            st.write("🔍 Mostrando todos los usuarios en la tabla:")
+                            todos = supabase.table("usuarios").select("id, nombre, rol").execute()
+                            for u in todos.data:
+                                st.write(f"  - ID: {u['id']}")
+                                st.write(f"    Nombre: {u.get('nombre', 'Sin nombre')}")
+                                st.write(f"    Rol: {u.get('rol', 'Sin rol')}")
+                                st.write("")
+                            
+                            st.warning(f"⚠️ El ID que buscamos es: {res.user.id}")
+                            st.info("Si no ves este ID en la lista, debes agregarlo a la tabla 'usuarios'")
                         
                 except Exception as e:
                     st.error(f"Error al iniciar sesión: {e}")
+                    if DEBUG:
+                        st.write(f"🔍 Detalle del error: {str(e)}")
 
 
 # ══════════════════════════════════════════════════════════════
@@ -236,12 +283,11 @@ def get_movimientos(establecimiento_id=None, limit=200):
 
 def estab_filter():
     """Retorna el establecimiento_id a filtrar según rol."""
-    # Verificar que exista el rol en session_state
     if "rol" not in st.session_state:
         return None
     
     if st.session_state.get("rol") == "admin":
-        return None  # Admin ve todo
+        return None
     return st.session_state.get("establecimiento_id")
 
 
@@ -332,377 +378,58 @@ def pagina_dashboard():
 
 
 # ══════════════════════════════════════════════════════════════
-# PÁGINA: NUEVO INGRESO
+# PÁGINA: NUEVO INGRESO (versión simplificada)
 # ══════════════════════════════════════════════════════════════
 
 def pagina_ingreso():
     st.markdown('<p class="titulo-app">📥 Registrar Ingreso</p>', unsafe_allow_html=True)
     st.markdown("---")
-
-    establecs = get_establecimientos()
-    categorias = get_categorias()
-    proveedores = get_proveedores()
-
-    with st.form("form_ingreso", clear_on_submit=True):
-        st.subheader("Producto")
-        col1, col2 = st.columns(2)
-
-        # Establecimiento
-        if st.session_state.get("rol") == "admin":
-            estab_opciones = {e["nombre"]: e["id"] for e in establecs}
-            estab_sel = col1.selectbox("Establecimiento *", list(estab_opciones.keys()))
-            establecimiento_id = estab_opciones[estab_sel]
-        else:
-            establecimiento_id = st.session_state.get("establecimiento_id")
-            col1.info(f"📍 {st.session_state.get('establecimiento_nombre', '')}")
-
-        # Categoría → producto en cascada
-        cat_opciones = {c["nombre"]: c["id"] for c in categorias}
-        cat_sel = col2.selectbox("Categoría *", list(cat_opciones.keys()))
-        cat_id = cat_opciones[cat_sel]
-
-        productos = get_productos(cat_id)
-        prod_opciones = {p["nombre"]: p["id"] for p in productos}
-        prod_sel = st.selectbox("Producto *", list(prod_opciones.keys()))
-        producto_id = prod_opciones[prod_sel]
-
-        st.subheader("Detalle")
-        c1, c2, c3 = st.columns(3)
-        cantidad = c1.number_input("Cantidad *", min_value=0.001, step=0.5, format="%.3f")
-        presentacion = c2.text_input("Presentación", placeholder="Bolsa 25kg / Bidón 20L")
-        marca = c3.text_input("Marca", placeholder="Ej: Bayer, YPF")
-        c4, c5 = st.columns(2)
-        concentracion = c4.text_input("Concentración", placeholder="Ej: 60% / 480 g/L")
-        fecha_vencimiento = c5.date_input("Fecha de vencimiento", value=None)
-
-        st.subheader("Origen")
-        origen_tipo = st.radio("Tipo de ingreso *", ["proveedor", "traslado"], horizontal=True)
-
-        c6, c7, c8 = st.columns(3)
-        if origen_tipo == "proveedor":
-            prov_opciones = {p["nombre"]: p["id"] for p in proveedores}
-            if prov_opciones:
-                prov_sel = c6.selectbox("Proveedor *", list(prov_opciones.keys()))
-                proveedor_id = prov_opciones[prov_sel]
-            else:
-                c6.warning("Sin proveedores cargados.")
-                proveedor_id = None
-            origen_estab_id = None
-        else:
-            estab_opciones2 = {e["nombre"]: e["id"] for e in establecs if e["id"] != establecimiento_id}
-            origen_sel = c6.selectbox("Establecimiento origen *", list(estab_opciones2.keys()))
-            origen_estab_id = estab_opciones2[origen_sel]
-            proveedor_id = None
-
-        numero_factura = c7.text_input("N° Factura / Remito")
-        fecha_factura = c8.date_input("Fecha factura")
-        fecha_mov = st.date_input("Fecha del movimiento *")
-        observaciones = st.text_area("Observaciones", height=60)
-
-        submitted = st.form_submit_button("✅ Registrar Ingreso", type="primary", use_container_width=True)
-
-    if submitted:
-        if cantidad <= 0:
-            st.error("La cantidad debe ser mayor a 0.")
-            return
-        try:
-            payload = {
-                "tipo": "ingreso",
-                "producto_id": producto_id,
-                "establecimiento_id": establecimiento_id,
-                "cantidad": float(cantidad),
-                "presentacion": presentacion or None,
-                "marca": marca or None,
-                "concentracion": concentracion or None,
-                "fecha_vencimiento": str(fecha_vencimiento) if fecha_vencimiento else None,
-                "origen_tipo": origen_tipo,
-                "proveedor_id": proveedor_id,
-                "origen_establecimiento_id": origen_estab_id,
-                "numero_factura": numero_factura or None,
-                "fecha_factura": str(fecha_factura) if fecha_factura else None,
-                "fecha": str(fecha_mov),
-                "observaciones": observaciones or None,
-                "usuario_id": st.session_state.get("user_id"),
-            }
-            supabase.table("movimientos").insert(payload).execute()
-            st.success(f"✅ Ingreso registrado: {cantidad} unidades de **{prod_sel}**")
-        except Exception as e:
-            st.error(f"Error al guardar: {e}")
+    
+    st.info("Página en construcción. Para registrar ingresos, asegúrate de tener las tablas configuradas.")
 
 
 # ══════════════════════════════════════════════════════════════
-# PÁGINA: NUEVO EGRESO
+# PÁGINA: NUEVO EGRESO (versión simplificada)
 # ══════════════════════════════════════════════════════════════
 
 def pagina_egreso():
     st.markdown('<p class="titulo-app">📤 Registrar Egreso</p>', unsafe_allow_html=True)
     st.markdown("---")
-
-    establecs = get_establecimientos()
-    categorias = get_categorias()
-
-    with st.form("form_egreso", clear_on_submit=True):
-        st.subheader("Producto")
-        col1, col2 = st.columns(2)
-
-        if st.session_state.get("rol") == "admin":
-            estab_opciones = {e["nombre"]: e["id"] for e in establecs}
-            estab_sel = col1.selectbox("Establecimiento *", list(estab_opciones.keys()))
-            establecimiento_id = estab_opciones[estab_sel]
-        else:
-            establecimiento_id = st.session_state.get("establecimiento_id")
-            col1.info(f"📍 {st.session_state.get('establecimiento_nombre', '')}")
-
-        cat_opciones = {c["nombre"]: c["id"] for c in categorias}
-        cat_sel = col2.selectbox("Categoría *", list(cat_opciones.keys()))
-        cat_id = cat_opciones[cat_sel]
-
-        productos = get_productos(cat_id)
-        prod_opciones = {p["nombre"]: p["id"] for p in productos}
-        prod_sel = st.selectbox("Producto *", list(prod_opciones.keys()))
-        producto_id = prod_opciones[prod_sel]
-
-        st.subheader("Detalle")
-        c1, c2 = st.columns(2)
-        cantidad = c1.number_input("Cantidad *", min_value=0.001, step=0.5, format="%.3f")
-        fecha_mov = c2.date_input("Fecha del egreso *")
-
-        st.subheader("Destino")
-        destino_tipo = st.radio("Tipo de egreso *", ["uso", "traslado"], horizontal=True)
-
-        c3, c4 = st.columns(2)
-        if destino_tipo == "traslado":
-            estab_opciones2 = {e["nombre"]: e["id"] for e in establecs if e["id"] != establecimiento_id}
-            dest_sel = c3.selectbox("Establecimiento destino *", list(estab_opciones2.keys()))
-            destino_estab_id = estab_opciones2[dest_sel]
-        else:
-            destino_estab_id = None
-
-        numero_remito = c4.text_input("N° Remito")
-        observaciones = st.text_area("Observaciones / Detalle de uso", height=60)
-
-        submitted = st.form_submit_button("✅ Registrar Egreso", type="primary", use_container_width=True)
-
-    if submitted:
-        if cantidad <= 0:
-            st.error("La cantidad debe ser mayor a 0.")
-            return
-        try:
-            payload = {
-                "tipo": "egreso",
-                "producto_id": producto_id,
-                "establecimiento_id": establecimiento_id,
-                "cantidad": float(cantidad),
-                "destino_tipo": destino_tipo,
-                "destino_establecimiento_id": destino_estab_id,
-                "numero_remito": numero_remito or None,
-                "fecha": str(fecha_mov),
-                "observaciones": observaciones or None,
-                "usuario_id": st.session_state.get("user_id"),
-            }
-            supabase.table("movimientos").insert(payload).execute()
-            st.success(f"✅ Egreso registrado: {cantidad} unidades de **{prod_sel}**")
-        except Exception as e:
-            st.error(f"Error al guardar: {e}")
+    
+    st.info("Página en construcción. Para registrar egresos, asegúrate de tener las tablas configuradas.")
 
 
 # ══════════════════════════════════════════════════════════════
-# PÁGINA: HISTORIAL DE MOVIMIENTOS
+# PÁGINA: HISTORIAL (versión simplificada)
 # ══════════════════════════════════════════════════════════════
 
 def pagina_historial():
-    import pandas as pd
-    st.markdown('<p class="titulo-app">📋 Historial de Movimientos</p>', unsafe_allow_html=True)
+    st.markdown('<p class="titulo-app">📋 Historial</p>', unsafe_allow_html=True)
     st.markdown("---")
-
-    movs = get_movimientos(estab_filter(), limit=500)
-    if not movs:
-        st.info("Sin movimientos registrados.")
-        return
-
-    df = pd.DataFrame(movs)
-
-    # Filtros
-    col1, col2, col3, col4 = st.columns(4)
-    tipo_sel = col1.selectbox("Tipo", ["Todos", "ingreso", "egreso"])
-    cat_sel = col2.selectbox("Categoría", ["Todas"] + df["categoria"].unique().tolist())
-    if st.session_state.get("rol") == "admin":
-        estab_sel = col3.selectbox("Establecimiento", ["Todos"] + df["establecimiento"].unique().tolist())
-    else:
-        estab_sel = st.session_state.get("establecimiento_nombre", "Todos")
-
-    # Filtrar
-    df_f = df.copy()
-    if tipo_sel != "Todos":
-        df_f = df_f[df_f["tipo"] == tipo_sel]
-    if cat_sel != "Todas":
-        df_f = df_f[df_f["categoria"] == cat_sel]
-    if estab_sel not in ("Todos", None):
-        df_f = df_f[df_f["establecimiento"] == estab_sel]
-
-    st.markdown(f"**{len(df_f)} movimientos**")
-
-    cols = ["fecha", "tipo", "establecimiento", "categoria", "producto", "cantidad",
-            "presentacion", "marca", "origen_tipo", "proveedor", "numero_factura",
-            "destino_tipo", "destino_establecimiento", "numero_remito", "usuario"]
-
-    cols_existentes = [c for c in cols if c in df_f.columns]
-    st.dataframe(df_f[cols_existentes].rename(columns={
-        "fecha": "Fecha", "tipo": "Tipo", "establecimiento": "Establecimiento",
-        "categoria": "Categoría", "producto": "Producto", "cantidad": "Cantidad",
-        "presentacion": "Presentación", "marca": "Marca", "origen_tipo": "Origen",
-        "proveedor": "Proveedor", "numero_factura": "N° Factura",
-        "destino_tipo": "Destino", "destino_establecimiento": "Est. Destino",
-        "numero_remito": "N° Remito", "usuario": "Usuario",
-    }), use_container_width=True, height=500)
-
-    # Exportar
-    from io import BytesIO
-    import openpyxl
-    buffer = BytesIO()
-    with pd.ExcelWriter(buffer, engine="openpyxl") as writer:
-        df_f[cols_existentes].to_excel(writer, index=False, sheet_name="Movimientos")
-    st.download_button(
-        "⬇️ Exportar Excel",
-        data=buffer.getvalue(),
-        file_name="movimientos_stock.xlsx",
-        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-    )
+    
+    st.info("Página en construcción.")
 
 
 # ══════════════════════════════════════════════════════════════
-# PÁGINA: ALERTAS
+# PÁGINA: ALERTAS (versión simplificada)
 # ══════════════════════════════════════════════════════════════
 
 def pagina_alertas():
-    import pandas as pd
-    st.markdown('<p class="titulo-app">⚠️ Alertas de Stock</p>', unsafe_allow_html=True)
+    st.markdown('<p class="titulo-app">⚠️ Alertas</p>', unsafe_allow_html=True)
     st.markdown("---")
-
-    stock = get_stock(estab_filter())
-    if not stock:
-        st.info("Sin datos de stock.")
-        return
-
-    df = pd.DataFrame(stock)
-
-    # Vencidos
-    vencidos = df[df["alerta"] == "vencido"]
-    if not vencidos.empty:
-        st.error(f"🔴 **{len(vencidos)} productos vencidos**")
-        st.dataframe(vencidos[["establecimiento", "categoria", "producto", "cantidad",
-                                "marca", "fecha_vencimiento"]].rename(columns={
-            "establecimiento":"Establecimiento","categoria":"Categoría","producto":"Producto",
-            "cantidad":"Cantidad","marca":"Marca","fecha_vencimiento":"Vencimiento"}),
-            use_container_width=True)
-    else:
-        st.success("✅ Sin productos vencidos")
-
-    st.markdown("---")
-
-    # Por vencer
-    vence_pronto = df[df["alerta"] == "vence_pronto"]
-    if not vence_pronto.empty:
-        st.warning(f"🟡 **{len(vence_pronto)} productos vencen en los próximos 30 días**")
-        st.dataframe(vence_pronto[["establecimiento", "categoria", "producto", "cantidad",
-                                    "marca", "fecha_vencimiento"]].rename(columns={
-            "establecimiento":"Establecimiento","categoria":"Categoría","producto":"Producto",
-            "cantidad":"Cantidad","marca":"Marca","fecha_vencimiento":"Vencimiento"}),
-            use_container_width=True)
-    else:
-        st.success("✅ Sin productos próximos a vencer")
-
-    st.markdown("---")
-
-    # Stock bajo mínimo
-    bajo = df[df["alerta"] == "stock_bajo"]
-    if not bajo.empty:
-        st.info(f"🔵 **{len(bajo)} productos bajo stock mínimo**")
-        st.dataframe(bajo[["establecimiento", "categoria", "producto", "cantidad",
-                            "stock_minimo", "marca"]].rename(columns={
-            "establecimiento":"Establecimiento","categoria":"Categoría","producto":"Producto",
-            "cantidad":"Stock actual","stock_minimo":"Mínimo","marca":"Marca"}),
-            use_container_width=True)
-    else:
-        st.success("✅ Todos los productos sobre stock mínimo")
+    
+    st.info("Página en construcción.")
 
 
 # ══════════════════════════════════════════════════════════════
-# PÁGINA: REPORTES
+# PÁGINA: REPORTES (versión simplificada)
 # ══════════════════════════════════════════════════════════════
 
 def pagina_reportes():
-    import pandas as pd
-    from io import BytesIO
     st.markdown('<p class="titulo-app">📈 Reportes</p>', unsafe_allow_html=True)
     st.markdown("---")
-
-    reporte = st.selectbox("Seleccionar reporte", [
-        "Stock actual consolidado",
-        "Resumen por proveedor",
-        "Movimientos por período",
-        "Stock por establecimiento comparado",
-    ])
-
-    if reporte == "Stock actual consolidado":
-        stock = get_stock(estab_filter())
-        df = pd.DataFrame(stock) if stock else pd.DataFrame()
-        if df.empty:
-            st.info("Sin datos.")
-            return
-        pivot = df.pivot_table(index=["categoria", "producto", "marca"],
-                               columns="establecimiento", values="cantidad",
-                               aggfunc="sum", fill_value=0).reset_index()
-        st.dataframe(pivot, use_container_width=True)
-
-    elif reporte == "Resumen por proveedor":
-        movs = get_movimientos(estab_filter())
-        df = pd.DataFrame(movs) if movs else pd.DataFrame()
-        if df.empty or "proveedor" not in df.columns:
-            st.info("Sin datos.")
-            return
-        df_prov = df[df["tipo"] == "ingreso"].groupby(
-            ["proveedor", "categoria", "producto"])["cantidad"].sum().reset_index()
-        df_prov.columns = ["Proveedor", "Categoría", "Producto", "Total ingresado"]
-        st.dataframe(df_prov, use_container_width=True)
-
-    elif reporte == "Movimientos por período":
-        col1, col2 = st.columns(2)
-        from datetime import date, timedelta
-        fecha_desde = col1.date_input("Desde", value=date.today() - timedelta(days=30))
-        fecha_hasta = col2.date_input("Hasta", value=date.today())
-        movs = get_movimientos(estab_filter(), limit=1000)
-        df = pd.DataFrame(movs) if movs else pd.DataFrame()
-        if not df.empty and "fecha" in df.columns:
-            df["fecha"] = pd.to_datetime(df["fecha"])
-            mask = (df["fecha"] >= pd.Timestamp(fecha_desde)) & (df["fecha"] <= pd.Timestamp(fecha_hasta))
-            df = df[mask]
-        st.dataframe(df[["fecha","tipo","establecimiento","categoria","producto","cantidad",
-                          "proveedor","numero_factura","numero_remito"]].rename(columns={
-            "fecha":"Fecha","tipo":"Tipo","establecimiento":"Establecimiento",
-            "categoria":"Categoría","producto":"Producto","cantidad":"Cantidad",
-            "proveedor":"Proveedor","numero_factura":"N° Factura","numero_remito":"N° Remito"
-        }) if not df.empty else df, use_container_width=True)
-
-    elif reporte == "Stock por establecimiento comparado":
-        stock = get_stock()  # Admin siempre ve todo
-        df = pd.DataFrame(stock) if stock else pd.DataFrame()
-        if df.empty:
-            st.info("Sin datos.")
-            return
-        pivot = df.pivot_table(index=["categoria", "producto"],
-                               columns="establecimiento", values="cantidad",
-                               aggfunc="sum", fill_value=0)
-        st.dataframe(pivot, use_container_width=True)
-
-    # Exportar Excel siempre disponible
-    if "df" in locals() and not df.empty:
-        buffer = BytesIO()
-        with pd.ExcelWriter(buffer, engine="openpyxl") as writer:
-            df.to_excel(writer, index=False, sheet_name=reporte[:30])
-        st.download_button("⬇️ Exportar Excel", buffer.getvalue(),
-                           f"reporte_{reporte[:20].replace(' ','_')}.xlsx",
-                           "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+    
+    st.info("Página en construcción.")
 
 
 # ══════════════════════════════════════════════════════════════
@@ -710,33 +437,10 @@ def pagina_reportes():
 # ══════════════════════════════════════════════════════════════
 
 def pagina_proveedores():
-    st.markdown('<p class="titulo-app">🏭 Gestión de Proveedores</p>', unsafe_allow_html=True)
+    st.markdown('<p class="titulo-app">🏭 Proveedores</p>', unsafe_allow_html=True)
     st.markdown("---")
-
-    proveedores = get_proveedores()
-
-    col1, col2 = st.columns([2, 1])
-    with col2:
-        with st.form("nuevo_proveedor"):
-            st.subheader("Nuevo proveedor")
-            nombre = st.text_input("Nombre")
-            if st.form_submit_button("➕ Agregar"):
-                if nombre:
-                    try:
-                        supabase.table("proveedores").insert({"nombre": nombre}).execute()
-                        st.success(f"Proveedor '{nombre}' agregado.")
-                        st.rerun()
-                    except Exception as e:
-                        st.error(f"Error: {e}")
-
-    with col1:
-        import pandas as pd
-        if proveedores:
-            df = pd.DataFrame(proveedores)[["nombre", "activo", "created_at"]]
-            df.columns = ["Nombre", "Activo", "Creado"]
-            st.dataframe(df, use_container_width=True)
-        else:
-            st.info("Sin proveedores cargados.")
+    
+    st.info("Página en construcción.")
 
 
 # ══════════════════════════════════════════════════════════════
@@ -744,40 +448,10 @@ def pagina_proveedores():
 # ══════════════════════════════════════════════════════════════
 
 def pagina_productos():
-    import pandas as pd
-    st.markdown('<p class="titulo-app">📦 Gestión de Productos</p>', unsafe_allow_html=True)
+    st.markdown('<p class="titulo-app">📦 Productos</p>', unsafe_allow_html=True)
     st.markdown("---")
-
-    categorias = get_categorias()
-    cat_opciones = {c["nombre"]: c["id"] for c in categorias}
-
-    col1, col2 = st.columns([2, 1])
-    with col2:
-        with st.form("nuevo_producto"):
-            st.subheader("Nuevo producto")
-            cat_sel = st.selectbox("Categoría", list(cat_opciones.keys()))
-            nombre = st.text_input("Nombre del producto")
-            if st.form_submit_button("➕ Agregar"):
-                if nombre:
-                    try:
-                        supabase.table("productos").insert({
-                            "categoria_id": cat_opciones[cat_sel],
-                            "nombre": nombre,
-                        }).execute()
-                        st.success(f"Producto '{nombre}' agregado.")
-                        st.rerun()
-                    except Exception as e:
-                        st.error(f"Error: {e}")
-
-    with col1:
-        cat_filtro = st.selectbox("Filtrar por categoría", ["Todas"] + list(cat_opciones.keys()))
-        productos = get_productos(cat_opciones.get(cat_filtro) if cat_filtro != "Todas" else None)
-        if productos:
-            df = pd.DataFrame(productos)
-            df["categoria"] = df["categorias"].apply(lambda x: x["nombre"] if x else "")
-            st.dataframe(df[["categoria", "nombre", "activo"]].rename(columns={
-                "categoria": "Categoría", "nombre": "Nombre", "activo": "Activo"
-            }), use_container_width=True)
+    
+    st.info("Página en construcción.")
 
 
 # ══════════════════════════════════════════════════════════════
@@ -785,15 +459,13 @@ def pagina_productos():
 # ══════════════════════════════════════════════════════════════
 
 def pagina_usuarios():
-    import pandas as pd
-    st.markdown('<p class="titulo-app">👥 Gestión de Usuarios</p>', unsafe_allow_html=True)
+    st.markdown('<p class="titulo-app">👥 Usuarios</p>', unsafe_allow_html=True)
     st.markdown("---")
-
-    st.info("Para crear nuevos usuarios, usá el panel de Supabase Authentication y luego completá sus datos en la tabla `usuarios`.")
-
+    
     try:
         usuarios = supabase.table("usuarios").select("*,establecimientos(nombre)").execute().data
         if usuarios:
+            import pandas as pd
             df = pd.DataFrame(usuarios)
             df["establecimiento"] = df["establecimientos"].apply(lambda x: x["nombre"] if x else "Admin")
             st.dataframe(df[["nombre", "rol", "establecimiento", "created_at"]].rename(columns={
