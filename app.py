@@ -35,311 +35,365 @@ supabase = get_supabase()
 
 st.markdown("""
 <style>
-    /* Fondo con tu imagen - MODO MARCA DE AGUA MUY APAGADA */
+    @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:wght@300;400;500;600&display=swap');
+
+    /* ── Fondo con imagen muy apagada ── */
     .stApp {
         background-image: url('https://raw.githubusercontent.com/marcasosguemes-cell/Stock-SECCO-AGRO/main/Fondo.PNG') !important;
         background-size: cover !important;
         background-position: center !important;
         background-attachment: fixed !important;
         background-repeat: no-repeat !important;
+        font-family: 'DM Sans', sans-serif !important;
     }
-    
-    /* Capa blanca MUY intensa para que el fondo sea muy apagado */
+
     .stApp::before {
         content: '';
         position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: rgba(255, 255, 255, 0.98);
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: rgba(252, 250, 245, 0.97);
         z-index: -1;
         pointer-events: none;
     }
-    
-    /* Sidebar con color AZUL MARINO */
+
+    /* ── Sidebar refinado ── */
     [data-testid="stSidebar"] {
-        background: rgba(25, 35, 55, 0.95) !important;
-        backdrop-filter: blur(10px);
-        border-right: 1px solid rgba(212, 160, 23, 0.3);
+        background: linear-gradient(180deg, #192337 0%, #1e2d45 60%, #1a2a3f 100%) !important;
+        border-right: 1px solid rgba(212, 160, 23, 0.25) !important;
+        box-shadow: 4px 0 24px rgba(0,0,0,0.18);
     }
-    
+
     [data-testid="stSidebar"] * {
-        color: #f0f8f0 !important;
-        text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+        color: #dce8dc !important;
+        font-family: 'DM Sans', sans-serif !important;
     }
-    
+
     [data-testid="stSidebar"] .stButton button {
-        background: rgba(212, 160, 23, 0.15);
-        border: 1px solid rgba(212, 160, 23, 0.3);
+        background: transparent;
+        border: 1px solid rgba(212, 160, 23, 0.18);
         width: 100%;
         text-align: left;
-        padding: 0.75rem 1rem;
-        border-radius: 12px;
-        margin: 6px 0;
-        transition: all 0.3s ease;
-    }
-    
-    [data-testid="stSidebar"] .stButton button:hover {
-        background: rgba(212, 160, 23, 0.35);
-        border-color: #d4a017;
-        transform: translateX(4px);
-    }
-    
-    /* Cards y formularios - VERDE OLIVA CLARO MÁS TRANSPARENTE */
-    .metric-card, [data-testid="stForm"], .profile-card {
-        background: rgba(180, 200, 160, 0.75) !important;
-        border: 1px solid rgba(100, 120, 80, 0.3);
-        border-radius: 20px;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-        transition: all 0.3s ease;
-        text-align: center !important;
-    }
-    
-    .metric-card:hover {
-        transform: translateY(-4px);
-        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
-        background: rgba(190, 210, 170, 0.85) !important;
-    }
-    
-    /* Texto en tarjetas - NEGRO y más grande */
-    .metric-card, .metric-card * {
-        color: #000000 !important;
-        text-align: center !important;
-    }
-    
-    .metric-value {
-        font-size: 2.5rem !important;
-        font-weight: bold;
-        color: #1a4a1a !important;
-        margin: 0.5rem 0;
-        text-align: center !important;
-    }
-    
-    .metric-label {
-        font-size: 1.1rem !important;
-        color: #000000 !important;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        font-weight: 600;
-        text-align: center !important;
-    }
-    
-    /* BURBUJAS MARRÓN CLARO para títulos - texto color OLIVA */
-    .title-bubble {
-        background: rgba(180, 140, 100, 0.95);
-        border: 1px solid rgba(120, 90, 60, 0.4);
-        border-radius: 30px;
-        padding: 0.8rem 2rem;
-        display: inline-block;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        transition: all 0.3s ease;
-        text-align: center;
-        margin-bottom: 1rem;
-    }
-    
-    .title-bubble:hover {
-        transform: translateY(-2px);
-        background: rgba(190, 150, 110, 0.98);
-        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-    }
-    
-    .title-bubble h1 {
-        margin: 0;
-        color: #3a5a2a !important;
-        text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
-        font-weight: 700;
-        font-size: 2rem;
-    }
-    
-    .title-bubble p {
-        margin: 0.5rem 0 0 0;
-        color: #3a5a2a !important;
-        font-size: 1rem;
+        padding: 0.65rem 1.1rem;
+        border-radius: 10px;
+        margin: 4px 0;
+        font-size: 0.88rem;
         font-weight: 500;
+        letter-spacing: 0.01em;
+        transition: all 0.25s cubic-bezier(.4,0,.2,1);
+        color: #c8dcc8 !important;
     }
-    
-    /* Contenedor del título con logo - LOGO GRANDE ENCIMA */
+
+    [data-testid="stSidebar"] .stButton button:hover {
+        background: rgba(212, 160, 23, 0.12);
+        border-color: rgba(212, 160, 23, 0.5);
+        transform: translateX(5px);
+        color: #f5e199 !important;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+    }
+
+    /* ── Sidebar header con logo GRANDE ── */
+    .sidebar-header {
+        text-align: center;
+        padding: 1.6rem 0 1.2rem 0;
+        border-bottom: 1px solid rgba(212, 160, 23, 0.35);
+        margin-bottom: 1.4rem;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .sidebar-header img {
+        width: 145px !important;
+        height: auto !important;
+        filter: drop-shadow(0 4px 16px rgba(0,0,0,0.35)) brightness(1.05);
+        margin-bottom: 12px;
+        transition: transform 0.3s ease;
+    }
+
+    .sidebar-header img:hover {
+        transform: scale(1.03);
+    }
+
+    .sidebar-header h1 {
+        font-family: 'Playfair Display', serif !important;
+        font-size: 1.15rem !important;
+        margin: 0;
+        color: #d4a017 !important;
+        letter-spacing: 0.04em;
+        font-weight: 600;
+    }
+
+    /* ── Profile card ── */
+    .profile-card {
+        text-align: center;
+        padding: 0.9rem 1rem;
+        margin: 0.5rem 0 1rem 0;
+        background: rgba(255,255,255,0.05) !important;
+        border: 1px solid rgba(212, 160, 23, 0.15);
+        border-radius: 14px;
+        backdrop-filter: blur(4px);
+    }
+
+    .profile-name {
+        font-size: 0.95rem;
+        font-weight: 600;
+        color: #e8f4e8 !important;
+        margin-bottom: 4px;
+    }
+
+    .profile-role, .profile-location {
+        font-size: 0.78rem;
+        color: #a8c8a8 !important;
+        margin-top: 3px;
+    }
+
+    /* ── Título login con logo grande ── */
     .title-container {
         display: flex;
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        margin-bottom: 1rem;
+        margin-bottom: 1.2rem;
     }
-    
+
     .title-logo {
-        width: 150px;
+        width: 200px;
         height: auto;
-        filter: drop-shadow(2px 2px 8px rgba(0,0,0,0.25));
-        margin-bottom: 15px;
-        transition: transform 0.3s ease;
+        filter: drop-shadow(0 6px 20px rgba(0,0,0,0.18));
+        margin-bottom: 18px;
+        transition: transform 0.35s ease;
     }
-    
+
     .title-logo:hover {
-        transform: scale(1.02);
+        transform: scale(1.03);
     }
-    
-    /* Títulos de página alineados a la izquierda */
-    .main-title {
-        font-size: 2rem;
-        font-weight: 700;
-        background: linear-gradient(135deg, #1a4a1a, #2c5e2e);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
-        margin: 0 0 0.5rem 0;
-        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
-        text-align: left !important;
-    }
-    
-    /* Título con logo para login */
+
     .main-title-with-logo {
-        font-size: 2rem;
+        font-family: 'Playfair Display', serif !important;
+        font-size: 2.1rem;
         font-weight: 700;
-        background: linear-gradient(135deg, #1a4a1a, #2c5e2e);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
+        color: #1a4a1a !important;
         margin: 0;
-        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
         text-align: center;
+        letter-spacing: 0.01em;
+        -webkit-text-fill-color: unset !important;
     }
-    
+
+    /* ── Title bubbles ── */
+    .title-bubble {
+        background: linear-gradient(135deg, #c8a060 0%, #b8905a 100%);
+        border: 1px solid rgba(120, 85, 45, 0.35);
+        border-radius: 18px;
+        padding: 1rem 2.2rem;
+        display: inline-block;
+        box-shadow: 0 4px 18px rgba(100, 70, 30, 0.18), 0 1px 0 rgba(255,255,255,0.25) inset;
+        transition: all 0.25s ease;
+        text-align: center;
+        margin-bottom: 1.4rem;
+    }
+
+    .title-bubble:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 28px rgba(100, 70, 30, 0.24);
+    }
+
+    .title-bubble h1 {
+        margin: 0;
+        font-family: 'Playfair Display', serif !important;
+        font-size: 1.75rem !important;
+        color: #2a4a1a !important;
+        font-weight: 700;
+        letter-spacing: 0.01em;
+        -webkit-text-fill-color: unset !important;
+    }
+
+    .title-bubble p {
+        margin: 0.35rem 0 0 0;
+        color: #3d5a2a !important;
+        font-size: 0.88rem;
+        font-weight: 400;
+        opacity: 0.85;
+    }
+
+    /* ── Section titles ── */
     .section-title {
-        font-size: 1.3rem;
+        font-family: 'DM Sans', sans-serif !important;
+        font-size: 1.1rem !important;
         font-weight: 600;
         color: #1a4a1a !important;
-        border-left: 4px solid #d4a017;
-        padding-left: 1rem;
-        margin: 1.5rem 0 1rem 0;
-        text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.05);
-        text-align: left !important;
+        border-left: 3px solid #d4a017;
+        padding-left: 0.85rem;
+        margin: 1.8rem 0 1rem 0;
+        letter-spacing: 0.02em;
+        text-transform: uppercase;
+        font-size: 0.82rem !important;
     }
-    
-    /* Texto normal */
-    p, span, div, label, .stMarkdown, .stText, .stNumberInput, .stSelectbox, .stDateInput {
-        color: #1a1a1a !important;
+
+    .main-title {
+        font-family: 'Playfair Display', serif !important;
+        font-size: 1.9rem;
+        font-weight: 700;
+        color: #1a4a1a !important;
+        margin: 0 0 0.4rem 0;
+        -webkit-text-fill-color: unset !important;
     }
-    
-    /* Botones */
-    .stButton > button {
-        background: linear-gradient(135deg, #2c5e2e, #3d7a3f) !important;
-        color: white !important;
-        border: none;
-        border-radius: 12px;
-        padding: 0.6rem 1.2rem;
+
+    /* ── Metric cards ── */
+    .metric-card {
+        background: linear-gradient(145deg, rgba(195, 215, 175, 0.82) 0%, rgba(175, 200, 155, 0.88) 100%) !important;
+        border: 1px solid rgba(100, 130, 80, 0.25);
+        border-radius: 18px;
+        box-shadow: 0 2px 12px rgba(50, 90, 50, 0.1), 0 1px 0 rgba(255,255,255,0.6) inset;
+        transition: all 0.3s cubic-bezier(.4,0,.2,1);
+        text-align: center !important;
+        padding: 1.2rem 1rem;
+    }
+
+    .metric-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 28px rgba(50, 90, 50, 0.16);
+        background: linear-gradient(145deg, rgba(205, 225, 185, 0.92) 0%, rgba(185, 210, 165, 0.95) 100%) !important;
+    }
+
+    .metric-card, .metric-card * {
+        color: #0d2a0d !important;
+        text-align: center !important;
+    }
+
+    .metric-value {
+        font-family: 'Playfair Display', serif !important;
+        font-size: 2.6rem !important;
+        font-weight: 700;
+        color: #173a17 !important;
+        margin: 0.4rem 0;
+        line-height: 1;
+    }
+
+    .metric-label {
+        font-size: 0.72rem !important;
+        color: #2a4a2a !important;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
         font-weight: 600;
-        transition: all 0.3s ease;
     }
-    
+
+    /* ── Buttons ── */
+    .stButton > button {
+        background: linear-gradient(135deg, #2c5e2e, #3a7040) !important;
+        color: white !important;
+        border: none !important;
+        border-radius: 10px;
+        padding: 0.55rem 1.3rem;
+        font-family: 'DM Sans', sans-serif !important;
+        font-weight: 600;
+        font-size: 0.88rem;
+        letter-spacing: 0.02em;
+        transition: all 0.25s ease;
+        box-shadow: 0 2px 8px rgba(44, 94, 46, 0.25);
+    }
+
     .stButton > button:hover {
         transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(44, 94, 46, 0.4);
+        box-shadow: 0 6px 18px rgba(44, 94, 46, 0.38);
+        background: linear-gradient(135deg, #316634, #428046) !important;
     }
-    
-    /* Tablas */
+
+    /* ── Forms ── */
+    [data-testid="stForm"] {
+        background: rgba(195, 215, 175, 0.45) !important;
+        border: 1px solid rgba(100, 130, 80, 0.2);
+        border-radius: 18px;
+        padding: 1.2rem;
+        box-shadow: 0 2px 12px rgba(50, 90, 50, 0.07);
+    }
+
+    /* ── Inputs ── */
+    input, textarea, select {
+        color: #1a2a1a !important;
+        background-color: rgba(245, 252, 235, 0.92) !important;
+        border-radius: 9px !important;
+        border: 1px solid rgba(100, 130, 80, 0.3) !important;
+        font-family: 'DM Sans', sans-serif !important;
+    }
+
+    /* ── Tables ── */
     .stDataFrame {
-        background: rgba(180, 200, 160, 0.75);
-        border-radius: 16px;
-        padding: 0.5rem;
+        background: rgba(195, 215, 175, 0.5);
+        border-radius: 14px;
+        overflow: hidden;
+        box-shadow: 0 2px 12px rgba(50, 90, 50, 0.08);
     }
-    
+
     .stDataFrame * {
         color: #1a2a1a !important;
+        font-family: 'DM Sans', sans-serif !important;
     }
-    
-    /* Alertas */
+
+    /* ── Alerts ── */
     .stAlert {
-        background: rgba(180, 200, 160, 0.75) !important;
-        border-radius: 12px;
+        background: rgba(195, 215, 175, 0.65) !important;
+        border-radius: 12px !important;
+        border: 1px solid rgba(100, 130, 80, 0.25) !important;
+        font-family: 'DM Sans', sans-serif !important;
     }
-    
-    /* Badges */
+
+    /* ── Badges ── */
     .badge {
         display: inline-block;
-        padding: 0.2rem 0.6rem;
+        padding: 0.22rem 0.7rem;
         border-radius: 20px;
         font-size: 0.7rem;
         font-weight: 600;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
     }
-    
+
     .badge-admin {
-        background: linear-gradient(135deg, #d4a017, #b8860b);
+        background: linear-gradient(135deg, #c89010, #a87010);
         color: white !important;
+        box-shadow: 0 2px 6px rgba(180, 130, 20, 0.3);
     }
-    
+
     .badge-operator {
         background: linear-gradient(135deg, #2c5e2e, #3d7a3f);
         color: white !important;
+        box-shadow: 0 2px 6px rgba(44, 94, 46, 0.3);
     }
-    
-    /* Footer */
+
+    /* ── Footer ── */
     .footer {
         text-align: center;
-        padding: 2rem;
+        padding: 1.6rem 2rem;
         color: #4a5b4a !important;
-        font-size: 0.8rem;
-        border-top: 1px solid rgba(100, 120, 80, 0.3);
-        margin-top: 2rem;
-        background: rgba(180, 200, 160, 0.7);
+        font-size: 0.78rem;
+        border-top: 1px solid rgba(100, 120, 80, 0.25);
+        margin-top: 2.5rem;
+        background: linear-gradient(135deg, rgba(195, 215, 175, 0.6) 0%, rgba(175, 200, 155, 0.7) 100%);
         border-radius: 16px;
+        letter-spacing: 0.02em;
     }
-    
-    /* Perfil card en sidebar */
-    .profile-card {
-        text-align: center;
-        padding: 1rem;
-        margin: 1rem 0;
-        background: rgba(180, 200, 160, 0.25) !important;
-        border-radius: 16px;
+
+    /* ── General text ── */
+    p, span, div, label, .stMarkdown, .stText {
+        color: #1a1a1a !important;
+        font-family: 'DM Sans', sans-serif !important;
     }
-    
-    .profile-name {
-        font-size: 1.1rem;
-        font-weight: bold;
-        color: #f0f8f0 !important;
-    }
-    
-    /* Sidebar header con logo GRANDE - SIN SECCO AGRO */
-    .sidebar-header {
-        text-align: center;
-        padding: 1rem 0;
-        border-bottom: 2px solid #d4a017;
-        margin-bottom: 1.5rem;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-    }
-    
-    .sidebar-header img {
-        width: 100px !important;
-        height: auto !important;
-        border-radius: 12px;
-        margin-bottom: 10px;
-    }
-    
-    .sidebar-header h1 {
-        font-size: 1.5rem;
-        margin: 0;
-        color: #d4a017 !important;
-    }
-    
-    /* Animación */
+
+    /* ── Animations ── */
     .main-content {
-        animation: fadeIn 0.5s ease-out;
+        animation: fadeUp 0.45s cubic-bezier(.4,0,.2,1);
     }
-    
-    @keyframes fadeIn {
-        from { opacity: 0; transform: translateY(20px); }
-        to { opacity: 1; transform: translateY(0); }
+
+    @keyframes fadeUp {
+        from { opacity: 0; transform: translateY(16px); }
+        to   { opacity: 1; transform: translateY(0); }
     }
-    
-    /* Inputs */
-    input, textarea, select {
-        color: #1a2a1a !important;
-        background-color: rgba(240, 248, 220, 0.9) !important;
-        border-radius: 10px !important;
+
+    /* ── Dividers ── */
+    hr {
+        border: none !important;
+        border-top: 1px solid rgba(100, 130, 80, 0.18) !important;
+        margin: 1.5rem 0 !important;
     }
 </style>
 """, unsafe_allow_html=True)
