@@ -153,30 +153,70 @@ st.markdown("""
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        margin-bottom: 1.2rem;
+        margin-bottom: 0.8rem;
+    }
+
+    /* Óvalo detrás del logo */
+    .logo-oval-wrap {
+        background: linear-gradient(160deg, rgba(255,253,245,0.96) 0%, rgba(240,248,225,0.95) 100%);
+        border: 2px solid rgba(212, 160, 23, 0.45);
+        border-radius: 50%;
+        width: 210px;
+        height: 130px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 6px 28px rgba(0,0,0,0.22), 0 2px 0 rgba(255,255,255,0.7) inset;
+        margin-bottom: 16px;
+        transition: transform 0.35s ease, box-shadow 0.35s ease;
+    }
+
+    .logo-oval-wrap:hover {
+        transform: scale(1.04);
+        box-shadow: 0 10px 36px rgba(0,0,0,0.28);
     }
 
     .title-logo {
-        width: 200px;
+        width: 165px;
         height: auto;
-        filter: drop-shadow(0 6px 20px rgba(0,0,0,0.18));
-        margin-bottom: 18px;
+        filter: drop-shadow(0 2px 6px rgba(0,0,0,0.12));
         transition: transform 0.35s ease;
     }
 
-    .title-logo:hover {
-        transform: scale(1.03);
+    /* Burbuja que envuelve título + subtítulo */
+    .title-bubble-login {
+        background: linear-gradient(135deg, rgba(255,252,240,0.96) 0%, rgba(245,255,230,0.95) 100%);
+        border: 1.5px solid rgba(100, 140, 70, 0.3);
+        border-radius: 24px;
+        padding: 1rem 2.2rem 0.9rem 2.2rem;
+        display: block;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.13), 0 1px 0 rgba(255,255,255,0.8) inset;
+        text-align: center;
+        margin-bottom: 0.5rem;
+        width: 100%;
+        box-sizing: border-box;
     }
 
     .main-title-with-logo {
         font-family: 'Playfair Display', serif !important;
-        font-size: 2.1rem;
+        font-size: 2rem;
         font-weight: 700;
         color: #1a4a1a !important;
-        margin: 0;
+        margin: 0 0 0.3rem 0;
         text-align: center;
         letter-spacing: 0.01em;
         -webkit-text-fill-color: unset !important;
+        line-height: 1.15;
+    }
+
+    .login-subtitle {
+        font-family: 'DM Sans', sans-serif !important;
+        font-size: 0.9rem;
+        color: #3d5a2a !important;
+        font-weight: 500;
+        letter-spacing: 0.06em;
+        margin: 0;
+        opacity: 0.88;
     }
 
     /* ── Title bubbles ── */
@@ -464,13 +504,17 @@ def login():
     """Pantalla de login con logo grande encima"""
     col1, col2, col3 = st.columns([1, 1.8, 1])
     with col2:
-        # Logo grande encima del título
+        # Logo en óvalo + título y subtítulo en burbuja
         st.markdown("""
         <div class="title-container">
-            <img src="https://raw.githubusercontent.com/marcasosguemes-cell/Stock-SECCO-AGRO/main/Logo.png" class="title-logo" alt="Logo Stock Agrícola">
-            <h1 class="main-title-with-logo">Stock Agrícola</h1>
+            <div class="logo-oval-wrap">
+                <img src="https://raw.githubusercontent.com/marcasosguemes-cell/Stock-SECCO-AGRO/main/Logo.png" class="title-logo" alt="Logo Stock Agrícola">
+            </div>
+            <div class="title-bubble-login">
+                <h1 class="main-title-with-logo">Stock Agrícola</h1>
+                <p class="login-subtitle">La Sonia &nbsp;·&nbsp; San Guillermo &nbsp;·&nbsp; Camba Pora</p>
+            </div>
         </div>
-        <p style="text-align: center; color: #4a5b4a; font-size: 1rem; margin-top: 0.5rem;">La Sonia · San Guillermo · Camba Pora</p>
         """, unsafe_allow_html=True)
         
         with st.form("login_form"):
