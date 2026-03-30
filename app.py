@@ -794,28 +794,54 @@ st.markdown("""
 
 
 # ── JS: Reemplazar texto del botón colapsar sidebar ──────────
-st.markdown("""
+import streamlit.components.v1 as components
+components.html("""
 <script>
 (function() {
-    function fixSidebarButton() {
-        // Busca el botón que contiene texto con "keyboard" o "double"
-        var allButtons = document.querySelectorAll('button');
-        allButtons.forEach(function(btn) {
-            var txt = btn.innerText || btn.textContent || '';
-            if (txt.toLowerCase().includes('keyboard') || txt.toLowerCase().includes('double') || txt.toLowerCase().includes('do_double') || txt.toLowerCase().includes('_do')) {
-                btn.innerHTML = '<span style="font-size:1.8rem;color:#d4a017;font-weight:900;line-height:1;">›</span>';
-                btn.style.background = 'transparent';
-                btn.style.border = 'none';
+    function fixSidebarBtn() {
+        // El botón está en el documento padre (iframe parent)
+        var doc = window.parent.document;
+
+        // Ocultar cualquier elemento de texto que contenga variantes de "keyboard"
+        var allElems = doc.querySelectorAll('button, span, p, div');
+        allElems.forEach(function(el) {
+            var txt = (el.innerText || el.textContent || '').trim().toLowerCase();
+            if (
+                (txt.includes('keyboard') || txt.includes('do_double') || txt.includes('double_arrow')) &&
+                el.children.length === 0
+            ) {
+                el.style.fontSize = '0px';
+                el.style.color = 'transparent';
+                el.style.display = 'none';
             }
         });
+
+        // Agregar flecha › al contenedor del botón si aún no la tiene
+        var collapsed = doc.querySelector('[data-testid="stSidebarCollapsedControl"]');
+        if (collapsed && !collapsed.querySelector('.flecha-custom')) {
+            var btn = collapsed.querySelector('button');
+            if (btn) {
+                btn.innerHTML = '';
+                var flecha = doc.createElement('span');
+                flecha.className = 'flecha-custom';
+                flecha.textContent = '›';
+                flecha.style.cssText = 'font-size:2rem;color:#d4a017;font-weight:900;line-height:1;';
+                btn.appendChild(flecha);
+            }
+        }
     }
-    // Ejecutar al cargar y observar cambios del DOM
-    fixSidebarButton();
-    var observer = new MutationObserver(fixSidebarButton);
-    observer.observe(document.body, { childList: true, subtree: true });
+
+    // Ejecutar con retardo para asegurar que el DOM esté listo
+    setTimeout(fixSidebarBtn, 500);
+    setTimeout(fixSidebarBtn, 1500);
+
+    var observer = new MutationObserver(function() {
+        fixSidebarBtn();
+    });
+    observer.observe(window.parent.document.body, { childList: true, subtree: true });
 })();
 </script>
-""", unsafe_allow_html=True)
+""", height=0, scrolling=False)
 
 
 # ══════════════════════════════════════════════════════════════
