@@ -362,77 +362,108 @@ st.markdown("""
     }
 
     /* ============================================================ */
-    /* ESTILOS PARA SELECTS - LETRA NEGRA CON FONDO GRIS            */
+    /* ESTILOS PARA SELECTS - VERSIÓN EXTREMA CON !important      */
     /* ============================================================ */
-    
+
     /* Contenedor principal del select */
-    .stSelectbox {
-        background-color: transparent !important;
-    }
-    
-    /* El botón/input del select */
-    .stSelectbox > div {
+    .stSelectbox,
+    .stSelectbox > div,
+    .stSelectbox > div > div,
+    .stSelectbox > div[data-baseweb="select"],
+    .stSelectbox > div[data-baseweb="select"] > div {
         background-color: #e8e8ec !important;
         border-radius: 10px !important;
         border: 1px solid #d4a017 !important;
     }
-    
-    /* El texto dentro del select */
-    .stSelectbox > div > div {
+
+    /* El botón/input del select - FORZAR FONDO GRIS */
+    .stSelectbox div[data-baseweb="select"] {
+        background-color: #e8e8ec !important;
+    }
+
+    /* El texto dentro del select cerrado */
+    .stSelectbox div[data-baseweb="select"] span,
+    .stSelectbox div[data-baseweb="select"] div,
+    .stSelectbox div[data-baseweb="select"] div span {
         color: #000000 !important;
         background-color: #e8e8ec !important;
-        font-weight: 500 !important;
-    }
-    
-    /* El texto cuando está seleccionado */
-    .stSelectbox [data-baseweb="select"] span {
-        color: #000000 !important;
         font-weight: 600 !important;
     }
-    
-    /* El icono del dropdown */
-    .stSelectbox svg {
+
+    /* El icono del dropdown (flecha) */
+    .stSelectbox svg,
+    .stSelectbox svg path,
+    .stSelectbox [data-baseweb="select"] svg,
+    .stSelectbox [data-baseweb="select"] svg path {
         fill: #000000 !important;
         stroke: #000000 !important;
     }
-    
-    /* El contenedor del menú desplegable */
-    div[data-baseweb="popover"] {
+
+    /* ============================================================ */
+    /* ESTILOS PARA EL MENÚ DESPLEGABLE (CUANDO ESTÁ ABIERTO)      */
+    /* ============================================================ */
+
+    /* El contenedor del popover (menú desplegable) */
+    div[data-baseweb="popover"],
+    div[data-baseweb="popover"] > div,
+    div[data-baseweb="popover"] > div > div {
         background-color: #e8e8ec !important;
         border-radius: 10px !important;
         border: 1px solid #d4a017 !important;
     }
-    
-    /* El menú desplegable en sí */
-    div[data-baseweb="popover"] > div {
+
+    /* El menú en sí */
+    ul[data-baseweb="menu"],
+    div[data-baseweb="menu"],
+    [data-baseweb="menu"] {
         background-color: #e8e8ec !important;
+        border: 1px solid #d4a017 !important;
+        border-radius: 10px !important;
     }
-    
-    /* Cada opción individual */
-    ul[data-baseweb="menu"] li {
+
+    /* Cada opción individual - FORZAR TEXTO NEGRO */
+    ul[data-baseweb="menu"] li,
+    div[data-baseweb="menu"] li,
+    [data-baseweb="menu"] li,
+    ul li[role="option"],
+    div li[role="option"] {
         color: #000000 !important;
         background-color: #e8e8ec !important;
         font-weight: 500 !important;
+        font-size: 0.9rem !important;
+        padding: 8px 12px !important;
     }
-    
-    /* Hover sobre las opciones */
-    ul[data-baseweb="menu"] li:hover {
+
+    /* Hover sobre las opciones - FONDO DORADO, TEXTO NEGRO */
+    ul[data-baseweb="menu"] li:hover,
+    div[data-baseweb="menu"] li:hover,
+    [data-baseweb="menu"] li:hover,
+    ul li[role="option"]:hover,
+    div li[role="option"]:hover {
         background-color: #d4a017 !important;
         color: #000000 !important;
     }
-    
-    /* Opción seleccionada */
-    ul[data-baseweb="menu"] li[aria-selected="true"] {
+
+    /* Opción seleccionada - FONDO DORADO, TEXTO NEGRO NEGRITA */
+    ul[data-baseweb="menu"] li[aria-selected="true"],
+    div[data-baseweb="menu"] li[aria-selected="true"],
+    [data-baseweb="menu"] li[aria-selected="true"] {
         background-color: #d4a017 !important;
         color: #000000 !important;
         font-weight: bold !important;
     }
-    
-    /* Para selects dentro de formularios */
-    .stForm .stSelectbox > div {
-        background-color: #e8e8ec !important;
+
+    /* Opción activa (foco) */
+    ul[data-baseweb="menu"] li[aria-current="true"],
+    div[data-baseweb="menu"] li[aria-current="true"] {
+        background-color: #d4a017 !important;
+        color: #000000 !important;
     }
-    
+
+    /* ============================================================ */
+    /* ESTILOS PARA INPUTS DE TEXTO                                */
+    /* ============================================================ */
+
     /* Inputs de texto */
     input, textarea {
         color: #000000 !important;
@@ -446,8 +477,16 @@ st.markdown("""
     input:focus, textarea:focus {
         border-color: #d4a017 !important;
         box-shadow: 0 0 0 2px rgba(212, 160, 23, 0.2) !important;
+        outline: none !important;
     }
 
+    /* Placeholder */
+    input::placeholder, textarea::placeholder {
+        color: #666666 !important;
+        opacity: 1 !important;
+    }
+
+    /* Labels */
     label {
         color: #e8e8ec !important;
         font-weight: 500 !important;
