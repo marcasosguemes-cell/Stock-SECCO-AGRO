@@ -58,6 +58,55 @@ st.markdown("""
         pointer-events: none;
     }
 
+    /* ── Botón colapsar sidebar ── */
+    [data-testid="stSidebarCollapsedControl"] {
+        background: linear-gradient(135deg, #1a1a1f, #0f0f12) !important;
+        border: 1px solid rgba(212, 160, 23, 0.5) !important;
+        border-radius: 0 10px 10px 0 !important;
+        box-shadow: 3px 0 12px rgba(0,0,0,0.4) !important;
+    }
+
+    /* Ocultar el texto "keyboard_do" y reemplazar con flecha */
+    [data-testid="stSidebarCollapsedControl"] button span {
+        font-size: 0 !important;
+        visibility: hidden !important;
+    }
+
+    [data-testid="stSidebarCollapsedControl"] button span::before {
+        content: "›" !important;
+        font-size: 1.8rem !important;
+        visibility: visible !important;
+        color: #d4a017 !important;
+        font-weight: 700 !important;
+        line-height: 1 !important;
+    }
+
+    [data-testid="stSidebarCollapsedControl"] button {
+        color: #d4a017 !important;
+        background: transparent !important;
+        border: none !important;
+    }
+
+    /* Cuando el sidebar está abierto, mostrar flecha opuesta */
+    [data-testid="stSidebar"] [data-testid="stSidebarCollapseButton"] button span {
+        font-size: 0 !important;
+        visibility: hidden !important;
+    }
+
+    [data-testid="stSidebar"] [data-testid="stSidebarCollapseButton"] button span::before {
+        content: "‹" !important;
+        font-size: 1.8rem !important;
+        visibility: visible !important;
+        color: #d4a017 !important;
+        font-weight: 700 !important;
+        line-height: 1 !important;
+    }
+
+    [data-testid="stSidebar"] [data-testid="stSidebarCollapseButton"] button {
+        color: #d4a017 !important;
+        background: transparent !important;
+    }
+
     /* ── Sidebar con tonos grises oscuros ── */
     [data-testid="stSidebar"] {
         background: linear-gradient(180deg, #1a1a1f 0%, #0f0f12 60%, #0a0a0c 100%) !important;
