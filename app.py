@@ -65,7 +65,7 @@ st.markdown("""
         box-shadow: 4px 0 24px rgba(0,0,0,0.4) !important;
     }
 
-    /* Botones del menú */
+    /* Botones del menú - SIN tooltip blanco */
     [data-testid="stSidebar"] .stButton button {
         background: rgba(50, 50, 60, 0.8) !important;
         border: 1px solid rgba(212, 160, 23, 0.5) !important;
@@ -85,6 +85,16 @@ st.markdown("""
         border-color: #b87a0c !important;
         transform: translateX(5px);
         color: #1a1a1f !important;
+    }
+    
+    /* Eliminar tooltip blanco del sidebar */
+    [data-testid="stSidebar"] [data-baseweb="tooltip"] {
+        display: none !important;
+    }
+    
+    /* Eliminar tooltips de todos los botones */
+    [data-baseweb="tooltip"] {
+        display: none !important;
     }
 
     /* ── Sidebar header con logo en óvalo blanco ── */
@@ -332,7 +342,7 @@ st.markdown("""
         text-transform: uppercase;
     }
 
-    /* ── Buttons ── */
+    /* ── Buttons con icono de flecha ── */
     .stButton > button {
         background: linear-gradient(135deg, #d4a017, #b87a0c) !important;
         color: #1a1a1f !important;
@@ -351,6 +361,12 @@ st.markdown("""
         background: linear-gradient(135deg, #e5b52a, #c98a1a) !important;
         color: #000000 !important;
     }
+    
+    /* Icono de flecha para botones de submit */
+    button[kind="primary"]::after {
+        content: " →";
+        font-size: 1.1rem;
+    }
 
     /* ── Forms ── */
     [data-testid="stForm"] {
@@ -362,107 +378,59 @@ st.markdown("""
     }
 
     /* ============================================================ */
-    /* ESTILOS PARA SELECTS - VERSIÓN EXTREMA CON !important      */
+    /* ESTILOS PARA SELECTS - CORREGIDO LETRA NEGRA                */
     /* ============================================================ */
-
-    /* Contenedor principal del select */
-    .stSelectbox,
-    .stSelectbox > div,
-    .stSelectbox > div > div,
-    .stSelectbox > div[data-baseweb="select"],
-    .stSelectbox > div[data-baseweb="select"] > div {
+    
+    /* Select box cerrado */
+    .stSelectbox > div {
         background-color: #e8e8ec !important;
         border-radius: 10px !important;
         border: 1px solid #d4a017 !important;
     }
-
-    /* El botón/input del select - FORZAR FONDO GRIS */
-    .stSelectbox div[data-baseweb="select"] {
-        background-color: #e8e8ec !important;
-    }
-
-    /* El texto dentro del select cerrado */
-    .stSelectbox div[data-baseweb="select"] span,
-    .stSelectbox div[data-baseweb="select"] div,
-    .stSelectbox div[data-baseweb="select"] div span {
+    
+    .stSelectbox > div > div {
         color: #000000 !important;
         background-color: #e8e8ec !important;
         font-weight: 600 !important;
     }
-
-    /* El icono del dropdown (flecha) */
-    .stSelectbox svg,
-    .stSelectbox svg path,
-    .stSelectbox [data-baseweb="select"] svg,
-    .stSelectbox [data-baseweb="select"] svg path {
+    
+    /* Icono flecha del select */
+    .stSelectbox svg {
         fill: #000000 !important;
         stroke: #000000 !important;
     }
-
-    /* ============================================================ */
-    /* ESTILOS PARA EL MENÚ DESPLEGABLE (CUANDO ESTÁ ABIERTO)      */
-    /* ============================================================ */
-
-    /* El contenedor del popover (menú desplegable) */
-    div[data-baseweb="popover"],
-    div[data-baseweb="popover"] > div,
-    div[data-baseweb="popover"] > div > div {
-        background-color: #e8e8ec !important;
-        border-radius: 10px !important;
-        border: 1px solid #d4a017 !important;
-    }
-
-    /* El menú en sí */
-    ul[data-baseweb="menu"],
-    div[data-baseweb="menu"],
-    [data-baseweb="menu"] {
+    
+    /* Dropdown abierto - FONDO GRIS, TEXTO NEGRO */
+    div[data-baseweb="popover"] {
         background-color: #e8e8ec !important;
         border: 1px solid #d4a017 !important;
         border-radius: 10px !important;
     }
-
-    /* Cada opción individual - FORZAR TEXTO NEGRO */
-    ul[data-baseweb="menu"] li,
-    div[data-baseweb="menu"] li,
-    [data-baseweb="menu"] li,
-    ul li[role="option"],
-    div li[role="option"] {
+    
+    div[data-baseweb="popover"] > div {
+        background-color: #e8e8ec !important;
+    }
+    
+    ul[data-baseweb="menu"] {
+        background-color: #e8e8ec !important;
+    }
+    
+    ul[data-baseweb="menu"] li {
         color: #000000 !important;
         background-color: #e8e8ec !important;
         font-weight: 500 !important;
-        font-size: 0.9rem !important;
-        padding: 8px 12px !important;
     }
-
-    /* Hover sobre las opciones - FONDO DORADO, TEXTO NEGRO */
-    ul[data-baseweb="menu"] li:hover,
-    div[data-baseweb="menu"] li:hover,
-    [data-baseweb="menu"] li:hover,
-    ul li[role="option"]:hover,
-    div li[role="option"]:hover {
+    
+    ul[data-baseweb="menu"] li:hover {
         background-color: #d4a017 !important;
         color: #000000 !important;
     }
-
-    /* Opción seleccionada - FONDO DORADO, TEXTO NEGRO NEGRITA */
-    ul[data-baseweb="menu"] li[aria-selected="true"],
-    div[data-baseweb="menu"] li[aria-selected="true"],
-    [data-baseweb="menu"] li[aria-selected="true"] {
+    
+    ul[data-baseweb="menu"] li[aria-selected="true"] {
         background-color: #d4a017 !important;
         color: #000000 !important;
         font-weight: bold !important;
     }
-
-    /* Opción activa (foco) */
-    ul[data-baseweb="menu"] li[aria-current="true"],
-    div[data-baseweb="menu"] li[aria-current="true"] {
-        background-color: #d4a017 !important;
-        color: #000000 !important;
-    }
-
-    /* ============================================================ */
-    /* ESTILOS PARA INPUTS DE TEXTO                                */
-    /* ============================================================ */
 
     /* Inputs de texto */
     input, textarea {
@@ -470,7 +438,6 @@ st.markdown("""
         background-color: #e8e8ec !important;
         border-radius: 10px !important;
         border: 1px solid #d4a017 !important;
-        font-family: 'DM Sans', sans-serif !important;
         font-weight: 500 !important;
     }
 
@@ -480,13 +447,6 @@ st.markdown("""
         outline: none !important;
     }
 
-    /* Placeholder */
-    input::placeholder, textarea::placeholder {
-        color: #666666 !important;
-        opacity: 1 !important;
-    }
-
-    /* Labels */
     label {
         color: #e8e8ec !important;
         font-weight: 500 !important;
@@ -581,6 +541,15 @@ st.markdown("""
     [data-testid="stSidebar"] h3, 
     [data-testid="stSidebar"] .stMarkdown h3 {
         color: #d4a017 !important;
+    }
+    
+    /* Eliminar cualquier tooltip */
+    [role="tooltip"] {
+        display: none !important;
+    }
+    
+    .stTooltipContent {
+        display: none !important;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -723,24 +692,24 @@ def sidebar():
         st.markdown("---")
         
         paginas = [
-            ("📊", "Dashboard", "Resumen general"),
-            ("📥", "Nuevo Ingreso", "Registrar entrada"),
-            ("📤", "Nuevo Egreso", "Registrar salida"),
-            ("📋", "Historial", "Ver movimientos"),
-            ("⚠️", "Alertas", "Stock bajo"),
-            ("📈", "Reportes", "Estadísticas"),
+            ("📊", "Dashboard", ""),
+            ("📥", "Nuevo Ingreso", ""),
+            ("📤", "Nuevo Egreso", ""),
+            ("📋", "Historial", ""),
+            ("⚠️", "Alertas", ""),
+            ("📈", "Reportes", ""),
         ]
         
         if rol == "admin":
             paginas += [
-                ("🏭", "Proveedores", "Gestionar proveedores"),
-                ("📦", "Productos", "Catálogo"),
-                ("👥", "Usuarios", "Gestión"),
+                ("🏭", "Proveedores", ""),
+                ("📦", "Productos", ""),
+                ("👥", "Usuarios", ""),
             ]
         
         st.markdown("### 📌 MENÚ")
         for emoji, nombre, tooltip in paginas:
-            if st.button(f"{emoji}  {nombre}", key=f"nav_{nombre}", help=tooltip):
+            if st.button(f"{emoji}  {nombre}", key=f"nav_{nombre}"):
                 st.session_state["pagina"] = nombre
         
         st.markdown("---")
@@ -974,6 +943,7 @@ def pagina_dashboard():
         df_mov = pd.DataFrame(movimientos)
         df_mov["fecha"] = pd.to_datetime(df_mov["fecha"])
         
+        # Gráfico 1: Evolución del Stock
         df_mov["stock_diario"] = df_mov.apply(lambda x: x["cantidad"] if x["tipo"] == "ingreso" else -x["cantidad"], axis=1)
         df_daily = df_mov.groupby(df_mov["fecha"].dt.date)["stock_diario"].sum().reset_index()
         df_daily.columns = ["fecha", "movimiento_diario"]
@@ -998,6 +968,7 @@ def pagina_dashboard():
         )
         st.plotly_chart(fig_evolucion, use_container_width=True)
         
+        # Gráfico 2: Distribución por Categoría
         stock_por_categoria = get_stock_por_producto()
         if not stock_por_categoria.empty:
             stock_cat = stock_por_categoria.groupby("categoria")["stock"].sum().reset_index()
@@ -1018,6 +989,7 @@ def pagina_dashboard():
             )
             st.plotly_chart(fig_torta, use_container_width=True)
         
+        # Gráfico 3: Top 10 Productos
         st.markdown("---")
         stock_productos = get_stock_por_producto()
         if not stock_productos.empty:
@@ -1042,6 +1014,7 @@ def pagina_dashboard():
             )
             st.plotly_chart(fig_barras, use_container_width=True)
         
+        # Gráfico 4: Movimientos por Mes
         df_mov["mes"] = df_mov["fecha"].dt.to_period("M").astype(str)
         movimientos_mensuales = df_mov.groupby(["mes", "tipo"])["cantidad"].sum().reset_index()
         
@@ -1140,7 +1113,7 @@ def pagina_ingreso():
         
         observaciones = st.text_area("📝 Observaciones", placeholder="N° factura, lote, fecha de vencimiento, etc.")
         
-        submitted = st.form_submit_button("✅ Registrar Ingreso", type="primary", use_container_width=True)
+        submitted = st.form_submit_button("✅ Registrar Ingreso", use_container_width=True)
         
         if submitted:
             if cantidad <= 0:
@@ -1223,7 +1196,7 @@ def pagina_egreso():
         
         observaciones = st.text_area("📝 Observaciones", placeholder="Motivo del egreso, destino, responsable, etc.")
         
-        submitted = st.form_submit_button("✅ Registrar Egreso", type="primary", use_container_width=True)
+        submitted = st.form_submit_button("✅ Registrar Egreso", use_container_width=True)
         
         if submitted:
             if cantidad <= 0:
