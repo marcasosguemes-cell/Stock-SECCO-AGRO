@@ -65,9 +65,10 @@ st.markdown("""
         box-shadow: 4px 0 24px rgba(0,0,0,0.4) !important;
     }
 
+    /* Botones del menú - ESTILO ANTERIOR (gris con borde dorado y texto negro) */
     [data-testid="stSidebar"] .stButton button {
-        background: rgba(50, 50, 60, 0.6) !important;
-        border: 1px solid rgba(100, 100, 120, 0.4) !important;
+        background: rgba(50, 50, 60, 0.8) !important;
+        border: 1px solid rgba(212, 160, 23, 0.5) !important;
         width: 100%;
         text-align: left;
         padding: 0.7rem 1.1rem;
@@ -77,8 +78,6 @@ st.markdown("""
         font-weight: 500;
         transition: all 0.25s ease;
         color: #000000 !important;
-        background: #e8e8ec !important;
-        border-color: #d4a017 !important;
     }
 
     [data-testid="stSidebar"] .stButton button:hover {
@@ -362,8 +361,8 @@ st.markdown("""
         border: 1px solid rgba(212, 160, 23, 0.3);
     }
 
-    /* ── Inputs y Selects con letra NEGRA ── */
-    input, textarea, select, .stSelectbox div[data-baseweb="select"] div {
+    /* ── Inputs y Selects con letra NEGRA (corregido) ── */
+    input, textarea {
         color: #000000 !important;
         background-color: #f0f0f5 !important;
         border-radius: 10px !important;
@@ -372,23 +371,48 @@ st.markdown("""
         font-weight: 500 !important;
     }
 
-    /* Select dropdown options en NEGRO */
-    div[data-baseweb="select"] ul li {
+    /* Select box principal */
+    .stSelectbox > div > div {
+        background-color: #f0f0f5 !important;
+        border-radius: 10px !important;
+        border: 1px solid rgba(212, 160, 23, 0.5) !important;
+    }
+    
+    .stSelectbox > div > div > div {
         color: #000000 !important;
         background-color: #f0f0f5 !important;
     }
-
-    div[data-baseweb="select"] ul li:hover {
+    
+    /* Dropdown menu */
+    div[data-baseweb="popover"] ul {
+        background-color: #f0f0f5 !important;
+        border: 1px solid rgba(212, 160, 23, 0.5) !important;
+        border-radius: 10px !important;
+    }
+    
+    div[data-baseweb="popover"] li {
+        color: #000000 !important;
+        background-color: #f0f0f5 !important;
+        font-weight: 500 !important;
+    }
+    
+    div[data-baseweb="popover"] li:hover {
         background-color: #d4a017 !important;
         color: #000000 !important;
     }
-
+    
+    div[data-baseweb="popover"] li[aria-selected="true"] {
+        background-color: #d4a017 !important;
+        color: #000000 !important;
+        font-weight: bold !important;
+    }
+    
     /* Select placeholder */
     .stSelectbox [data-baseweb="select"] span {
         color: #000000 !important;
     }
 
-    input:focus, textarea:focus, select:focus {
+    input:focus, textarea:focus {
         border-color: #d4a017 !important;
         box-shadow: 0 0 0 2px rgba(212, 160, 23, 0.2) !important;
     }
@@ -593,7 +617,7 @@ def login():
 
 
 # ══════════════════════════════════════════════════════════════
-# SIDEBAR - Logo más grande dentro del círculo y botones en negro
+# SIDEBAR - Logo más grande dentro del círculo
 # ══════════════════════════════════════════════════════════════
 
 def sidebar():
