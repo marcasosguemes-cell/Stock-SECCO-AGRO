@@ -405,70 +405,86 @@ st.markdown("""
         stroke: #d4a017 !important;
     }
 
-    /* ── DROPDOWN PORTAL (Streamlit lo renderiza fuera del DOM) ── */
+    /* ── DROPDOWN PORTAL - forzado a nivel body ── */
+    /* BaseWeb inyecta el portal directo en <body>, hay que usar selectores globales */
 
-    /* Popover wrapper */
-    [data-baseweb="popover"],
-    [data-baseweb="popover"] > div,
-    [data-baseweb="popover"] > div > div,
-    [data-baseweb="popover"] > div > div > div {
+    body [data-baseweb="popover"],
+    body [data-baseweb="popover"] *:not(svg):not(path),
+    body div[data-baseweb="popover"],
+    body div[data-baseweb="popover"] > div {
         background-color: #2d2d34 !important;
+        color: #f0f0f5 !important;
+    }
+
+    body [data-baseweb="popover"] {
         border: 1px solid #d4a017 !important;
         border-radius: 10px !important;
+        overflow: hidden !important;
+        box-shadow: 0 8px 24px rgba(0,0,0,0.5) !important;
     }
 
-    /* Lista ul y todos sus hijos */
-    [data-baseweb="menu"],
-    ul[data-baseweb="menu"],
-    [data-baseweb="menu"] > div,
-    [data-baseweb="menu"] ul {
+    /* Lista y contenedor interno */
+    body [data-baseweb="menu"],
+    body ul[data-baseweb="menu"],
+    body [data-baseweb="menu"] > div,
+    body [data-baseweb="menu"] > div > div {
         background-color: #2d2d34 !important;
         color: #f0f0f5 !important;
     }
 
-    /* Cada opción li y sus hijos */
-    [data-baseweb="menu"] li,
-    [data-baseweb="menu"] [role="option"],
-    [data-baseweb="option"],
-    [role="listbox"] [role="option"] {
-        color: #f0f0f5 !important;
+    /* Cada opción */
+    body [data-baseweb="menu"] li,
+    body [data-baseweb="menu"] [role="option"],
+    body [role="option"] {
         background-color: #2d2d34 !important;
+        color: #f0f0f5 !important;
         font-weight: 500 !important;
     }
 
-    /* Todo el texto dentro de cada opción */
-    [data-baseweb="menu"] li *,
-    [data-baseweb="menu"] [role="option"] *,
-    [data-baseweb="option"] * {
+    body [data-baseweb="menu"] li *,
+    body [data-baseweb="menu"] [role="option"] *,
+    body [role="option"] * {
         color: #f0f0f5 !important;
         background-color: transparent !important;
     }
 
-    /* Hover sobre opciones */
-    [data-baseweb="menu"] li:hover,
-    [data-baseweb="menu"] [role="option"]:hover,
-    [data-baseweb="option"]:hover {
+    /* Hover */
+    body [data-baseweb="menu"] li:hover,
+    body [data-baseweb="menu"] [role="option"]:hover,
+    body [role="option"]:hover {
         background-color: #d4a017 !important;
         color: #1a1a1f !important;
     }
 
-    [data-baseweb="menu"] li:hover *,
-    [data-baseweb="menu"] [role="option"]:hover *,
-    [data-baseweb="option"]:hover * {
+    body [data-baseweb="menu"] li:hover *,
+    body [data-baseweb="menu"] [role="option"]:hover *,
+    body [role="option"]:hover * {
         color: #1a1a1f !important;
     }
 
-    /* Opción activa/seleccionada */
-    [data-baseweb="menu"] li[aria-selected="true"],
-    [data-baseweb="menu"] [role="option"][aria-selected="true"] {
-        background-color: #d4a017 !important;
+    /* Seleccionado */
+    body [data-baseweb="menu"] li[aria-selected="true"],
+    body [role="option"][aria-selected="true"] {
+        background-color: #b87a0c !important;
         color: #1a1a1f !important;
-        font-weight: bold !important;
+        font-weight: 700 !important;
     }
 
-    [data-baseweb="menu"] li[aria-selected="true"] *,
-    [data-baseweb="menu"] [role="option"][aria-selected="true"] * {
+    body [data-baseweb="menu"] li[aria-selected="true"] *,
+    body [role="option"][aria-selected="true"] * {
         color: #1a1a1f !important;
+    }
+
+    /* Scrollbar del menú */
+    body [data-baseweb="menu"] ::-webkit-scrollbar {
+        width: 6px;
+    }
+    body [data-baseweb="menu"] ::-webkit-scrollbar-track {
+        background: #1a1a1f;
+    }
+    body [data-baseweb="menu"] ::-webkit-scrollbar-thumb {
+        background: #d4a017;
+        border-radius: 3px;
     }
 
     /* Inputs de texto */
