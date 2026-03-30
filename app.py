@@ -156,41 +156,44 @@ st.markdown("""
         margin-bottom: 0.8rem;
     }
 
-    /* Óvalo detrás del logo */
+    /* Óvalo detrás del logo — overflow:hidden para recortar esquinas */
     .logo-oval-wrap {
-        background: linear-gradient(160deg, rgba(255,253,245,0.96) 0%, rgba(240,248,225,0.95) 100%);
-        border: 2px solid rgba(212, 160, 23, 0.45);
+        background: rgba(255, 252, 242, 0.93);
+        border: 2px solid rgba(212, 160, 23, 0.5);
         border-radius: 50%;
-        width: 210px;
-        height: 130px;
+        width: 200px;
+        height: 120px;
         display: flex;
         align-items: center;
         justify-content: center;
-        box-shadow: 0 6px 28px rgba(0,0,0,0.22), 0 2px 0 rgba(255,255,255,0.7) inset;
-        margin-bottom: 16px;
+        overflow: hidden;
+        box-shadow: 0 6px 28px rgba(0,0,0,0.25), 0 2px 0 rgba(255,255,255,0.6) inset;
+        margin-bottom: 14px;
         transition: transform 0.35s ease, box-shadow 0.35s ease;
     }
 
     .logo-oval-wrap:hover {
         transform: scale(1.04);
-        box-shadow: 0 10px 36px rgba(0,0,0,0.28);
+        box-shadow: 0 10px 36px rgba(0,0,0,0.3);
     }
 
     .title-logo {
-        width: 165px;
+        width: 145px;
         height: auto;
-        filter: drop-shadow(0 2px 6px rgba(0,0,0,0.12));
+        display: block;
         transition: transform 0.35s ease;
     }
 
-    /* Burbuja que envuelve título + subtítulo */
+    /* Burbuja transparente tipo glassmorphism */
     .title-bubble-login {
-        background: linear-gradient(135deg, rgba(255,252,240,0.96) 0%, rgba(245,255,230,0.95) 100%);
-        border: 1.5px solid rgba(100, 140, 70, 0.3);
-        border-radius: 24px;
+        background: rgba(255, 255, 255, 0.18);
+        backdrop-filter: blur(14px);
+        -webkit-backdrop-filter: blur(14px);
+        border: 1px solid rgba(255, 255, 255, 0.35);
+        border-radius: 20px;
         padding: 1rem 2.2rem 0.9rem 2.2rem;
         display: block;
-        box-shadow: 0 4px 20px rgba(0,0,0,0.13), 0 1px 0 rgba(255,255,255,0.8) inset;
+        box-shadow: 0 4px 24px rgba(0,0,0,0.15);
         text-align: center;
         margin-bottom: 0.5rem;
         width: 100%;
@@ -201,7 +204,8 @@ st.markdown("""
         font-family: 'Playfair Display', serif !important;
         font-size: 2rem;
         font-weight: 700;
-        color: #1a4a1a !important;
+        color: #ffffff !important;
+        text-shadow: 0 2px 12px rgba(0,0,0,0.45), 0 1px 3px rgba(0,0,0,0.6);
         margin: 0 0 0.3rem 0;
         text-align: center;
         letter-spacing: 0.01em;
@@ -211,12 +215,12 @@ st.markdown("""
 
     .login-subtitle {
         font-family: 'DM Sans', sans-serif !important;
-        font-size: 0.9rem;
-        color: #3d5a2a !important;
+        font-size: 0.88rem;
+        color: #f0f8e8 !important;
+        text-shadow: 0 1px 6px rgba(0,0,0,0.5);
         font-weight: 500;
-        letter-spacing: 0.06em;
+        letter-spacing: 0.07em;
         margin: 0;
-        opacity: 0.88;
     }
 
     /* ── Title bubbles ── */
@@ -550,8 +554,8 @@ def login():
                     st.error(f"❌ Error al iniciar sesión: {e}")
         
         st.markdown("""
-        <div style="text-align: center; margin-top: 2rem; padding-top: 1rem; border-top: 1px solid #c0d0b0;">
-            <p style="color: #6b8f71; font-size: 0.75rem;">Sistema de Control de Stock Agrícola</p>
+        <div style="text-align: center; margin-top: 2rem; padding-top: 1rem; border-top: 1px solid rgba(255,255,255,0.3);">
+            <p style="color: #ffffff; font-size: 0.8rem; font-weight: 500; text-shadow: 0 1px 6px rgba(0,0,0,0.6); letter-spacing: 0.05em;">Sistema de Control de Stock Agrícola</p>
         </div>
         """, unsafe_allow_html=True)
 
