@@ -53,7 +53,7 @@ st.markdown("""
         content: '';
         position: fixed;
         top: 0; left: 0; right: 0; bottom: 0;
-        background: linear-gradient(135deg, rgba(30, 30, 35, 0.92) 0%, rgba(20, 20, 25, 0.96) 100%);
+        background: linear-gradient(135deg, rgba(15, 15, 18, 0.97) 0%, rgba(10, 10, 12, 0.98) 100%);
         z-index: -1;
         pointer-events: none;
     }
@@ -138,7 +138,7 @@ st.markdown("""
 
     .sidebar-header h1 {
         font-family: 'Playfair Display', serif !important;
-        font-size: 1.6rem !important;
+        font-size: 2rem !important;
         margin: 0;
         color: #d4a017 !important;
         letter-spacing: 0.04em;
@@ -524,8 +524,31 @@ st.markdown("""
     }
 
     label {
-        color: #e8e8ec !important;
-        font-weight: 500 !important;
+        color: #f0f0f5 !important;
+        font-weight: 600 !important;
+        text-shadow: 0 1px 4px rgba(0,0,0,0.9), 0 0px 8px rgba(0,0,0,0.8) !important;
+    }
+
+    /* Títulos de sección y markdown sobre el fondo */
+    .stMarkdown p, .stMarkdown h1, .stMarkdown h2, .stMarkdown h3,
+    [data-testid="stMarkdownContainer"] p,
+    [data-testid="stMarkdownContainer"] h1,
+    [data-testid="stMarkdownContainer"] h2,
+    [data-testid="stMarkdownContainer"] h3 {
+        color: #f0f0f5 !important;
+        text-shadow: 0 1px 6px rgba(0,0,0,0.95), 0 0 12px rgba(0,0,0,0.8) !important;
+    }
+
+    /* Fondo oscuro semitransparente detrás de los widgets de input */
+    [data-testid="stWidgetLabel"] > div,
+    [data-testid="stWidgetLabel"] p {
+        color: #f0f0f5 !important;
+        font-weight: 600 !important;
+        text-shadow: 0 1px 6px rgba(0,0,0,0.95) !important;
+        background: rgba(10,10,12,0.55) !important;
+        border-radius: 4px !important;
+        padding: 0 4px !important;
+        display: inline-block !important;
     }
 
     /* ── Tables ── */
