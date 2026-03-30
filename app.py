@@ -739,6 +739,27 @@ st.markdown("""
     .stTooltipContent {
         display: none !important;
     }
+
+    /* ── Expanders con fondo oscuro ── */
+    [data-testid="stExpander"] {
+        background: rgba(35, 35, 42, 0.92) !important;
+        border: 1px solid rgba(212, 160, 23, 0.3) !important;
+        border-radius: 14px !important;
+        backdrop-filter: blur(10px) !important;
+    }
+
+    [data-testid="stExpander"] summary,
+    [data-testid="stExpander"] summary p,
+    [data-testid="stExpander"] summary span {
+        color: #f0f0f5 !important;
+        font-weight: 600 !important;
+        background: transparent !important;
+    }
+
+    [data-testid="stExpander"] > div {
+        background: rgba(35, 35, 42, 0.92) !important;
+        border-radius: 0 0 14px 14px !important;
+    }
 </style>
 """, unsafe_allow_html=True)
 
