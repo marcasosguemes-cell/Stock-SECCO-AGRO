@@ -740,25 +740,54 @@ st.markdown("""
         display: none !important;
     }
 
-    /* ── Expanders con fondo oscuro ── */
-    [data-testid="stExpander"] {
-        background: rgba(35, 35, 42, 0.92) !important;
-        border: 1px solid rgba(212, 160, 23, 0.3) !important;
+    /* ── Expanders con fondo oscuro sólido ── */
+    [data-testid="stExpander"],
+    [data-testid="stExpander"] > details,
+    details[data-testid="stExpander"] {
+        background: #1e1e24 !important;
+        border: 1px solid rgba(212, 160, 23, 0.4) !important;
         border-radius: 14px !important;
-        backdrop-filter: blur(10px) !important;
+        position: relative !important;
+        z-index: 10 !important;
     }
 
     [data-testid="stExpander"] summary,
-    [data-testid="stExpander"] summary p,
-    [data-testid="stExpander"] summary span {
+    [data-testid="stExpander"] > details > summary,
+    details[data-testid="stExpander"] > summary {
+        background: #1e1e24 !important;
         color: #f0f0f5 !important;
         font-weight: 600 !important;
+        border-radius: 14px !important;
+        padding: 0.8rem 1rem !important;
+    }
+
+    [data-testid="stExpander"] summary p,
+    [data-testid="stExpander"] summary span,
+    [data-testid="stExpander"] summary * {
+        color: #f0f0f5 !important;
         background: transparent !important;
     }
 
-    [data-testid="stExpander"] > div {
-        background: rgba(35, 35, 42, 0.92) !important;
+    [data-testid="stExpander"] > details > div,
+    [data-testid="stExpander"] details > div {
+        background: #1e1e24 !important;
         border-radius: 0 0 14px 14px !important;
+        padding: 0.5rem 1rem !important;
+    }
+
+    /* Header clickeable del expander (Streamlit lo renderiza como div con rol button) */
+    [data-testid="stExpander"] [role="button"],
+    [data-testid="stExpander"] [data-testid="stExpanderToggleIcon"],
+    div[data-testid="stExpanderHeader"] {
+        background: #1e1e24 !important;
+        color: #f0f0f5 !important;
+        border-radius: 14px !important;
+    }
+
+    div[data-testid="stExpanderHeader"] p,
+    div[data-testid="stExpanderHeader"] span {
+        color: #f0f0f5 !important;
+        background: transparent !important;
     }
 </style>
 """, unsafe_allow_html=True)
