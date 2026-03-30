@@ -388,64 +388,64 @@ st.markdown("""
         border: 1px solid #d4a017 !important;
     }
 
-    /* El texto seleccionado - NEGRO */
+    /* El texto seleccionado - CLARO */
     .stSelectbox div[data-baseweb="select"] > div {
-        color: #000000 !important;
+        color: #f0f0f5 !important;
         font-weight: 600 !important;
     }
 
-    /* El span dentro del select - NEGRO */
+    /* El span dentro del select - CLARO */
     .stSelectbox span[data-baseweb="select"] {
-        color: #000000 !important;
+        color: #f0f0f5 !important;
     }
 
-    /* Icono flecha - NEGRO */
+    /* Icono flecha - DORADO */
     .stSelectbox svg {
-        fill: #000000 !important;
-        stroke: #000000 !important;
+        fill: #d4a017 !important;
+        stroke: #d4a017 !important;
     }
 
-    /* El menú desplegable - fondo gris claro */
+    /* El menú desplegable - fondo oscuro */
     div[data-baseweb="popover"] {
-        background-color: #e8e8ec !important;
+        background-color: #2d2d34 !important;
         border: 1px solid #d4a017 !important;
         border-radius: 10px !important;
     }
 
     /* Contenedor interno del menú */
     div[data-baseweb="popover"] > div {
-        background-color: #e8e8ec !important;
+        background-color: #2d2d34 !important;
     }
 
     /* Lista de opciones */
     ul[data-baseweb="menu"] {
-        background-color: #e8e8ec !important;
+        background-color: #2d2d34 !important;
     }
 
-    /* Cada opción - TEXTO NEGRO */
+    /* Cada opción - TEXTO CLARO */
     ul[data-baseweb="menu"] li {
-        color: #000000 !important;
-        background-color: #e8e8ec !important;
+        color: #f0f0f5 !important;
+        background-color: #2d2d34 !important;
         font-weight: 500 !important;
     }
 
     /* Hover sobre opciones */
     ul[data-baseweb="menu"] li:hover {
         background-color: #d4a017 !important;
-        color: #000000 !important;
+        color: #1a1a1f !important;
     }
 
     /* Opción activa/highlighted */
     ul[data-baseweb="menu"] li[aria-selected="true"] {
         background-color: #d4a017 !important;
-        color: #000000 !important;
+        color: #1a1a1f !important;
         font-weight: bold !important;
     }
 
     /* Inputs de texto */
     input, textarea {
-        color: #000000 !important;
-        background-color: #e8e8ec !important;
+        color: #f0f0f5 !important;
+        background-color: #2d2d34 !important;
         border-radius: 10px !important;
         border: 1px solid #d4a017 !important;
         font-weight: 500 !important;
