@@ -30,7 +30,7 @@ supabase = get_supabase()
 
 
 # ══════════════════════════════════════════════════════════════
-# CSS MEJORADO - Fondo muy apagado, logo en óvalo más pequeño
+# CSS MEJORADO - Fondo muy apagado, logo GRANDE en inicio
 # ══════════════════════════════════════════════════════════════
 
 st.markdown("""
@@ -91,7 +91,7 @@ st.markdown("""
         box-shadow: 0 2px 8px rgba(0,0,0,0.12);
     }
 
-    /* ── Sidebar header con logo ── */
+    /* ── Sidebar header con logo GRANDE ── */
     .sidebar-header {
         text-align: center;
         padding: 1.6rem 0 1.2rem 0;
@@ -147,7 +147,7 @@ st.markdown("""
         margin-top: 3px;
     }
 
-    /* ── Título login con logo en óvalo MÁS PEQUEÑO ── */
+    /* ── Título login con logo GRANDE - Ajustado para que las letras se vean grandes ── */
     .title-container {
         display: flex;
         flex-direction: column;
@@ -156,34 +156,34 @@ st.markdown("""
         margin-bottom: 0.8rem;
     }
 
-    /* Óvalo detrás del logo - TAMAÑO REDUCIDO */
+    /* Óvalo detrás del logo - TAMAÑO GRANDE con la imagen ocupando todo */
     .logo-oval-wrap {
         background: #f7f3e8;
         border: 2px solid rgba(212, 160, 23, 0.5);
         border-radius: 50%;
-        width: 180px;        /* Óvalo mucho más pequeño */
-        height: 108px;       /* Óvalo mucho más pequeño */
+        width: 420px;        /* Óvalo más ancho para dar espacio */
+        height: 252px;       /* Óvalo más alto */
         display: flex;
         align-items: center;
         justify-content: center;
         overflow: hidden;
-        box-shadow: 0 4px 16px rgba(0,0,0,0.25), 0 1px 0 rgba(255,255,255,0.6) inset;
-        margin-bottom: 16px;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.3), 0 2px 0 rgba(255,255,255,0.6) inset;
+        margin-bottom: 20px;
         transition: transform 0.35s ease, box-shadow 0.35s ease;
     }
 
     .logo-oval-wrap:hover {
         transform: scale(1.02);
-        box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+        box-shadow: 0 14px 42px rgba(0,0,0,0.35);
     }
 
     .title-logo {
-        width: 100% !important;
-        height: 100% !important;
-        object-fit: contain !important;
+        width: 100% !important;      /* Ocupa todo el ancho del contenedor */
+        height: 100% !important;     /* Ocupa todo el alto del contenedor */
+        object-fit: contain !important;  /* Mantiene la proporción sin deformar */
         display: block;
         transition: transform 0.35s ease;
-        padding: 8px;
+        padding: 15px;               /* Espacio interno para que la imagen respire */
     }
 
     /* Burbuja transparente tipo glassmorphism */
@@ -503,11 +503,11 @@ def verificar_perfil():
 
 
 # ══════════════════════════════════════════════════════════════
-# LOGIN CON LOGO EN ÓVALO MÁS PEQUEÑO
+# LOGIN CON LOGO GRANDE ENCIMA
 # ══════════════════════════════════════════════════════════════
 
 def login():
-    """Pantalla de login con logo en óvalo más pequeño"""
+    """Pantalla de login con logo grande encima"""
     col1, col2, col3 = st.columns([1, 1.8, 1])
     with col2:
         # Logo en óvalo + título y subtítulo en burbuja
@@ -563,7 +563,7 @@ def login():
 
 
 # ══════════════════════════════════════════════════════════════
-# SIDEBAR CON LOGO
+# SIDEBAR CON LOGO GRANDE (SIN SECCO AGRO)
 # ══════════════════════════════════════════════════════════════
 
 def sidebar():
