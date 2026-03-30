@@ -361,7 +361,62 @@ st.markdown("""
         border: 1px solid rgba(212, 160, 23, 0.3);
     }
 
-    /* ── Inputs y Selects con letra NEGRA (corregido) ── */
+    /* ── TODOS LOS SELECTS - Letra NEGRA sobre fondo GRIS ── */
+    /* Select box principal (el campo visible) */
+    .stSelectbox > div[data-baseweb="select"] > div {
+        background-color: #f0f0f5 !important;
+        border-radius: 10px !important;
+        border: 1px solid rgba(212, 160, 23, 0.5) !important;
+    }
+    
+    .stSelectbox > div[data-baseweb="select"] > div > div {
+        color: #000000 !important;
+        background-color: #f0f0f5 !important;
+        font-weight: 500 !important;
+    }
+    
+    /* Texto dentro del select */
+    .stSelectbox [data-baseweb="select"] span {
+        color: #000000 !important;
+        font-weight: 500 !important;
+    }
+    
+    /* Icono del dropdown */
+    .stSelectbox [data-baseweb="select"] svg {
+        fill: #000000 !important;
+        stroke: #000000 !important;
+    }
+    
+    /* Menú desplegable completo */
+    div[data-baseweb="popover"] div[data-baseweb="menu"] {
+        background-color: #f0f0f5 !important;
+        border: 1px solid rgba(212, 160, 23, 0.5) !important;
+        border-radius: 10px !important;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.2) !important;
+    }
+    
+    /* Cada opción del menú */
+    div[data-baseweb="popover"] li {
+        color: #000000 !important;
+        background-color: #f0f0f5 !important;
+        font-weight: 500 !important;
+        padding: 8px 12px !important;
+    }
+    
+    /* Hover sobre las opciones */
+    div[data-baseweb="popover"] li:hover {
+        background-color: #d4a017 !important;
+        color: #000000 !important;
+    }
+    
+    /* Opción seleccionada */
+    div[data-baseweb="popover"] li[aria-selected="true"] {
+        background-color: #d4a017 !important;
+        color: #000000 !important;
+        font-weight: bold !important;
+    }
+    
+    /* Inputs de texto */
     input, textarea {
         color: #000000 !important;
         background-color: #f0f0f5 !important;
@@ -369,47 +424,6 @@ st.markdown("""
         border: 1px solid rgba(212, 160, 23, 0.5) !important;
         font-family: 'DM Sans', sans-serif !important;
         font-weight: 500 !important;
-    }
-
-    /* Select box principal */
-    .stSelectbox > div > div {
-        background-color: #f0f0f5 !important;
-        border-radius: 10px !important;
-        border: 1px solid rgba(212, 160, 23, 0.5) !important;
-    }
-    
-    .stSelectbox > div > div > div {
-        color: #000000 !important;
-        background-color: #f0f0f5 !important;
-    }
-    
-    /* Dropdown menu */
-    div[data-baseweb="popover"] ul {
-        background-color: #f0f0f5 !important;
-        border: 1px solid rgba(212, 160, 23, 0.5) !important;
-        border-radius: 10px !important;
-    }
-    
-    div[data-baseweb="popover"] li {
-        color: #000000 !important;
-        background-color: #f0f0f5 !important;
-        font-weight: 500 !important;
-    }
-    
-    div[data-baseweb="popover"] li:hover {
-        background-color: #d4a017 !important;
-        color: #000000 !important;
-    }
-    
-    div[data-baseweb="popover"] li[aria-selected="true"] {
-        background-color: #d4a017 !important;
-        color: #000000 !important;
-        font-weight: bold !important;
-    }
-    
-    /* Select placeholder */
-    .stSelectbox [data-baseweb="select"] span {
-        color: #000000 !important;
     }
 
     input:focus, textarea:focus {
@@ -617,7 +631,7 @@ def login():
 
 
 # ══════════════════════════════════════════════════════════════
-# SIDEBAR - Logo más grande dentro del círculo
+# SIDEBAR
 # ══════════════════════════════════════════════════════════════
 
 def sidebar():
@@ -785,7 +799,7 @@ def pagina_dashboard():
     </div>
     """, unsafe_allow_html=True)
     
-    # ── FILTROS DINÁMICOS con texto legible ──────────────────────────
+    # ── FILTROS DINÁMICOS ──────────────────────────────────────────
     st.markdown('<div class="filters-panel">', unsafe_allow_html=True)
     st.markdown("### 🔍 FILTROS DINÁMICOS")
     
@@ -899,7 +913,7 @@ def pagina_dashboard():
     
     st.markdown("---")
     
-    # ── GRÁFICO 1: Evolución de Stock ─────────────────────────────────
+    # ── GRÁFICOS ─────────────────────────────────────────────────────
     if movimientos:
         df_mov = pd.DataFrame(movimientos)
         df_mov["fecha"] = pd.to_datetime(df_mov["fecha"])
@@ -928,7 +942,6 @@ def pagina_dashboard():
         )
         st.plotly_chart(fig_evolucion, use_container_width=True)
         
-        # ── GRÁFICO 2: Distribución por Categoría ─────────────────────────
         stock_por_categoria = get_stock_por_producto()
         if not stock_por_categoria.empty:
             stock_cat = stock_por_categoria.groupby("categoria")["stock"].sum().reset_index()
@@ -949,7 +962,6 @@ def pagina_dashboard():
             )
             st.plotly_chart(fig_torta, use_container_width=True)
         
-        # ── GRÁFICO 3: Top 10 Productos ───────────────────────────────────
         st.markdown("---")
         stock_productos = get_stock_por_producto()
         if not stock_productos.empty:
@@ -974,7 +986,6 @@ def pagina_dashboard():
             )
             st.plotly_chart(fig_barras, use_container_width=True)
         
-        # ── GRÁFICO 4: Movimientos por Mes ─────────────────────────────────
         df_mov["mes"] = df_mov["fecha"].dt.to_period("M").astype(str)
         movimientos_mensuales = df_mov.groupby(["mes", "tipo"])["cantidad"].sum().reset_index()
         
