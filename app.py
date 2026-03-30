@@ -138,7 +138,7 @@ st.markdown("""
 
     .sidebar-header h1 {
         font-family: 'Playfair Display', serif !important;
-        font-size: 2rem !important;
+        font-size: 2.4rem !important;
         margin: 0;
         color: #d4a017 !important;
         letter-spacing: 0.04em;
@@ -924,7 +924,6 @@ def pagina_dashboard():
     """, unsafe_allow_html=True)
     
     # ── FILTROS DINÁMICOS ──────────────────────────────────────────
-    st.markdown('<div class="filters-panel">', unsafe_allow_html=True)
     st.markdown("### 🔍 FILTROS DINÁMICOS")
     
     col_f1, col_f2, col_f3 = st.columns(3)
@@ -948,8 +947,6 @@ def pagina_dashboard():
         prod_options["Todos"] = None
         prod_seleccionado = st.selectbox("🏷️ Producto", list(prod_options.keys()))
         prod_id = prod_options[prod_seleccionado] if prod_seleccionado != "Todos" else None
-    
-    st.markdown('</div>', unsafe_allow_html=True)
     
     # Obtener datos con filtros
     movimientos = get_movimientos_con_filtros(
