@@ -147,7 +147,7 @@ st.markdown("""
         margin-top: 3px;
     }
 
-    /* ── Título login con logo GRANDE ── */
+    /* ── Título login con logo GRANDE - Ajustado para que las letras se vean grandes ── */
     .title-container {
         display: flex;
         flex-direction: column;
@@ -156,13 +156,13 @@ st.markdown("""
         margin-bottom: 0.8rem;
     }
 
-    /* Óvalo detrás del logo - TAMAÑO GRANDE */
+    /* Óvalo detrás del logo - TAMAÑO GRANDE con la imagen ocupando todo */
     .logo-oval-wrap {
         background: #f7f3e8;
         border: 2px solid rgba(212, 160, 23, 0.5);
         border-radius: 50%;
-        width: 380px;        /* ← Aumentado: logo muy grande */
-        height: 228px;       /* ← Aumentado: logo muy grande */
+        width: 420px;        /* Óvalo más ancho para dar espacio */
+        height: 252px;       /* Óvalo más alto */
         display: flex;
         align-items: center;
         justify-content: center;
@@ -178,11 +178,12 @@ st.markdown("""
     }
 
     .title-logo {
-        width: 300px;        /* ← Aumentado: logo muy grande */
-        height: auto;
+        width: 100% !important;      /* Ocupa todo el ancho del contenedor */
+        height: 100% !important;     /* Ocupa todo el alto del contenedor */
+        object-fit: contain !important;  /* Mantiene la proporción sin deformar */
         display: block;
-        mix-blend-mode: multiply;
         transition: transform 0.35s ease;
+        padding: 15px;               /* Espacio interno para que la imagen respire */
     }
 
     /* Burbuja transparente tipo glassmorphism */
