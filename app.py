@@ -32,7 +32,7 @@ supabase = get_supabase()
 
 
 # ══════════════════════════════════════════════════════════════
-# CSS MEJORADO - Estilo moderno con tonos grises
+# CSS MEJORADO - Estilo moderno con tonos grises y legibilidad
 # ══════════════════════════════════════════════════════════════
 
 st.markdown("""
@@ -65,6 +65,11 @@ st.markdown("""
         box-shadow: 4px 0 24px rgba(0,0,0,0.4) !important;
     }
 
+    [data-testid="stSidebar"] * {
+        color: #e8e8ec !important;
+        font-family: 'DM Sans', sans-serif !important;
+    }
+
     [data-testid="stSidebar"] .stButton button {
         background: rgba(50, 50, 60, 0.6) !important;
         border: 1px solid rgba(100, 100, 120, 0.4) !important;
@@ -76,19 +81,17 @@ st.markdown("""
         font-size: 0.9rem;
         font-weight: 500;
         transition: all 0.25s ease;
-        color: #000000 !important;
-        background: #e8e8ec !important;
-        border-color: #d4a017 !important;
+        color: #f0f0f5 !important;
     }
 
     [data-testid="stSidebar"] .stButton button:hover {
-        background: #d4a017 !important;
-        border-color: #b87a0c !important;
+        background: rgba(212, 160, 23, 0.2) !important;
+        border-color: rgba(212, 160, 23, 0.6) !important;
         transform: translateX(5px);
-        color: #1a1a1f !important;
+        color: #f5e199 !important;
     }
 
-    /* ── Sidebar header con logo en óvalo blanco - LOGO AGRANDADO ── */
+    /* ── Sidebar header con logo en óvalo blanco - LOGO AGRANDADO DENTRO ── */
     .sidebar-header {
         text-align: center;
         padding: 1.6rem 0 1.2rem 0;
@@ -103,8 +106,8 @@ st.markdown("""
         background: #f7f3e8;
         border: 2px solid rgba(212, 160, 23, 0.6);
         border-radius: 50%;
-        width: 110px;
-        height: 110px;
+        width: 100px;
+        height: 100px;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -120,11 +123,11 @@ st.markdown("""
     }
 
     .sidebar-logo {
-        width: 100% !important;
+        width: 95% !important;
         height: auto !important;
         object-fit: contain !important;
         display: block;
-        padding: 5px;
+        padding: 8px;
     }
 
     .sidebar-header h1 {
@@ -267,11 +270,10 @@ st.markdown("""
     }
 
     .filters-panel h3, .filters-panel .stMarkdown h3 {
-        color: #d4a017 !important;
-        font-weight: 700;
+        color: #f0f0f5 !important;
+        font-weight: 600;
         letter-spacing: 0.05em;
         margin-bottom: 1rem;
-        text-transform: uppercase;
     }
 
     /* ── Metric cards con fondo gris ── */
@@ -460,16 +462,11 @@ st.markdown("""
         margin: 1.5rem 0 !important;
     }
 
-    /* ── Estilo para los textos del sidebar (menú) ── */
-    [data-testid="stSidebar"] .stMarkdown, 
-    [data-testid="stSidebar"] .stMarkdown p,
-    [data-testid="stSidebar"] .stMarkdown div {
-        color: #e8e8ec !important;
-    }
-    
-    [data-testid="stSidebar"] h3, 
-    [data-testid="stSidebar"] .stMarkdown h3 {
+    /* ── Excepción para títulos en filtros ── */
+    .filters-panel .stMarkdown h3 {
         color: #d4a017 !important;
+        font-weight: 700;
+        margin-bottom: 1rem;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -576,7 +573,7 @@ def login():
 
 
 # ══════════════════════════════════════════════════════════════
-# SIDEBAR - Logo más grande dentro del círculo y botones en negro
+# SIDEBAR - Logo más grande dentro del círculo
 # ══════════════════════════════════════════════════════════════
 
 def sidebar():
