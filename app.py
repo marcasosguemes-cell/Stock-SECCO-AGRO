@@ -378,54 +378,64 @@ st.markdown("""
     }
 
     /* ============================================================ */
-    /* ESTILOS PARA SELECTS - CORREGIDO LETRA NEGRA                */
+    /* ESTILOS PARA SELECTS - SIMPLIFICADOS Y FUNCIONALES          */
     /* ============================================================ */
-    
-    /* Select box cerrado */
+
+    /* Contenedor del select - mantiene funcionalidad */
     .stSelectbox > div {
         background-color: #e8e8ec !important;
         border-radius: 10px !important;
         border: 1px solid #d4a017 !important;
     }
-    
-    .stSelectbox > div > div {
+
+    /* El texto seleccionado - NEGRO */
+    .stSelectbox div[data-baseweb="select"] > div {
         color: #000000 !important;
-        background-color: #e8e8ec !important;
         font-weight: 600 !important;
     }
-    
-    /* Icono flecha del select */
+
+    /* El span dentro del select - NEGRO */
+    .stSelectbox span[data-baseweb="select"] {
+        color: #000000 !important;
+    }
+
+    /* Icono flecha - NEGRO */
     .stSelectbox svg {
         fill: #000000 !important;
         stroke: #000000 !important;
     }
-    
-    /* Dropdown abierto - FONDO GRIS, TEXTO NEGRO */
+
+    /* El menú desplegable - fondo gris claro */
     div[data-baseweb="popover"] {
         background-color: #e8e8ec !important;
         border: 1px solid #d4a017 !important;
         border-radius: 10px !important;
     }
-    
+
+    /* Contenedor interno del menú */
     div[data-baseweb="popover"] > div {
         background-color: #e8e8ec !important;
     }
-    
+
+    /* Lista de opciones */
     ul[data-baseweb="menu"] {
         background-color: #e8e8ec !important;
     }
-    
+
+    /* Cada opción - TEXTO NEGRO */
     ul[data-baseweb="menu"] li {
         color: #000000 !important;
         background-color: #e8e8ec !important;
         font-weight: 500 !important;
     }
-    
+
+    /* Hover sobre opciones */
     ul[data-baseweb="menu"] li:hover {
         background-color: #d4a017 !important;
         color: #000000 !important;
     }
-    
+
+    /* Opción activa/highlighted */
     ul[data-baseweb="menu"] li[aria-selected="true"] {
         background-color: #d4a017 !important;
         color: #000000 !important;
