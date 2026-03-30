@@ -91,7 +91,7 @@ st.markdown("""
         box-shadow: 0 2px 8px rgba(0,0,0,0.12);
     }
 
-    /* ── Sidebar header con logo GRANDE ── */
+    /* ── Sidebar header con logo en óvalo blanco ── */
     .sidebar-header {
         text-align: center;
         padding: 1.6rem 0 1.2rem 0;
@@ -102,16 +102,33 @@ st.markdown("""
         align-items: center;
     }
 
-    .sidebar-header img {
-        width: 145px !important;
-        height: auto !important;
-        filter: drop-shadow(0 4px 16px rgba(0,0,0,0.35)) brightness(1.05);
+    /* Óvalo blanco para el logo en sidebar */
+    .sidebar-logo-oval {
+        background: #f7f3e8;
+        border: 2px solid rgba(212, 160, 23, 0.5);
+        border-radius: 50%;
+        width: 100px;
+        height: 100px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        box-shadow: 0 4px 16px rgba(0,0,0,0.25), 0 1px 0 rgba(255,255,255,0.6) inset;
         margin-bottom: 12px;
-        transition: transform 0.3s ease;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
     }
 
-    .sidebar-header img:hover {
+    .sidebar-logo-oval:hover {
         transform: scale(1.03);
+        box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+    }
+
+    .sidebar-logo {
+        width: 80% !important;
+        height: auto !important;
+        object-fit: contain !important;
+        display: block;
+        transition: transform 0.3s ease;
     }
 
     .sidebar-header h1 {
@@ -573,14 +590,16 @@ def login():
 
 
 # ══════════════════════════════════════════════════════════════
-# SIDEBAR CON LOGO GRANDE
+# SIDEBAR CON LOGO EN ÓVALO BLANCO
 # ══════════════════════════════════════════════════════════════
 
 def sidebar():
     with st.sidebar:
         st.markdown("""
         <div class="sidebar-header">
-            <img src="https://raw.githubusercontent.com/marcasosguemes-cell/Stock-SECCO-AGRO/main/Logo.png" alt="Logo">
+            <div class="sidebar-logo-oval">
+                <img src="https://raw.githubusercontent.com/marcasosguemes-cell/Stock-SECCO-AGRO/main/Logo.png" class="sidebar-logo" alt="Logo">
+            </div>
             <h1>Stock Agrícola</h1>
         </div>
         """, unsafe_allow_html=True)
