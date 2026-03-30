@@ -138,7 +138,7 @@ st.markdown("""
 
     .sidebar-header h1 {
         font-family: 'Playfair Display', serif !important;
-        font-size: 1.2rem !important;
+        font-size: 1.6rem !important;
         margin: 0;
         color: #d4a017 !important;
         letter-spacing: 0.04em;
@@ -404,7 +404,12 @@ st.markdown("""
     .stSelectbox [data-baseweb="select"] input {
         caret-color: transparent !important;
         cursor: pointer !important;
-        color: #f0f0f5 !important;
+        color: transparent !important;
+        text-shadow: 0 0 0 #f0f0f5 !important;
+        width: 1px !important;
+        min-width: 0 !important;
+        max-width: 1px !important;
+        opacity: 0 !important;
     }
 
     /* Texto del valor seleccionado - padding para no solapar con la flecha */
