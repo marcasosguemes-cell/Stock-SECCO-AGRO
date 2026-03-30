@@ -65,7 +65,7 @@ st.markdown("""
         box-shadow: 4px 0 24px rgba(0,0,0,0.4) !important;
     }
 
-    /* Botones del menú - ESTILO ANTERIOR (gris con borde dorado y texto negro) */
+    /* Botones del menú */
     [data-testid="stSidebar"] .stButton button {
         background: rgba(50, 50, 60, 0.8) !important;
         border: 1px solid rgba(212, 160, 23, 0.5) !important;
@@ -87,7 +87,7 @@ st.markdown("""
         color: #1a1a1f !important;
     }
 
-    /* ── Sidebar header con logo en óvalo blanco - LOGO AGRANDADO ── */
+    /* ── Sidebar header con logo en óvalo blanco ── */
     .sidebar-header {
         text-align: center;
         padding: 1.6rem 0 1.2rem 0;
@@ -135,7 +135,7 @@ st.markdown("""
         font-weight: 700;
     }
 
-    /* ── Profile card con tonos grises ── */
+    /* ── Profile card ── */
     .profile-card {
         text-align: center;
         padding: 0.9rem 1rem;
@@ -159,7 +159,7 @@ st.markdown("""
         margin-top: 3px;
     }
 
-    /* ── Título login con logo GRANDE ── */
+    /* ── Título login ── */
     .title-container {
         display: flex;
         flex-direction: column;
@@ -226,7 +226,7 @@ st.markdown("""
         letter-spacing: 0.07em !important;
     }
 
-    /* ── Title bubbles con letra legible ── */
+    /* ── Title bubbles ── */
     .title-bubble {
         background: linear-gradient(135deg, rgba(200, 160, 96, 0.95) 0%, rgba(184, 144, 90, 0.95) 100%);
         border-radius: 20px;
@@ -254,7 +254,7 @@ st.markdown("""
         font-weight: 500;
     }
 
-    /* ── Filtros panel con fondo gris elegante ── */
+    /* ── Filtros panel ── */
     .filters-panel {
         background: rgba(45, 45, 52, 0.85) !important;
         backdrop-filter: blur(12px);
@@ -273,7 +273,7 @@ st.markdown("""
         text-transform: uppercase;
     }
 
-    /* ── Metric cards con fondo gris ── */
+    /* ── Metric cards ── */
     .metric-card {
         background: linear-gradient(145deg, rgba(55, 55, 62, 0.9) 0%, rgba(45, 45, 52, 0.95) 100%) !important;
         border: 1px solid rgba(212, 160, 23, 0.35);
@@ -319,7 +319,7 @@ st.markdown("""
         font-weight: 500;
     }
 
-    /* ── Section titles legibles ── */
+    /* ── Section titles ── */
     .section-title {
         font-family: 'DM Sans', sans-serif !important;
         font-size: 1.2rem !important;
@@ -361,67 +361,84 @@ st.markdown("""
         border: 1px solid rgba(212, 160, 23, 0.3);
     }
 
-    /* ── TODOS LOS SELECTS - Letra NEGRA sobre fondo GRIS ── */
-    /* Select box principal (el campo visible) */
-    .stSelectbox > div[data-baseweb="select"] > div {
-        background-color: #f0f0f5 !important;
-        border-radius: 10px !important;
-        border: 1px solid rgba(212, 160, 23, 0.5) !important;
+    /* ============================================================ */
+    /* ESTILOS PARA SELECTS - LETRA NEGRA CON FONDO GRIS            */
+    /* ============================================================ */
+    
+    /* Contenedor principal del select */
+    .stSelectbox {
+        background-color: transparent !important;
     }
     
-    .stSelectbox > div[data-baseweb="select"] > div > div {
+    /* El botón/input del select */
+    .stSelectbox > div {
+        background-color: #e8e8ec !important;
+        border-radius: 10px !important;
+        border: 1px solid #d4a017 !important;
+    }
+    
+    /* El texto dentro del select */
+    .stSelectbox > div > div {
         color: #000000 !important;
-        background-color: #f0f0f5 !important;
+        background-color: #e8e8ec !important;
         font-weight: 500 !important;
     }
     
-    /* Texto dentro del select */
+    /* El texto cuando está seleccionado */
     .stSelectbox [data-baseweb="select"] span {
         color: #000000 !important;
-        font-weight: 500 !important;
+        font-weight: 600 !important;
     }
     
-    /* Icono del dropdown */
-    .stSelectbox [data-baseweb="select"] svg {
+    /* El icono del dropdown */
+    .stSelectbox svg {
         fill: #000000 !important;
         stroke: #000000 !important;
     }
     
-    /* Menú desplegable completo */
-    div[data-baseweb="popover"] div[data-baseweb="menu"] {
-        background-color: #f0f0f5 !important;
-        border: 1px solid rgba(212, 160, 23, 0.5) !important;
+    /* El contenedor del menú desplegable */
+    div[data-baseweb="popover"] {
+        background-color: #e8e8ec !important;
         border-radius: 10px !important;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.2) !important;
+        border: 1px solid #d4a017 !important;
     }
     
-    /* Cada opción del menú */
-    div[data-baseweb="popover"] li {
+    /* El menú desplegable en sí */
+    div[data-baseweb="popover"] > div {
+        background-color: #e8e8ec !important;
+    }
+    
+    /* Cada opción individual */
+    ul[data-baseweb="menu"] li {
         color: #000000 !important;
-        background-color: #f0f0f5 !important;
+        background-color: #e8e8ec !important;
         font-weight: 500 !important;
-        padding: 8px 12px !important;
     }
     
     /* Hover sobre las opciones */
-    div[data-baseweb="popover"] li:hover {
+    ul[data-baseweb="menu"] li:hover {
         background-color: #d4a017 !important;
         color: #000000 !important;
     }
     
     /* Opción seleccionada */
-    div[data-baseweb="popover"] li[aria-selected="true"] {
+    ul[data-baseweb="menu"] li[aria-selected="true"] {
         background-color: #d4a017 !important;
         color: #000000 !important;
         font-weight: bold !important;
     }
     
+    /* Para selects dentro de formularios */
+    .stForm .stSelectbox > div {
+        background-color: #e8e8ec !important;
+    }
+    
     /* Inputs de texto */
     input, textarea {
         color: #000000 !important;
-        background-color: #f0f0f5 !important;
+        background-color: #e8e8ec !important;
         border-radius: 10px !important;
-        border: 1px solid rgba(212, 160, 23, 0.5) !important;
+        border: 1px solid #d4a017 !important;
         font-family: 'DM Sans', sans-serif !important;
         font-weight: 500 !important;
     }
@@ -515,7 +532,7 @@ st.markdown("""
         margin: 1.5rem 0 !important;
     }
 
-    /* ── Estilo para los textos del sidebar (menú) ── */
+    /* ── Estilo para los textos del sidebar ── */
     [data-testid="stSidebar"] .stMarkdown, 
     [data-testid="stSidebar"] .stMarkdown p,
     [data-testid="stSidebar"] .stMarkdown div {
