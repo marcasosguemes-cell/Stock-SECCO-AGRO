@@ -51,7 +51,7 @@ st.markdown("""
         content: '';
         position: fixed;
         top: 0; left: 0; right: 0; bottom: 0;
-        background: rgba(252, 250, 245, 0.97);
+        background: rgba(255, 255, 255, 0.935);
         z-index: -1;
         pointer-events: none;
     }
@@ -158,7 +158,7 @@ st.markdown("""
 
     /* Óvalo detrás del logo — overflow:hidden para recortar esquinas */
     .logo-oval-wrap {
-        background: rgba(255, 252, 242, 0.93);
+        background: #f7f3e8;
         border: 2px solid rgba(212, 160, 23, 0.5);
         border-radius: 50%;
         width: 200px;
@@ -181,6 +181,7 @@ st.markdown("""
         width: 145px;
         height: auto;
         display: block;
+        mix-blend-mode: multiply;
         transition: transform 0.35s ease;
     }
 
