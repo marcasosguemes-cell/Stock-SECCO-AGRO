@@ -378,25 +378,25 @@ st.markdown("""
     }
 
     /* ============================================================ */
-    /* ESTILOS PARA SELECTS - SIMPLIFICADOS Y FUNCIONALES          */
+    /* ESTILOS PARA SELECTS - COMPLETOS Y FORZADOS                 */
     /* ============================================================ */
 
-    /* Contenedor del select - mantiene funcionalidad */
-    .stSelectbox > div {
-        background-color: #e8e8ec !important;
+    /* Contenedor del select - fondo oscuro */
+    .stSelectbox > div,
+    .stSelectbox div[data-baseweb="select"] {
+        background-color: #2d2d34 !important;
         border-radius: 10px !important;
         border: 1px solid #d4a017 !important;
     }
 
     /* El texto seleccionado - CLARO */
-    .stSelectbox div[data-baseweb="select"] > div {
+    .stSelectbox div[data-baseweb="select"] > div,
+    .stSelectbox div[data-baseweb="select"] div,
+    .stSelectbox div[data-baseweb="select"] span,
+    .stSelectbox [data-baseweb="select"] * {
         color: #f0f0f5 !important;
         font-weight: 600 !important;
-    }
-
-    /* El span dentro del select - CLARO */
-    .stSelectbox span[data-baseweb="select"] {
-        color: #f0f0f5 !important;
+        background-color: transparent !important;
     }
 
     /* Icono flecha - DORADO */
@@ -405,41 +405,70 @@ st.markdown("""
         stroke: #d4a017 !important;
     }
 
-    /* El menú desplegable - fondo oscuro */
-    div[data-baseweb="popover"] {
+    /* ── DROPDOWN PORTAL (Streamlit lo renderiza fuera del DOM) ── */
+
+    /* Popover wrapper */
+    [data-baseweb="popover"],
+    [data-baseweb="popover"] > div,
+    [data-baseweb="popover"] > div > div,
+    [data-baseweb="popover"] > div > div > div {
         background-color: #2d2d34 !important;
         border: 1px solid #d4a017 !important;
         border-radius: 10px !important;
     }
 
-    /* Contenedor interno del menú */
-    div[data-baseweb="popover"] > div {
+    /* Lista ul y todos sus hijos */
+    [data-baseweb="menu"],
+    ul[data-baseweb="menu"],
+    [data-baseweb="menu"] > div,
+    [data-baseweb="menu"] ul {
         background-color: #2d2d34 !important;
+        color: #f0f0f5 !important;
     }
 
-    /* Lista de opciones */
-    ul[data-baseweb="menu"] {
-        background-color: #2d2d34 !important;
-    }
-
-    /* Cada opción - TEXTO CLARO */
-    ul[data-baseweb="menu"] li {
+    /* Cada opción li y sus hijos */
+    [data-baseweb="menu"] li,
+    [data-baseweb="menu"] [role="option"],
+    [data-baseweb="option"],
+    [role="listbox"] [role="option"] {
         color: #f0f0f5 !important;
         background-color: #2d2d34 !important;
         font-weight: 500 !important;
     }
 
+    /* Todo el texto dentro de cada opción */
+    [data-baseweb="menu"] li *,
+    [data-baseweb="menu"] [role="option"] *,
+    [data-baseweb="option"] * {
+        color: #f0f0f5 !important;
+        background-color: transparent !important;
+    }
+
     /* Hover sobre opciones */
-    ul[data-baseweb="menu"] li:hover {
+    [data-baseweb="menu"] li:hover,
+    [data-baseweb="menu"] [role="option"]:hover,
+    [data-baseweb="option"]:hover {
         background-color: #d4a017 !important;
         color: #1a1a1f !important;
     }
 
-    /* Opción activa/highlighted */
-    ul[data-baseweb="menu"] li[aria-selected="true"] {
+    [data-baseweb="menu"] li:hover *,
+    [data-baseweb="menu"] [role="option"]:hover *,
+    [data-baseweb="option"]:hover * {
+        color: #1a1a1f !important;
+    }
+
+    /* Opción activa/seleccionada */
+    [data-baseweb="menu"] li[aria-selected="true"],
+    [data-baseweb="menu"] [role="option"][aria-selected="true"] {
         background-color: #d4a017 !important;
         color: #1a1a1f !important;
         font-weight: bold !important;
+    }
+
+    [data-baseweb="menu"] li[aria-selected="true"] *,
+    [data-baseweb="menu"] [role="option"][aria-selected="true"] * {
+        color: #1a1a1f !important;
     }
 
     /* Inputs de texto */
