@@ -399,6 +399,14 @@ st.markdown("""
         background-color: transparent !important;
     }
 
+    /* Texto del valor seleccionado - padding para no solapar con la flecha */
+    .stSelectbox div[data-baseweb="select"] > div:first-child {
+        padding-right: 2rem !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        white-space: nowrap !important;
+    }
+
     /* Icono flecha - DORADO */
     .stSelectbox svg {
         fill: #d4a017 !important;
