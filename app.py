@@ -32,14 +32,14 @@ supabase = get_supabase()
 
 
 # ══════════════════════════════════════════════════════════════
-# CSS MEJORADO - Estilo moderno
+# CSS MEJORADO - Estilo moderno con tonos grises y legibilidad
 # ══════════════════════════════════════════════════════════════
 
 st.markdown("""
 <style>
-    @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:wght@300;400;500;600&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:wght@300;400;500;600;700&display=swap');
 
-    /* ── Fondo con imagen muy apagada ── */
+    /* ── Fondo con imagen muy apagada y tonos grises ── */
     .stApp {
         background-image: url('https://raw.githubusercontent.com/marcasosguemes-cell/Stock-SECCO-AGRO/main/Fondo.PNG') !important;
         background-size: cover !important;
@@ -53,51 +53,49 @@ st.markdown("""
         content: '';
         position: fixed;
         top: 0; left: 0; right: 0; bottom: 0;
-        background: rgba(255, 255, 255, 0.935);
+        background: linear-gradient(135deg, rgba(30, 30, 35, 0.92) 0%, rgba(20, 20, 25, 0.96) 100%);
         z-index: -1;
         pointer-events: none;
     }
 
-    /* ── Sidebar refinado ── */
+    /* ── Sidebar con tonos grises oscuros ── */
     [data-testid="stSidebar"] {
-        background: linear-gradient(180deg, #192337 0%, #1e2d45 60%, #1a2a3f 100%) !important;
-        border-right: 1px solid rgba(212, 160, 23, 0.25) !important;
-        box-shadow: 4px 0 24px rgba(0,0,0,0.18);
+        background: linear-gradient(180deg, #1a1a1f 0%, #0f0f12 60%, #0a0a0c 100%) !important;
+        border-right: 1px solid rgba(100, 100, 120, 0.3) !important;
+        box-shadow: 4px 0 24px rgba(0,0,0,0.4) !important;
     }
 
     [data-testid="stSidebar"] * {
-        color: #dce8dc !important;
+        color: #e8e8ec !important;
         font-family: 'DM Sans', sans-serif !important;
     }
 
     [data-testid="stSidebar"] .stButton button {
-        background: transparent;
-        border: 1px solid rgba(212, 160, 23, 0.18);
+        background: rgba(50, 50, 60, 0.6) !important;
+        border: 1px solid rgba(100, 100, 120, 0.4) !important;
         width: 100%;
         text-align: left;
-        padding: 0.65rem 1.1rem;
-        border-radius: 10px;
-        margin: 4px 0;
-        font-size: 0.88rem;
+        padding: 0.7rem 1.1rem;
+        border-radius: 12px;
+        margin: 5px 0;
+        font-size: 0.9rem;
         font-weight: 500;
-        letter-spacing: 0.01em;
-        transition: all 0.25s cubic-bezier(.4,0,.2,1);
-        color: #c8dcc8 !important;
+        transition: all 0.25s ease;
+        color: #f0f0f5 !important;
     }
 
     [data-testid="stSidebar"] .stButton button:hover {
-        background: rgba(212, 160, 23, 0.12);
-        border-color: rgba(212, 160, 23, 0.5);
+        background: rgba(212, 160, 23, 0.2) !important;
+        border-color: rgba(212, 160, 23, 0.6) !important;
         transform: translateX(5px);
         color: #f5e199 !important;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.12);
     }
 
-    /* ── Sidebar header con logo en óvalo blanco ── */
+    /* ── Sidebar header con logo en óvalo blanco - LOGO AGRANDADO DENTRO ── */
     .sidebar-header {
         text-align: center;
         padding: 1.6rem 0 1.2rem 0;
-        border-bottom: 1px solid rgba(212, 160, 23, 0.35);
+        border-bottom: 1px solid rgba(212, 160, 23, 0.4);
         margin-bottom: 1.4rem;
         display: flex;
         flex-direction: column;
@@ -106,7 +104,7 @@ st.markdown("""
 
     .sidebar-logo-oval {
         background: #f7f3e8;
-        border: 2px solid rgba(212, 160, 23, 0.5);
+        border: 2px solid rgba(212, 160, 23, 0.6);
         border-radius: 50%;
         width: 100px;
         height: 100px;
@@ -114,53 +112,54 @@ st.markdown("""
         align-items: center;
         justify-content: center;
         overflow: hidden;
-        box-shadow: 0 4px 16px rgba(0,0,0,0.25), 0 1px 0 rgba(255,255,255,0.6) inset;
+        box-shadow: 0 4px 16px rgba(0,0,0,0.3), 0 1px 0 rgba(255,255,255,0.3) inset;
         margin-bottom: 12px;
         transition: transform 0.3s ease, box-shadow 0.3s ease;
     }
 
     .sidebar-logo-oval:hover {
         transform: scale(1.03);
-        box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+        box-shadow: 0 8px 24px rgba(0,0,0,0.4);
     }
 
     .sidebar-logo {
-        width: 80% !important;
+        width: 95% !important;
         height: auto !important;
         object-fit: contain !important;
         display: block;
+        padding: 8px;
     }
 
     .sidebar-header h1 {
         font-family: 'Playfair Display', serif !important;
-        font-size: 1.15rem !important;
+        font-size: 1.2rem !important;
         margin: 0;
         color: #d4a017 !important;
         letter-spacing: 0.04em;
-        font-weight: 600;
+        font-weight: 700;
     }
 
-    /* ── Profile card ── */
+    /* ── Profile card con tonos grises ── */
     .profile-card {
         text-align: center;
         padding: 0.9rem 1rem;
         margin: 0.5rem 0 1rem 0;
-        background: rgba(255,255,255,0.05) !important;
-        border: 1px solid rgba(212, 160, 23, 0.15);
-        border-radius: 14px;
-        backdrop-filter: blur(4px);
+        background: rgba(40, 40, 48, 0.7) !important;
+        border: 1px solid rgba(212, 160, 23, 0.25);
+        border-radius: 16px;
+        backdrop-filter: blur(8px);
     }
 
     .profile-name {
         font-size: 0.95rem;
         font-weight: 600;
-        color: #e8f4e8 !important;
+        color: #f0f0f5 !important;
         margin-bottom: 4px;
     }
 
     .profile-role, .profile-location {
         font-size: 0.78rem;
-        color: #a8c8a8 !important;
+        color: #b8b8c0 !important;
         margin-top: 3px;
     }
 
@@ -231,37 +230,58 @@ st.markdown("""
         letter-spacing: 0.07em !important;
     }
 
-    /* ── Title bubbles ── */
+    /* ── Title bubbles con letra legible ── */
     .title-bubble {
-        background: linear-gradient(135deg, #c8a060 0%, #b8905a 100%);
-        border-radius: 18px;
+        background: linear-gradient(135deg, rgba(200, 160, 96, 0.95) 0%, rgba(184, 144, 90, 0.95) 100%);
+        border-radius: 20px;
         padding: 1rem 2.2rem;
         display: inline-block;
-        box-shadow: 0 4px 18px rgba(100, 70, 30, 0.18);
+        box-shadow: 0 6px 20px rgba(0,0,0,0.25);
         text-align: center;
         margin-bottom: 1.4rem;
+        backdrop-filter: blur(4px);
     }
 
     .title-bubble h1 {
         margin: 0;
         font-family: 'Playfair Display', serif !important;
-        font-size: 1.75rem !important;
-        color: #2a4a1a !important;
+        font-size: 1.8rem !important;
+        color: #1a3a1a !important;
         font-weight: 700;
+        letter-spacing: 0.02em;
     }
 
     .title-bubble p {
         margin: 0.35rem 0 0 0;
-        color: #3d5a2a !important;
-        font-size: 0.88rem;
+        color: #2a4a2a !important;
+        font-size: 0.9rem;
+        font-weight: 500;
     }
 
-    /* ── Metric cards con animación ── */
-    .metric-card {
-        background: linear-gradient(145deg, rgba(195, 215, 175, 0.9) 0%, rgba(175, 200, 155, 0.95) 100%) !important;
-        border: 1px solid rgba(100, 130, 80, 0.3);
+    /* ── Filtros panel con fondo gris elegante ── */
+    .filters-panel {
+        background: rgba(45, 45, 52, 0.85) !important;
+        backdrop-filter: blur(12px);
         border-radius: 20px;
-        box-shadow: 0 4px 15px rgba(50, 90, 50, 0.1);
+        padding: 1.5rem;
+        margin-bottom: 1.8rem;
+        border: 1px solid rgba(212, 160, 23, 0.3);
+        box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+    }
+
+    .filters-panel h3, .filters-panel .stMarkdown h3 {
+        color: #f0f0f5 !important;
+        font-weight: 600;
+        letter-spacing: 0.05em;
+        margin-bottom: 1rem;
+    }
+
+    /* ── Metric cards con fondo gris ── */
+    .metric-card {
+        background: linear-gradient(145deg, rgba(55, 55, 62, 0.9) 0%, rgba(45, 45, 52, 0.95) 100%) !important;
+        border: 1px solid rgba(212, 160, 23, 0.35);
+        border-radius: 20px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.3);
         transition: all 0.3s cubic-bezier(.4,0,.2,1);
         text-align: center !important;
         padding: 1.2rem 1rem;
@@ -270,77 +290,160 @@ st.markdown("""
 
     .metric-card:hover {
         transform: translateY(-5px);
-        box-shadow: 0 12px 28px rgba(50, 90, 50, 0.2);
+        box-shadow: 0 12px 28px rgba(0,0,0,0.4);
+        border-color: rgba(212, 160, 23, 0.6);
     }
 
     .metric-value {
         font-family: 'Playfair Display', serif !important;
         font-size: 2.6rem !important;
         font-weight: 700;
-        color: #173a17 !important;
+        color: #f0f0f5 !important;
         margin: 0.4rem 0;
     }
 
     .metric-label {
         font-size: 0.75rem !important;
-        color: #2a4a2a !important;
+        color: #d4a017 !important;
         text-transform: uppercase;
-        letter-spacing: 0.1em;
-        font-weight: 600;
+        letter-spacing: 0.12em;
+        font-weight: 700;
     }
 
     .trend-up {
-        color: #2c5e2e;
+        color: #6fcf97;
         font-size: 0.8rem;
+        font-weight: 500;
     }
 
     .trend-down {
-        color: #d4a017;
+        color: #e67e22;
         font-size: 0.8rem;
+        font-weight: 500;
     }
 
-    /* ── Filtros panel ── */
-    .filters-panel {
-        background: rgba(195, 215, 175, 0.5);
-        border-radius: 16px;
-        padding: 1rem;
-        margin-bottom: 1.5rem;
-        border: 1px solid rgba(100, 130, 80, 0.2);
+    /* ── Section titles legibles ── */
+    .section-title {
+        font-family: 'DM Sans', sans-serif !important;
+        font-size: 1.2rem !important;
+        font-weight: 700;
+        color: #d4a017 !important;
+        border-left: 4px solid #d4a017;
+        padding-left: 1rem;
+        margin: 1.8rem 0 1.2rem 0;
+        letter-spacing: 0.03em;
+        text-transform: uppercase;
     }
 
     /* ── Buttons ── */
     .stButton > button {
-        background: linear-gradient(135deg, #2c5e2e, #3a7040) !important;
-        color: white !important;
+        background: linear-gradient(135deg, #d4a017, #b87a0c) !important;
+        color: #1a1a1f !important;
         border: none !important;
-        border-radius: 10px;
-        padding: 0.55rem 1.3rem;
-        font-weight: 600;
+        border-radius: 12px;
+        padding: 0.6rem 1.3rem;
+        font-weight: 700;
+        font-size: 0.9rem;
         transition: all 0.25s ease;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.2);
     }
 
     .stButton > button:hover {
         transform: translateY(-2px);
-        box-shadow: 0 6px 18px rgba(44, 94, 46, 0.38);
+        box-shadow: 0 6px 18px rgba(0,0,0,0.35);
+        background: linear-gradient(135deg, #e5b52a, #c98a1a) !important;
+        color: #000000 !important;
     }
 
     /* ── Forms ── */
     [data-testid="stForm"] {
-        background: rgba(195, 215, 175, 0.45) !important;
-        border-radius: 18px;
-        padding: 1.2rem;
+        background: rgba(45, 45, 52, 0.85) !important;
+        backdrop-filter: blur(12px);
+        border-radius: 20px;
+        padding: 1.5rem;
+        border: 1px solid rgba(212, 160, 23, 0.3);
+    }
+
+    /* ── Inputs ── */
+    input, textarea, select {
+        color: #e8e8ec !important;
+        background-color: rgba(35, 35, 42, 0.9) !important;
+        border-radius: 10px !important;
+        border: 1px solid rgba(212, 160, 23, 0.4) !important;
+        font-family: 'DM Sans', sans-serif !important;
+    }
+
+    input:focus, textarea:focus, select:focus {
+        border-color: #d4a017 !important;
+        box-shadow: 0 0 0 2px rgba(212, 160, 23, 0.2) !important;
+    }
+
+    label {
+        color: #e8e8ec !important;
+        font-weight: 500 !important;
+    }
+
+    /* ── Tables ── */
+    .stDataFrame {
+        background: rgba(35, 35, 42, 0.7);
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.2);
+    }
+
+    .stDataFrame * {
+        color: #e8e8ec !important;
+    }
+
+    /* ── Alerts ── */
+    .stAlert {
+        background: rgba(45, 45, 52, 0.85) !important;
+        backdrop-filter: blur(8px);
+        border-radius: 14px !important;
+        border: 1px solid rgba(212, 160, 23, 0.4) !important;
+        color: #e8e8ec !important;
+    }
+
+    /* ── Badges ── */
+    .badge-admin {
+        background: linear-gradient(135deg, #d4a017, #b87a0c);
+        color: #1a1a1f !important;
+        padding: 0.22rem 0.7rem;
+        border-radius: 20px;
+        font-size: 0.7rem;
+        font-weight: 700;
+    }
+
+    .badge-operator {
+        background: linear-gradient(135deg, #2c5e2e, #1e3a1e);
+        color: #e8e8ec !important;
+        padding: 0.22rem 0.7rem;
+        border-radius: 20px;
+        font-size: 0.7rem;
+        font-weight: 700;
     }
 
     /* ── Footer ── */
     .footer {
         text-align: center;
         padding: 1.6rem 2rem;
-        color: #4a5b4a !important;
+        color: #a8a8b0 !important;
         font-size: 0.78rem;
-        border-top: 1px solid rgba(100, 120, 80, 0.25);
+        border-top: 1px solid rgba(212, 160, 23, 0.25);
         margin-top: 2.5rem;
-        background: linear-gradient(135deg, rgba(195, 215, 175, 0.6) 0%, rgba(175, 200, 155, 0.7) 100%);
+        background: rgba(35, 35, 42, 0.7);
+        backdrop-filter: blur(8px);
         border-radius: 16px;
+    }
+
+    /* ── General text ── */
+    p, span, div, label, .stMarkdown {
+        color: #e8e8ec !important;
+        font-family: 'DM Sans', sans-serif !important;
+    }
+
+    h1, h2, h3, h4 {
+        color: #f0f0f5 !important;
     }
 
     /* ── Animations ── */
@@ -355,8 +458,15 @@ st.markdown("""
 
     hr {
         border: none !important;
-        border-top: 1px solid rgba(100, 130, 80, 0.18) !important;
+        border-top: 1px solid rgba(212, 160, 23, 0.25) !important;
         margin: 1.5rem 0 !important;
+    }
+
+    /* ── Excepción para títulos en filtros ── */
+    .filters-panel .stMarkdown h3 {
+        color: #d4a017 !important;
+        font-weight: 700;
+        margin-bottom: 1rem;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -463,7 +573,7 @@ def login():
 
 
 # ══════════════════════════════════════════════════════════════
-# SIDEBAR
+# SIDEBAR - Logo más grande dentro del círculo
 # ══════════════════════════════════════════════════════════════
 
 def sidebar():
@@ -491,7 +601,7 @@ def sidebar():
         st.markdown(f"""
         <div class="profile-card">
             <div class="profile-name">👤 {perfil.get('nombre', 'Usuario')}</div>
-            <div class="profile-role"><span style="background: {'#c89010' if rol=='admin' else '#2c5e2e'}; padding: 0.22rem 0.7rem; border-radius: 20px; font-size:0.7rem;">{badge_text}</span></div>
+            <div class="profile-role"><span class="{badge_class}">{badge_text}</span></div>
             <div class="profile-location">📍 {estab if estab else 'Todos los establecimientos'}</div>
         </div>
         """, unsafe_allow_html=True)
@@ -514,7 +624,7 @@ def sidebar():
                 ("👥", "Usuarios", "Gestión"),
             ]
         
-        st.markdown("### 📌 MENU")
+        st.markdown("### 📌 MENÚ")
         for emoji, nombre, tooltip in paginas:
             if st.button(f"{emoji}  {nombre}", key=f"nav_{nombre}", help=tooltip):
                 st.session_state["pagina"] = nombre
@@ -631,30 +741,26 @@ def pagina_dashboard():
     </div>
     """, unsafe_allow_html=True)
     
-    # ── FILTROS DINÁMICOS ──────────────────────────────────────────
+    # ── FILTROS DINÁMICOS con texto legible ──────────────────────────
     st.markdown('<div class="filters-panel">', unsafe_allow_html=True)
-    st.markdown("### 🔍 Filtros Dinámicos")
+    st.markdown("### 🔍 FILTROS DINÁMICOS")
     
     col_f1, col_f2, col_f3 = st.columns(3)
     
     with col_f1:
-        # Filtro de fecha
         fecha_desde = st.date_input("📅 Desde", value=date.today() - timedelta(days=90))
         fecha_hasta = st.date_input("📅 Hasta", value=date.today())
     
     with col_f2:
-        # Filtro de tipo de movimiento
         tipo_filtro = st.selectbox("📌 Tipo de Movimiento", ["Todos", "ingreso", "egreso"])
     
     with col_f3:
-        # Filtro de categoría (dinámico)
         categorias = get_categorias()
         cat_options = {c["nombre"]: c["id"] for c in categorias}
         cat_options["Todas"] = None
         cat_seleccionada = st.selectbox("📁 Categoría", list(cat_options.keys()))
         cat_id = cat_options[cat_seleccionada] if cat_seleccionada != "Todas" else None
         
-        # Filtro de producto (depende de categoría)
         productos = get_productos(cat_id)
         prod_options = {p["nombre"]: p["id"] for p in productos}
         prod_options["Todos"] = None
@@ -678,13 +784,11 @@ def pagina_dashboard():
     if movimientos:
         df_mov = pd.DataFrame(movimientos)
         
-        # Calcular métricas
         ingresos = df_mov[df_mov["tipo"] == "ingreso"]["cantidad"].sum() if "ingreso" in df_mov["tipo"].values else 0
         egresos = df_mov[df_mov["tipo"] == "egreso"]["cantidad"].sum() if "egreso" in df_mov["tipo"].values else 0
         stock_total = ingresos - egresos
         total_movimientos = len(df_mov)
         
-        # Calcular tendencias (comparar con período anterior)
         fecha_anterior_inicio = fecha_desde - timedelta(days=(fecha_hasta - fecha_desde).days)
         mov_anterior = get_movimientos_con_filtros(
             establecimiento_id=estab_filter(),
@@ -706,37 +810,37 @@ def pagina_dashboard():
             trend_icon = "↑" if tendencia_ingresos >= 0 else "↓"
             st.markdown(f"""
             <div class="metric-card">
-                <div class="metric-label">📦 Stock Total</div>
+                <div class="metric-label">📦 STOCK TOTAL</div>
                 <div class="metric-value">{stock_total:,.0f}</div>
                 <div class="{trend_class}">{trend_icon} {abs(tendencia_ingresos):.1f}% vs período anterior</div>
-                <div style="font-size:0.7rem;">unidades en inventario</div>
+                <div style="font-size:0.7rem; color:#a8a8b0;">unidades en inventario</div>
             </div>
             """, unsafe_allow_html=True)
         
         with col2:
             st.markdown(f"""
             <div class="metric-card">
-                <div class="metric-label">📥 Ingresos</div>
+                <div class="metric-label">📥 INGRESOS</div>
                 <div class="metric-value">{ingresos:,.0f}</div>
-                <div style="font-size:0.7rem;">unidades ingresadas</div>
+                <div style="font-size:0.7rem; color:#a8a8b0;">unidades ingresadas</div>
             </div>
             """, unsafe_allow_html=True)
         
         with col3:
             st.markdown(f"""
             <div class="metric-card">
-                <div class="metric-label">📤 Egresos</div>
+                <div class="metric-label">📤 EGRESOS</div>
                 <div class="metric-value">{egresos:,.0f}</div>
-                <div style="font-size:0.7rem;">unidades egresadas</div>
+                <div style="font-size:0.7rem; color:#a8a8b0;">unidades egresadas</div>
             </div>
             """, unsafe_allow_html=True)
         
         with col4:
             st.markdown(f"""
             <div class="metric-card">
-                <div class="metric-label">🔄 Movimientos</div>
+                <div class="metric-label">🔄 MOVIMIENTOS</div>
                 <div class="metric-value">{total_movimientos}</div>
-                <div style="font-size:0.7rem;">operaciones en el período</div>
+                <div style="font-size:0.7rem; color:#a8a8b0;">operaciones en el período</div>
             </div>
             """, unsafe_allow_html=True)
     else:
@@ -745,18 +849,17 @@ def pagina_dashboard():
                 st.markdown("""
                 <div class="metric-card">
                     <div class="metric-value">0</div>
-                    <div class="metric-label">Sin datos</div>
+                    <div class="metric-label">SIN DATOS</div>
                 </div>
                 """, unsafe_allow_html=True)
     
     st.markdown("---")
     
-    # ── GRÁFICO 1: Evolución de Stock (línea temporal) ─────────────────
+    # ── GRÁFICO 1: Evolución de Stock ─────────────────────────────────
     if movimientos:
         df_mov = pd.DataFrame(movimientos)
         df_mov["fecha"] = pd.to_datetime(df_mov["fecha"])
         
-        # Calcular stock acumulado por día
         df_mov["stock_diario"] = df_mov.apply(lambda x: x["cantidad"] if x["tipo"] == "ingreso" else -x["cantidad"], axis=1)
         df_daily = df_mov.groupby(df_mov["fecha"].dt.date)["stock_diario"].sum().reset_index()
         df_daily.columns = ["fecha", "movimiento_diario"]
@@ -768,19 +871,20 @@ def pagina_dashboard():
             y="stock_acumulado",
             title="📈 Evolución del Stock en el Tiempo",
             labels={"fecha": "Fecha", "stock_acumulado": "Stock Total (unidades)"},
-            template="plotly_white",
+            template="plotly_dark",
             line_shape="spline"
         )
-        fig_evolucion.update_traces(line=dict(color="#2c5e2e", width=3))
+        fig_evolucion.update_traces(line=dict(color="#d4a017", width=3))
         fig_evolucion.update_layout(
             height=400,
             hovermode="x unified",
-            plot_bgcolor="rgba(195, 215, 175, 0.2)",
-            paper_bgcolor="rgba(0,0,0,0)"
+            plot_bgcolor="rgba(30,30,35,0.8)",
+            paper_bgcolor="rgba(0,0,0,0)",
+            font=dict(color="#e8e8ec")
         )
         st.plotly_chart(fig_evolucion, use_container_width=True)
         
-        # ── GRÁFICO 2: Distribución por Categoría (torta) ─────────────────
+        # ── GRÁFICO 2: Distribución por Categoría ─────────────────────────
         stock_por_categoria = get_stock_por_producto()
         if not stock_por_categoria.empty:
             stock_cat = stock_por_categoria.groupby("categoria")["stock"].sum().reset_index()
@@ -790,14 +894,18 @@ def pagina_dashboard():
                 values="stock",
                 names="categoria",
                 title="🥧 Distribución de Stock por Categoría",
-                template="plotly_white",
-                color_discrete_sequence=px.colors.qualitative.Set2
+                template="plotly_dark",
+                color_discrete_sequence=px.colors.sequential.Oranges_r
             )
             fig_torta.update_traces(textposition="inside", textinfo="percent+label")
-            fig_torta.update_layout(height=450)
+            fig_torta.update_layout(
+                height=450,
+                paper_bgcolor="rgba(0,0,0,0)",
+                font=dict(color="#e8e8ec")
+            )
             st.plotly_chart(fig_torta, use_container_width=True)
         
-        # ── GRÁFICO 3: Top 10 Productos con Mayor Stock (barras) ──────────
+        # ── GRÁFICO 3: Top 10 Productos ───────────────────────────────────
         st.markdown("---")
         stock_productos = get_stock_por_producto()
         if not stock_productos.empty:
@@ -809,18 +917,20 @@ def pagina_dashboard():
                 y="stock",
                 title="📊 Top 10 Productos con Mayor Stock",
                 labels={"producto": "Producto", "stock": "Stock (unidades)"},
-                template="plotly_white",
+                template="plotly_dark",
                 color="stock",
-                color_continuous_scale="Greens"
+                color_continuous_scale="Oranges"
             )
             fig_barras.update_layout(
                 height=450,
                 xaxis_tickangle=-45,
-                plot_bgcolor="rgba(195, 215, 175, 0.2)"
+                plot_bgcolor="rgba(30,30,35,0.8)",
+                paper_bgcolor="rgba(0,0,0,0)",
+                font=dict(color="#e8e8ec")
             )
             st.plotly_chart(fig_barras, use_container_width=True)
         
-        # ── GRÁFICO 4: Movimientos por Mes (barras agrupadas) ────────────
+        # ── GRÁFICO 4: Movimientos por Mes ─────────────────────────────────
         df_mov["mes"] = df_mov["fecha"].dt.to_period("M").astype(str)
         movimientos_mensuales = df_mov.groupby(["mes", "tipo"])["cantidad"].sum().reset_index()
         
@@ -831,11 +941,16 @@ def pagina_dashboard():
             color="tipo",
             title="📅 Movimientos Mensuales por Tipo",
             labels={"mes": "Mes", "cantidad": "Cantidad (unidades)", "tipo": "Tipo"},
-            template="plotly_white",
+            template="plotly_dark",
             barmode="group",
-            color_discrete_map={"ingreso": "#2c5e2e", "egreso": "#d4a017"}
+            color_discrete_map={"ingreso": "#d4a017", "egreso": "#e67e22"}
         )
-        fig_mensual.update_layout(height=450, plot_bgcolor="rgba(195, 215, 175, 0.2)")
+        fig_mensual.update_layout(
+            height=450,
+            plot_bgcolor="rgba(30,30,35,0.8)",
+            paper_bgcolor="rgba(0,0,0,0)",
+            font=dict(color="#e8e8ec")
+        )
         st.plotly_chart(fig_mensual, use_container_width=True)
         
     else:
@@ -1036,7 +1151,6 @@ def pagina_historial():
     </div>
     """, unsafe_allow_html=True)
 
-    # Filtros dinámicos para historial
     col_f1, col_f2, col_f3 = st.columns(3)
     
     with col_f1:
@@ -1100,7 +1214,6 @@ def pagina_alertas():
         st.info("💡 Sin datos para mostrar alertas.")
         return
     
-    # Productos con stock bajo (menos de 100 unidades)
     stock_bajo = stock_productos[stock_productos["stock"] < 100]
     stock_critico = stock_productos[stock_productos["stock"] < 50]
     
@@ -1109,18 +1222,18 @@ def pagina_alertas():
     with col1:
         st.markdown(f"""
         <div class="metric-card">
-            <div class="metric-label">⚠️ Stock Bajo</div>
+            <div class="metric-label">⚠️ STOCK BAJO</div>
             <div class="metric-value">{len(stock_bajo)}</div>
-            <div>productos con menos de 100 unidades</div>
+            <div style="font-size:0.7rem;">productos con menos de 100 unidades</div>
         </div>
         """, unsafe_allow_html=True)
     
     with col2:
         st.markdown(f"""
         <div class="metric-card">
-            <div class="metric-label">🔴 Stock Crítico</div>
+            <div class="metric-label">🔴 STOCK CRÍTICO</div>
             <div class="metric-value">{len(stock_critico)}</div>
-            <div>productos con menos de 50 unidades</div>
+            <div style="font-size:0.7rem;">productos con menos de 50 unidades</div>
         </div>
         """, unsafe_allow_html=True)
     
@@ -1157,7 +1270,6 @@ def pagina_reportes():
     df["mes"] = df["fecha"].dt.to_period("M").astype(str)
     df["año"] = df["fecha"].dt.year
     
-    # Selector de año
     años = sorted(df["año"].unique())
     año_seleccionado = st.selectbox("📅 Seleccionar año", años, index=len(años)-1)
     
@@ -1172,7 +1284,6 @@ def pagina_reportes():
     chart_data = df_año.groupby(["mes", "tipo"])["cantidad"].sum().unstack()
     st.bar_chart(chart_data)
     
-    # Exportar
     buffer = BytesIO()
     with pd.ExcelWriter(buffer, engine="openpyxl") as writer:
         df_año.to_excel(writer, index=False, sheet_name=f"Reporte_{año_seleccionado}")
@@ -1317,3 +1428,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+    
