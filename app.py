@@ -452,27 +452,27 @@ st.markdown("""
     body [data-baseweb="menu"] li:hover,
     body [data-baseweb="menu"] [role="option"]:hover,
     body [role="option"]:hover {
-        background-color: #d4a017 !important;
-        color: #1a1a1f !important;
+        background-color: rgba(212, 160, 23, 0.25) !important;
+        color: #f0f0f5 !important;
     }
 
     body [data-baseweb="menu"] li:hover *,
     body [data-baseweb="menu"] [role="option"]:hover *,
     body [role="option"]:hover * {
-        color: #1a1a1f !important;
+        color: #f0f0f5 !important;
     }
 
     /* Seleccionado */
     body [data-baseweb="menu"] li[aria-selected="true"],
     body [role="option"][aria-selected="true"] {
-        background-color: #b87a0c !important;
-        color: #1a1a1f !important;
+        background-color: rgba(212, 160, 23, 0.4) !important;
+        color: #f0f0f5 !important;
         font-weight: 700 !important;
     }
 
     body [data-baseweb="menu"] li[aria-selected="true"] *,
     body [role="option"][aria-selected="true"] * {
-        color: #1a1a1f !important;
+        color: #f0f0f5 !important;
     }
 
     /* Scrollbar del menú */
