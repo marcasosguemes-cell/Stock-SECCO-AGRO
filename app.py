@@ -188,14 +188,14 @@ st.markdown("""
 
     /* Burbuja con fondo oscuro - MEJOR LEGIBILIDAD */
     .title-bubble-login {
-        background: rgba(0, 0, 0, 0.45);
+        background: rgba(0, 0, 0, 0.65);
         backdrop-filter: blur(16px);
         -webkit-backdrop-filter: blur(16px);
-        border: 1px solid rgba(255, 215, 120, 0.5);
+        border: 1px solid rgba(255, 215, 120, 0.6);
         border-radius: 20px;
         padding: 1rem 2.2rem 0.9rem 2.2rem;
         display: block;
-        box-shadow: 0 8px 32px rgba(0,0,0,0.25);
+        box-shadow: 0 8px 32px rgba(0,0,0,0.35);
         text-align: center;
         margin-bottom: 0.5rem;
         width: 100%;
@@ -204,25 +204,27 @@ st.markdown("""
 
     .main-title-with-logo {
         font-family: 'Playfair Display', serif !important;
-        font-size: 2.2rem;
-        font-weight: 700;
+        font-size: 2.2rem !important;
+        font-weight: 700 !important;
         color: #FFFFFF !important;
-        text-shadow: 0 2px 8px rgba(0,0,0,0.5), 0 0 20px rgba(0,0,0,0.3);
-        margin: 0 0 0.3rem 0;
-        text-align: center;
-        letter-spacing: 0.02em;
-        -webkit-text-fill-color: unset !important;
-        line-height: 1.2;
+        text-shadow: 0 2px 8px rgba(0,0,0,0.6), 0 0 20px rgba(0,0,0,0.4) !important;
+        margin: 0 0 0.3rem 0 !important;
+        text-align: center !important;
+        letter-spacing: 0.02em !important;
+        line-height: 1.2 !important;
+        background: transparent !important;
+        -webkit-text-fill-color: #FFFFFF !important;
     }
 
     .login-subtitle {
         font-family: 'DM Sans', sans-serif !important;
-        font-size: 0.9rem;
+        font-size: 0.9rem !important;
         color: #FFE8B6 !important;
-        text-shadow: 0 1px 4px rgba(0,0,0,0.4);
-        font-weight: 500;
-        letter-spacing: 0.07em;
-        margin: 0;
+        text-shadow: 0 1px 4px rgba(0,0,0,0.5) !important;
+        font-weight: 500 !important;
+        letter-spacing: 0.07em !important;
+        margin: 0 !important;
+        background: transparent !important;
     }
 
     /* ── Title bubbles ── */
@@ -419,10 +421,18 @@ st.markdown("""
         letter-spacing: 0.02em;
     }
 
-    /* ── General text ── */
+    /* ── General text (excluyendo el título del login) ── */
     p, span, div, label, .stMarkdown, .stText {
         color: #1a1a1a !important;
         font-family: 'DM Sans', sans-serif !important;
+    }
+    
+    /* Excepción para que el título del login se mantenga blanco */
+    .title-bubble-login p, 
+    .title-bubble-login span, 
+    .title-bubble-login div,
+    .main-title-with-logo {
+        color: #FFFFFF !important;
     }
 
     /* ── Animations ── */
