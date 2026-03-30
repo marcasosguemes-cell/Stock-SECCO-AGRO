@@ -60,68 +60,91 @@ st.markdown("""
 
     /* ── Botón colapsar/expandir sidebar ── */
 
-    /* Contenedor del botón cuando el sidebar está COLAPSADO (para expandir → apunta al centro) */
+    /* EXPANDIR: sidebar colapsado, botón visible en el margen izquierdo */
     [data-testid="stSidebarCollapsedControl"] {
         background: linear-gradient(135deg, #1a1a1f, #0f0f12) !important;
         border: 1px solid rgba(212, 160, 23, 0.5) !important;
         border-radius: 0 10px 10px 0 !important;
         box-shadow: 3px 0 12px rgba(0,0,0,0.4) !important;
+        overflow: hidden !important;
     }
 
     [data-testid="stSidebarCollapsedControl"] button {
-        color: #d4a017 !important;
+        color: transparent !important;
         background: transparent !important;
         border: none !important;
-        display: flex !important;
-        align-items: center !important;
-        justify-content: center !important;
+        position: relative !important;
+        overflow: hidden !important;
     }
 
-    /* Ocultar TODOS los spans/texto del botón expandir */
-    [data-testid="stSidebarCollapsedControl"] button *,
+    /* Ocultar absolutamente todo dentro del botón expandir */
+    [data-testid="stSidebarCollapsedControl"] button > *,
     [data-testid="stSidebarCollapsedControl"] button span,
-    [data-testid="stSidebarCollapsedControl"] button svg {
-        display: none !important;
-        font-size: 0 !important;
+    [data-testid="stSidebarCollapsedControl"] button p,
+    [data-testid="stSidebarCollapsedControl"] button svg,
+    [data-testid="stSidebarCollapsedControl"] button div {
+        color: transparent !important;
+        fill: transparent !important;
+        opacity: 0 !important;
+        font-size: 0px !important;
         width: 0 !important;
         height: 0 !important;
+        overflow: hidden !important;
+        position: absolute !important;
     }
 
-    /* Agregar flecha › apuntando al centro (derecha) con pseudo-elemento en el botón */
-    [data-testid="stSidebarCollapsedControl"] button::after {
+    /* Flecha dorada › con pseudo-elemento */
+    [data-testid="stSidebarCollapsedControl"] button::before {
         content: "›" !important;
-        font-size: 2rem !important;
+        position: absolute !important;
+        top: 50% !important;
+        left: 50% !important;
+        transform: translate(-50%, -50%) !important;
+        font-size: 2.2rem !important;
         color: #d4a017 !important;
         font-weight: 900 !important;
         line-height: 1 !important;
-        display: block !important;
+        opacity: 1 !important;
+        width: auto !important;
+        height: auto !important;
     }
 
-    /* Botón para COLAPSAR (sidebar abierto → flecha ‹ hacia afuera) */
+    /* COLAPSAR: sidebar abierto */
     [data-testid="stSidebar"] [data-testid="stSidebarCollapseButton"] button {
-        color: #d4a017 !important;
+        color: transparent !important;
         background: transparent !important;
-        display: flex !important;
-        align-items: center !important;
-        justify-content: center !important;
+        position: relative !important;
+        overflow: hidden !important;
     }
 
-    [data-testid="stSidebar"] [data-testid="stSidebarCollapseButton"] button *,
+    [data-testid="stSidebar"] [data-testid="stSidebarCollapseButton"] button > *,
     [data-testid="stSidebar"] [data-testid="stSidebarCollapseButton"] button span,
-    [data-testid="stSidebar"] [data-testid="stSidebarCollapseButton"] button svg {
-        display: none !important;
-        font-size: 0 !important;
+    [data-testid="stSidebar"] [data-testid="stSidebarCollapseButton"] button p,
+    [data-testid="stSidebar"] [data-testid="stSidebarCollapseButton"] button svg,
+    [data-testid="stSidebar"] [data-testid="stSidebarCollapseButton"] button div {
+        color: transparent !important;
+        fill: transparent !important;
+        opacity: 0 !important;
+        font-size: 0px !important;
         width: 0 !important;
         height: 0 !important;
+        overflow: hidden !important;
+        position: absolute !important;
     }
 
-    [data-testid="stSidebar"] [data-testid="stSidebarCollapseButton"] button::after {
+    [data-testid="stSidebar"] [data-testid="stSidebarCollapseButton"] button::before {
         content: "‹" !important;
-        font-size: 2rem !important;
+        position: absolute !important;
+        top: 50% !important;
+        left: 50% !important;
+        transform: translate(-50%, -50%) !important;
+        font-size: 2.2rem !important;
         color: #d4a017 !important;
         font-weight: 900 !important;
         line-height: 1 !important;
-        display: block !important;
+        opacity: 1 !important;
+        width: auto !important;
+        height: auto !important;
     }
 
     /* ── Sidebar con tonos grises oscuros ── */
@@ -195,16 +218,16 @@ st.markdown("""
     }
 
     .sidebar-logo {
-        width: 100% !important;
+        width: 115% !important;
         height: auto !important;
         object-fit: contain !important;
         display: block;
-        padding: 5px;
+        padding: 0px;
     }
 
     .sidebar-header h1 {
         font-family: 'Playfair Display', serif !important;
-        font-size: 3rem !important;
+        font-size: 1.1rem !important;
         margin: 0;
         color: #d4a017 !important;
         letter-spacing: 0.04em;
