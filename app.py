@@ -147,7 +147,7 @@ st.markdown("""
         margin-top: 3px;
     }
 
-    /* ── Título login con logo GRANDE - Ajustado para que las letras se vean grandes ── */
+    /* ── Título login con logo GRANDE - Mejor legibilidad ── */
     .title-container {
         display: flex;
         flex-direction: column;
@@ -161,8 +161,8 @@ st.markdown("""
         background: #f7f3e8;
         border: 2px solid rgba(212, 160, 23, 0.5);
         border-radius: 50%;
-        width: 420px;        /* Óvalo más ancho para dar espacio */
-        height: 252px;       /* Óvalo más alto */
+        width: 420px;
+        height: 252px;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -178,24 +178,24 @@ st.markdown("""
     }
 
     .title-logo {
-        width: 100% !important;      /* Ocupa todo el ancho del contenedor */
-        height: 100% !important;     /* Ocupa todo el alto del contenedor */
-        object-fit: contain !important;  /* Mantiene la proporción sin deformar */
+        width: 100% !important;
+        height: 100% !important;
+        object-fit: contain !important;
         display: block;
         transition: transform 0.35s ease;
-        padding: 15px;               /* Espacio interno para que la imagen respire */
+        padding: 15px;
     }
 
-    /* Burbuja transparente tipo glassmorphism */
+    /* Burbuja con fondo oscuro - MEJOR LEGIBILIDAD */
     .title-bubble-login {
-        background: rgba(255, 255, 255, 0.18);
-        backdrop-filter: blur(14px);
-        -webkit-backdrop-filter: blur(14px);
-        border: 1px solid rgba(255, 255, 255, 0.35);
+        background: rgba(0, 0, 0, 0.45);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        border: 1px solid rgba(255, 215, 120, 0.5);
         border-radius: 20px;
         padding: 1rem 2.2rem 0.9rem 2.2rem;
         display: block;
-        box-shadow: 0 4px 24px rgba(0,0,0,0.15);
+        box-shadow: 0 8px 32px rgba(0,0,0,0.25);
         text-align: center;
         margin-bottom: 0.5rem;
         width: 100%;
@@ -204,22 +204,22 @@ st.markdown("""
 
     .main-title-with-logo {
         font-family: 'Playfair Display', serif !important;
-        font-size: 2rem;
+        font-size: 2.2rem;
         font-weight: 700;
-        color: #ffffff !important;
-        text-shadow: 0 2px 12px rgba(0,0,0,0.45), 0 1px 3px rgba(0,0,0,0.6);
+        color: #FFFFFF !important;
+        text-shadow: 0 2px 8px rgba(0,0,0,0.5), 0 0 20px rgba(0,0,0,0.3);
         margin: 0 0 0.3rem 0;
         text-align: center;
-        letter-spacing: 0.01em;
+        letter-spacing: 0.02em;
         -webkit-text-fill-color: unset !important;
-        line-height: 1.15;
+        line-height: 1.2;
     }
 
     .login-subtitle {
         font-family: 'DM Sans', sans-serif !important;
-        font-size: 0.88rem;
-        color: #f0f8e8 !important;
-        text-shadow: 0 1px 6px rgba(0,0,0,0.5);
+        font-size: 0.9rem;
+        color: #FFE8B6 !important;
+        text-shadow: 0 1px 4px rgba(0,0,0,0.4);
         font-weight: 500;
         letter-spacing: 0.07em;
         margin: 0;
@@ -563,7 +563,7 @@ def login():
 
 
 # ══════════════════════════════════════════════════════════════
-# SIDEBAR CON LOGO GRANDE (SIN SECCO AGRO)
+# SIDEBAR CON LOGO GRANDE
 # ══════════════════════════════════════════════════════════════
 
 def sidebar():
