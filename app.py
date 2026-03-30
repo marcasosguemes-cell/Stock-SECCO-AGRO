@@ -399,6 +399,14 @@ st.markdown("""
         background-color: transparent !important;
     }
 
+    /* Ocultar cursor de texto del input interno del select */
+    .stSelectbox input,
+    .stSelectbox [data-baseweb="select"] input {
+        caret-color: transparent !important;
+        cursor: pointer !important;
+        color: #f0f0f5 !important;
+    }
+
     /* Texto del valor seleccionado - padding para no solapar con la flecha */
     .stSelectbox div[data-baseweb="select"] > div:first-child {
         padding-right: 2rem !important;
