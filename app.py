@@ -30,7 +30,7 @@ supabase = get_supabase()
 
 
 # ══════════════════════════════════════════════════════════════
-# CSS MEJORADO - Fondo muy apagado, logo grande
+# CSS MEJORADO - Fondo muy apagado, logo GRANDE en inicio
 # ══════════════════════════════════════════════════════════════
 
 st.markdown("""
@@ -147,7 +147,7 @@ st.markdown("""
         margin-top: 3px;
     }
 
-    /* ── Título login con logo grande ── */
+    /* ── Título login con logo GRANDE ── */
     .title-container {
         display: flex;
         flex-direction: column;
@@ -156,29 +156,29 @@ st.markdown("""
         margin-bottom: 0.8rem;
     }
 
-    /* Óvalo detrás del logo — overflow:hidden para recortar esquinas */
+    /* Óvalo detrás del logo - TAMAÑO GRANDE */
     .logo-oval-wrap {
         background: #f7f3e8;
         border: 2px solid rgba(212, 160, 23, 0.5);
         border-radius: 50%;
-        width: 200px;
-        height: 120px;
+        width: 380px;        /* ← Aumentado: logo muy grande */
+        height: 228px;       /* ← Aumentado: logo muy grande */
         display: flex;
         align-items: center;
         justify-content: center;
         overflow: hidden;
-        box-shadow: 0 6px 28px rgba(0,0,0,0.25), 0 2px 0 rgba(255,255,255,0.6) inset;
-        margin-bottom: 14px;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.3), 0 2px 0 rgba(255,255,255,0.6) inset;
+        margin-bottom: 20px;
         transition: transform 0.35s ease, box-shadow 0.35s ease;
     }
 
     .logo-oval-wrap:hover {
-        transform: scale(1.04);
-        box-shadow: 0 10px 36px rgba(0,0,0,0.3);
+        transform: scale(1.02);
+        box-shadow: 0 14px 42px rgba(0,0,0,0.35);
     }
 
     .title-logo {
-        width: 145px;
+        width: 300px;        /* ← Aumentado: logo muy grande */
         height: auto;
         display: block;
         mix-blend-mode: multiply;
