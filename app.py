@@ -227,7 +227,7 @@ st.markdown("""
 
     .sidebar-header h1 {
         font-family: 'Playfair Display', serif !important;
-        font-size: 1.1rem !important;
+        font-size: 1.4rem !important;
         margin: 0;
         color: #d4a017 !important;
         letter-spacing: 0.04em;
@@ -743,6 +743,31 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 
+# ── JS: Reemplazar texto del botón colapsar sidebar ──────────
+st.markdown("""
+<script>
+(function() {
+    function fixSidebarButton() {
+        // Busca el botón que contiene texto con "keyboard" o "double"
+        var allButtons = document.querySelectorAll('button');
+        allButtons.forEach(function(btn) {
+            var txt = btn.innerText || btn.textContent || '';
+            if (txt.toLowerCase().includes('keyboard') || txt.toLowerCase().includes('double') || txt.toLowerCase().includes('do_double') || txt.toLowerCase().includes('_do')) {
+                btn.innerHTML = '<span style="font-size:1.8rem;color:#d4a017;font-weight:900;line-height:1;">›</span>';
+                btn.style.background = 'transparent';
+                btn.style.border = 'none';
+            }
+        });
+    }
+    // Ejecutar al cargar y observar cambios del DOM
+    fixSidebarButton();
+    var observer = new MutationObserver(fixSidebarButton);
+    observer.observe(document.body, { childList: true, subtree: true });
+})();
+</script>
+""", unsafe_allow_html=True)
+
+
 # ══════════════════════════════════════════════════════════════
 # FUNCIONES DE AUTENTICACIÓN
 # ══════════════════════════════════════════════════════════════
@@ -1254,31 +1279,41 @@ def pagina_ingreso():
         st.warning("⚠️ No hay categorías cargadas.")
         return
 
+    # Selección de categoría FUERA del form para que filtre dinámicamente
+    col_pre1, col_pre2 = st.columns(2)
+    with col_pre1:
+        if st.session_state.get("rol") == "admin":
+            estab_options = {e["nombre"]: e["id"] for e in establecimientos}
+            estab_sel_pre = st.selectbox("🏢 Establecimiento *", list(estab_options.keys()), key="ing_estab")
+        cat_options = {c["nombre"]: c["id"] for c in categorias}
+        cat_sel_pre = st.selectbox("📁 Categoría *", list(cat_options.keys()), key="ing_cat")
+        cat_id_pre = cat_options[cat_sel_pre]
+    with col_pre2:
+        productos_pre = get_productos(cat_id_pre)
+        if not productos_pre:
+            st.warning("⚠️ No hay productos en esta categoría.")
+            return
+        prod_options_pre = {p["nombre"]: p["id"] for p in productos_pre}
+        prod_sel_pre = st.selectbox("🏷️ Producto *", list(prod_options_pre.keys()), key="ing_prod")
+
     with st.form("form_ingreso", clear_on_submit=True):
         col1, col2 = st.columns(2)
         
         with col1:
             if st.session_state.get("rol") == "admin":
-                estab_options = {e["nombre"]: e["id"] for e in establecimientos}
-                estab_sel = st.selectbox("🏢 Establecimiento *", list(estab_options.keys()))
-                establecimiento_id = estab_options[estab_sel]
+                establecimiento_id = estab_options[estab_sel_pre]
             else:
                 establecimiento_id = st.session_state.get("establecimiento_id")
                 st.info(f"📍 Establecimiento: {st.session_state.get('establecimiento_nombre', '')}")
             
-            cat_options = {c["nombre"]: c["id"] for c in categorias}
-            cat_sel = st.selectbox("📁 Categoría *", list(cat_options.keys()))
-            cat_id = cat_options[cat_sel]
+            cat_sel = cat_sel_pre
+            cat_id = cat_id_pre
+            st.markdown(f"**📁 Categoría:** {cat_sel}")
         
         with col2:
-            productos = get_productos(cat_id)
-            if not productos:
-                st.warning("⚠️ No hay productos en esta categoría.")
-                return
-            
-            prod_options = {p["nombre"]: p["id"] for p in productos}
-            prod_sel = st.selectbox("🏷️ Producto *", list(prod_options.keys()))
-            producto_id = prod_options[prod_sel]
+            prod_sel = prod_sel_pre
+            producto_id = prod_options_pre[prod_sel]
+            st.markdown(f"**🏷️ Producto:** {prod_sel}")
         
         col3, col4, col5 = st.columns(3)
         
