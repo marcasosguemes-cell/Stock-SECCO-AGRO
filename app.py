@@ -965,39 +965,102 @@ def sidebar():
             
         perfil = st.session_state.get("perfil", {})
         rol = st.session_state.get("rol", "")
-        estab = st.session_state.get("establecimiento_nombre", "Todos")
         
         badge_class = "badge-admin" if rol == "admin" else "badge-operator"
         badge_text = "Administrador" if rol == "admin" else "Operador"
+
+        # ── SELECTOR DE ESTABLECIMIENTO ──────────────────────────────
+        st.markdown("### 🏢 ESTABLECIMIENTO")
         
+        establecimientos = get_establecimientos()
+        
+        if rol == "admin":
+            # Admin puede elegir cualquier establecimiento + Consociado
+            opciones_estab = ["🌐 Consociado"] + [e["nombre"] for e in establecimientos]
+        else:
+            # Operador solo ve su establecimiento + Consociado
+            mi_estab = st.session_state.get("establecimiento_nombre", "")
+            opciones_estab = ["🌐 Consociado", mi_estab] if mi_estab else ["🌐 Consociado"]
+
+        # Inicializar selección si no existe
+        if "estab_seleccionado" not in st.session_state:
+            if rol == "admin":
+                st.session_state["estab_seleccionado"] = "🌐 Consociado"
+            else:
+                st.session_state["estab_seleccionado"] = opciones_estab[1] if len(opciones_estab) > 1 else "🌐 Consociado"
+
+        estab_sel = st.selectbox(
+            "Seleccionar",
+            opciones_estab,
+            index=opciones_estab.index(st.session_state["estab_seleccionado"]) if st.session_state["estab_seleccionado"] in opciones_estab else 0,
+            key="sb_estab_selector",
+            label_visibility="collapsed"
+        )
+        
+        # Si cambió la selección, actualizar y resetear página
+        if estab_sel != st.session_state.get("estab_seleccionado"):
+            st.session_state["estab_seleccionado"] = estab_sel
+            st.session_state["pagina"] = "Dashboard"
+            st.rerun()
+
+        # Resolver el ID del establecimiento seleccionado
+        if estab_sel == "🌐 Consociado":
+            st.session_state["estab_activo_id"] = None
+            st.session_state["estab_activo_nombre"] = "Consociado"
+        else:
+            match = next((e for e in establecimientos if e["nombre"] == estab_sel), None)
+            if match:
+                st.session_state["estab_activo_id"] = match["id"]
+                st.session_state["estab_activo_nombre"] = match["nombre"]
+
+        estab_activo = st.session_state.get("estab_activo_nombre", "Consociado")
+        es_consociado = (estab_activo == "Consociado")
+
         st.markdown(f"""
         <div class="profile-card">
             <div class="profile-name">👤 {perfil.get('nombre', 'Usuario')}</div>
             <div class="profile-role"><span class="{badge_class}">{badge_text}</span></div>
-            <div class="profile-location">📍 {estab if estab else 'Todos los establecimientos'}</div>
+            <div class="profile-location">📍 {'🌐 Todos los establecimientos' if es_consociado else estab_activo}</div>
         </div>
         """, unsafe_allow_html=True)
         
         st.markdown("---")
         
-        paginas = [
-            ("📊", "Dashboard", ""),
-            ("📥", "Nuevo Ingreso", ""),
-            ("📤", "Nuevo Egreso", ""),
-            ("📋", "Historial", ""),
-            ("⚠️", "Alertas", ""),
-            ("📈", "Reportes", ""),
-        ]
-        
-        if rol == "admin":
-            paginas += [
-                ("🏭", "Proveedores", ""),
-                ("📦", "Productos", ""),
-                ("👥", "Usuarios", ""),
-            ]
-        
+        # ── MENÚ ADAPTADO ────────────────────────────────────────────
         st.markdown("### 📌 MENÚ")
-        for emoji, nombre, tooltip in paginas:
+
+        if es_consociado:
+            # Consociado: solo vista consolidada
+            paginas_menu = [
+                ("🌐", "Consociado"),
+                ("⚠️", "Alertas"),
+                ("📈", "Reportes"),
+            ]
+        else:
+            # Establecimiento individual: menú completo
+            paginas_menu = [
+                ("📊", "Dashboard"),
+                ("📥", "Nuevo Ingreso"),
+                ("📤", "Nuevo Egreso"),
+                ("📋", "Historial"),
+                ("⚠️", "Alertas"),
+                ("📈", "Reportes"),
+            ]
+
+        if rol == "admin":
+            paginas_menu += [
+                ("🏭", "Proveedores"),
+                ("📦", "Productos"),
+                ("👥", "Usuarios"),
+            ]
+
+        # Si la página actual no está disponible en el menú actual, resetear
+        pagina_actual = st.session_state.get("pagina", "Dashboard")
+        nombres_menu = [n for _, n in paginas_menu]
+        if pagina_actual not in nombres_menu:
+            st.session_state["pagina"] = nombres_menu[0]
+
+        for emoji, nombre in paginas_menu:
             if st.button(f"{emoji}  {nombre}", key=f"nav_{nombre}"):
                 st.session_state["pagina"] = nombre
         
@@ -1090,11 +1153,12 @@ def get_movimientos_con_filtros(establecimiento_id=None, fecha_desde=None, fecha
 
 
 def estab_filter():
-    if "rol" not in st.session_state:
-        return None
-    if st.session_state.get("rol") == "admin":
-        return None
-    return st.session_state.get("establecimiento_id")
+    """Retorna el ID del establecimiento actualmente seleccionado, o None para Consociado/todos."""
+    return st.session_state.get("estab_activo_id", None)
+
+
+def es_vista_consociado():
+    return st.session_state.get("estab_activo_nombre", "Consociado") == "Consociado"
 
 
 # ══════════════════════════════════════════════════════════════
@@ -1112,6 +1176,15 @@ def pagina_dashboard():
         </div>
     </div>
     """, unsafe_allow_html=True)
+
+    estab_activo = st.session_state.get("estab_activo_nombre", "")
+    if estab_activo and estab_activo != "Consociado":
+        st.markdown(f"""
+        <div style="background:rgba(212,160,23,0.15);border:1px solid rgba(212,160,23,0.5);border-radius:12px;padding:0.6rem 1.2rem;margin-bottom:1rem;display:inline-block;">
+            <span style="color:#d4a017;font-weight:700;">🏢 Establecimiento activo:</span>
+            <span style="color:#f0f0f5;font-weight:600;"> {estab_activo}</span>
+        </div>
+        """, unsafe_allow_html=True)
     
     # ── FILTROS DINÁMICOS ──────────────────────────────────────────
     st.markdown("### 🔍 FILTROS DINÁMICOS")
@@ -1379,8 +1452,9 @@ def pagina_ingreso():
             if st.session_state.get("rol") == "admin":
                 establecimiento_id = estab_options[estab_sel_pre]
             else:
-                establecimiento_id = st.session_state.get("establecimiento_id")
-                st.info(f"📍 Establecimiento: {st.session_state.get('establecimiento_nombre', '')}")
+                establecimiento_id = st.session_state.get("estab_activo_id") or st.session_state.get("establecimiento_id")
+                estab_name = st.session_state.get("estab_activo_nombre") or st.session_state.get("establecimiento_nombre", "")
+                st.info(f"📍 Establecimiento: {estab_name}")
             
             cat_sel = cat_sel_pre
             cat_id = cat_id_pre
@@ -1466,8 +1540,9 @@ def pagina_egreso():
                 estab_sel = st.selectbox("🏢 Establecimiento *", list(estab_options.keys()))
                 establecimiento_id = estab_options[estab_sel]
             else:
-                establecimiento_id = st.session_state.get("establecimiento_id")
-                st.info(f"📍 Establecimiento: {st.session_state.get('establecimiento_nombre', '')}")
+                establecimiento_id = st.session_state.get("estab_activo_id") or st.session_state.get("establecimiento_id")
+                estab_name = st.session_state.get("estab_activo_nombre") or st.session_state.get("establecimiento_nombre", "")
+                st.info(f"📍 Establecimiento: {estab_name}")
         
         with col2:
             cat_options = {c["nombre"]: c["id"] for c in categorias}
@@ -1766,9 +1841,243 @@ def pagina_usuarios():
         st.error(f"❌ Error: {e}")
 
 
+def get_stock_por_establecimiento():
+    """Calcula el stock actual por producto y establecimiento (para la vista Consociado)."""
+    try:
+        movimientos = supabase.table("movimientos").select(
+            "*, productos!inner(nombre, categorias(nombre)), establecimientos!inner(nombre)"
+        ).limit(5000).execute().data
+    except Exception:
+        return pd.DataFrame()
+
+    if not movimientos:
+        return pd.DataFrame()
+
+    df = pd.DataFrame(movimientos)
+    df["producto_nombre"] = df["productos"].apply(lambda x: x["nombre"] if x else "")
+    df["categoria_nombre"] = df["productos"].apply(lambda x: x.get("categorias", {}).get("nombre", "Sin categoría") if x and x.get("categorias") else "Sin categoría")
+    df["establecimiento_nombre"] = df["establecimientos"].apply(lambda x: x["nombre"] if x else "")
+
+    ingresos = df[df["tipo"] == "ingreso"].groupby(["producto_nombre", "categoria_nombre", "establecimiento_nombre"])["cantidad"].sum()
+    egresos = df[df["tipo"] == "egreso"].groupby(["producto_nombre", "categoria_nombre", "establecimiento_nombre"])["cantidad"].sum()
+
+    stock_df = (ingresos - egresos.reindex(ingresos.index, fill_value=0)).reset_index()
+    stock_df.columns = ["producto", "categoria", "establecimiento", "stock"]
+    return stock_df.sort_values(["establecimiento", "producto"])
+
+
 # ══════════════════════════════════════════════════════════════
-# ROUTER PRINCIPAL
+# VISTA CONSOCIADO — Estadísticas consolidadas de todos los establecimientos
 # ══════════════════════════════════════════════════════════════
+
+def pagina_consociado():
+    st.markdown('<div class="main-content">', unsafe_allow_html=True)
+
+    st.markdown("""
+    <div>
+        <div class="title-bubble">
+            <h1>🌐 Vista Consociada</h1>
+            <p>📋 Estadísticas consolidadas de todos los establecimientos</p>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+    stock_df = get_stock_por_establecimiento()
+
+    if stock_df.empty:
+        st.info("💡 Sin datos para mostrar. Registrá movimientos en los establecimientos.")
+        st.markdown('</div>', unsafe_allow_html=True)
+        return
+
+    establecimientos_lista = sorted(stock_df["establecimiento"].unique())
+
+    # ── MÉTRICAS GLOBALES ─────────────────────────────────────────
+    total_stock = stock_df["stock"].sum()
+    total_productos_distintos = stock_df["producto"].nunique()
+    total_establecimientos = stock_df["establecimiento"].nunique()
+    stock_critico = (stock_df["stock"] < 50).sum()
+
+    col1, col2, col3, col4 = st.columns(4)
+    with col1:
+        st.markdown(f"""
+        <div class="metric-card">
+            <div class="metric-label">📦 STOCK TOTAL</div>
+            <div class="metric-value">{total_stock:,.0f}</div>
+            <div style="font-size:0.7rem; color:#a8a8b0;">unidades en todos los establecimientos</div>
+        </div>""", unsafe_allow_html=True)
+    with col2:
+        st.markdown(f"""
+        <div class="metric-card">
+            <div class="metric-label">🏢 ESTABLECIMIENTOS</div>
+            <div class="metric-value">{total_establecimientos}</div>
+            <div style="font-size:0.7rem; color:#a8a8b0;">con movimientos registrados</div>
+        </div>""", unsafe_allow_html=True)
+    with col3:
+        st.markdown(f"""
+        <div class="metric-card">
+            <div class="metric-label">🏷️ PRODUCTOS</div>
+            <div class="metric-value">{total_productos_distintos}</div>
+            <div style="font-size:0.7rem; color:#a8a8b0;">productos distintos en stock</div>
+        </div>""", unsafe_allow_html=True)
+    with col4:
+        st.markdown(f"""
+        <div class="metric-card">
+            <div class="metric-label">🔴 CRÍTICOS</div>
+            <div class="metric-value">{stock_critico}</div>
+            <div style="font-size:0.7rem; color:#a8a8b0;">ítems con stock bajo 50 unidades</div>
+        </div>""", unsafe_allow_html=True)
+
+    st.markdown("---")
+
+    # ── STOCK POR ESTABLECIMIENTO (tabs) ─────────────────────────
+    st.markdown("### 🏢 Stock por Establecimiento")
+
+    tabs = st.tabs(["📊 Consolidado"] + [f"🏠 {e}" for e in establecimientos_lista])
+
+    with tabs[0]:
+        # Tabla consolidada pivoteada: producto × establecimiento
+        pivot = stock_df.pivot_table(
+            index=["categoria", "producto"],
+            columns="establecimiento",
+            values="stock",
+            aggfunc="sum",
+            fill_value=0
+        ).reset_index()
+        pivot["TOTAL"] = pivot[establecimientos_lista].sum(axis=1)
+        pivot = pivot.sort_values("TOTAL", ascending=False)
+        st.dataframe(pivot, use_container_width=True, height=420)
+
+        # Gráfico: stock total por establecimiento
+        stock_por_estab = stock_df.groupby("establecimiento")["stock"].sum().reset_index()
+        fig_estab = px.bar(
+            stock_por_estab,
+            x="establecimiento",
+            y="stock",
+            title="📊 Stock Total por Establecimiento",
+            labels={"establecimiento": "Establecimiento", "stock": "Stock (unidades)"},
+            template="plotly_dark",
+            color="stock",
+            color_continuous_scale="Oranges"
+        )
+        fig_estab.update_layout(
+            height=380,
+            plot_bgcolor="rgba(30,30,35,0.8)",
+            paper_bgcolor="rgba(0,0,0,0)",
+            font=dict(color="#e8e8ec"),
+            showlegend=False,
+        )
+        st.plotly_chart(fig_estab, use_container_width=True)
+
+        # Gráfico: distribución por categoría (global)
+        stock_cat = stock_df.groupby("categoria")["stock"].sum().reset_index()
+        fig_torta = px.pie(
+            stock_cat,
+            values="stock",
+            names="categoria",
+            title="🥧 Distribución Global por Categoría",
+            template="plotly_dark",
+            color_discrete_sequence=px.colors.sequential.Oranges_r
+        )
+        fig_torta.update_traces(textposition="inside", textinfo="percent+label")
+        fig_torta.update_layout(
+            height=420,
+            paper_bgcolor="rgba(0,0,0,0)",
+            font=dict(color="#e8e8ec")
+        )
+        st.plotly_chart(fig_torta, use_container_width=True)
+
+        # Heatmap: producto × establecimiento
+        if len(establecimientos_lista) > 1:
+            pivot_heat = stock_df.pivot_table(
+                index="producto",
+                columns="establecimiento",
+                values="stock",
+                aggfunc="sum",
+                fill_value=0
+            )
+            fig_heat = px.imshow(
+                pivot_heat,
+                title="🗺️ Mapa de Calor: Producto × Establecimiento",
+                template="plotly_dark",
+                color_continuous_scale="Oranges",
+                aspect="auto"
+            )
+            fig_heat.update_layout(
+                height=max(400, len(pivot_heat) * 22),
+                paper_bgcolor="rgba(0,0,0,0)",
+                font=dict(color="#e8e8ec")
+            )
+            st.plotly_chart(fig_heat, use_container_width=True)
+
+        # Exportar consolidado
+        buffer = BytesIO()
+        with pd.ExcelWriter(buffer, engine="openpyxl") as writer:
+            pivot.to_excel(writer, index=False, sheet_name="Consociado")
+            for estab in establecimientos_lista:
+                df_e = stock_df[stock_df["establecimiento"] == estab]
+                df_e.to_excel(writer, index=False, sheet_name=estab[:30])
+        st.download_button(
+            "📥 Exportar reporte consolidado",
+            data=buffer.getvalue(),
+            file_name=f"consociado_{date.today()}.xlsx",
+            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        )
+
+    # Tabs por establecimiento individual
+    for i, estab in enumerate(establecimientos_lista):
+        with tabs[i + 1]:
+            df_e = stock_df[stock_df["establecimiento"] == estab].copy()
+            df_e = df_e.sort_values("stock", ascending=False)
+
+            col_a, col_b, col_c = st.columns(3)
+            with col_a:
+                st.markdown(f"""
+                <div class="metric-card">
+                    <div class="metric-label">📦 STOCK TOTAL</div>
+                    <div class="metric-value">{df_e['stock'].sum():,.0f}</div>
+                    <div style="font-size:0.7rem; color:#a8a8b0;">unidades</div>
+                </div>""", unsafe_allow_html=True)
+            with col_b:
+                st.markdown(f"""
+                <div class="metric-card">
+                    <div class="metric-label">🏷️ PRODUCTOS</div>
+                    <div class="metric-value">{len(df_e)}</div>
+                    <div style="font-size:0.7rem; color:#a8a8b0;">en inventario</div>
+                </div>""", unsafe_allow_html=True)
+            with col_c:
+                criticos_e = (df_e["stock"] < 50).sum()
+                st.markdown(f"""
+                <div class="metric-card">
+                    <div class="metric-label">🔴 CRÍTICOS</div>
+                    <div class="metric-value">{criticos_e}</div>
+                    <div style="font-size:0.7rem; color:#a8a8b0;">stock bajo 50</div>
+                </div>""", unsafe_allow_html=True)
+
+            st.dataframe(df_e[["categoria", "producto", "stock"]], use_container_width=True, height=350)
+
+            fig_e = px.bar(
+                df_e.head(15),
+                x="producto",
+                y="stock",
+                title=f"📊 Top 15 Productos — {estab}",
+                labels={"producto": "Producto", "stock": "Stock"},
+                template="plotly_dark",
+                color="stock",
+                color_continuous_scale="Oranges"
+            )
+            fig_e.update_layout(
+                height=400,
+                xaxis_tickangle=-40,
+                plot_bgcolor="rgba(30,30,35,0.8)",
+                paper_bgcolor="rgba(0,0,0,0)",
+                font=dict(color="#e8e8ec"),
+            )
+            st.plotly_chart(fig_e, use_container_width=True)
+
+    st.markdown('</div>', unsafe_allow_html=True)
+
+
+
 
 def main():
     if not check_auth():
@@ -1782,26 +2091,42 @@ def main():
 
     pagina = st.session_state.get("pagina", "Dashboard")
     rol = st.session_state.get("rol", "establecimiento")
+    consociado = es_vista_consociado()
 
-    rutas = {
-        "Dashboard": pagina_dashboard,
-        "Nuevo Ingreso": pagina_ingreso,
-        "Nuevo Egreso": pagina_egreso,
-        "Historial": pagina_historial,
-        "Alertas": pagina_alertas,
-        "Reportes": pagina_reportes,
-        "Proveedores": pagina_proveedores if rol == "admin" else pagina_dashboard,
-        "Productos": pagina_productos if rol == "admin" else pagina_dashboard,
-        "Usuarios": pagina_usuarios if rol == "admin" else pagina_dashboard,
-    }
+    if consociado:
+        rutas_consociado = {
+            "Consociado": pagina_consociado,
+            "Alertas": pagina_alertas,
+            "Reportes": pagina_reportes,
+        }
+        if rol == "admin":
+            rutas_consociado.update({
+                "Proveedores": pagina_proveedores,
+                "Productos": pagina_productos,
+                "Usuarios": pagina_usuarios,
+            })
+        pagina_funcion = rutas_consociado.get(pagina, pagina_consociado)
+    else:
+        rutas = {
+            "Dashboard": pagina_dashboard,
+            "Nuevo Ingreso": pagina_ingreso,
+            "Nuevo Egreso": pagina_egreso,
+            "Historial": pagina_historial,
+            "Alertas": pagina_alertas,
+            "Reportes": pagina_reportes,
+            "Proveedores": pagina_proveedores if rol == "admin" else pagina_dashboard,
+            "Productos": pagina_productos if rol == "admin" else pagina_dashboard,
+            "Usuarios": pagina_usuarios if rol == "admin" else pagina_dashboard,
+        }
+        pagina_funcion = rutas.get(pagina, pagina_dashboard)
 
-    pagina_funcion = rutas.get(pagina, pagina_dashboard)
     pagina_funcion()
-    
-    st.markdown("""
+
+    estab_nombre = st.session_state.get("estab_activo_nombre", "Consociado")
+    st.markdown(f"""
     <div class="footer">
         <p>🌾 Sistema de Control de Stock Agrícola</p>
-        <p>La Sonia · San Guillermo · Camba Pora</p>
+        <p>La Sonia · San Guillermo · Camba Pora &nbsp;|&nbsp; 📍 {estab_nombre}</p>
     </div>
     """, unsafe_allow_html=True)
 
