@@ -2,6 +2,7 @@
 SISTEMA DE CONTROL DE STOCK AGRÍCOLA
 App principal Streamlit — La Sonia / San Guillermo / Camba Pora
 Versión con gráficos interactivos y filtros dinámicos
+Estructura mejorada: Admin con visión global + usuarios por establecimiento
 """
 
 import streamlit as st
@@ -59,8 +60,6 @@ st.markdown("""
     }
 
     /* ── Botón colapsar/expandir sidebar ── */
-
-    /* EXPANDIR: sidebar colapsado, botón visible en el margen izquierdo */
     [data-testid="stSidebarCollapsedControl"] {
         background: linear-gradient(135deg, #1a1a1f, #0f0f12) !important;
         border: 1px solid rgba(212, 160, 23, 0.5) !important;
@@ -77,7 +76,6 @@ st.markdown("""
         overflow: hidden !important;
     }
 
-    /* Ocultar absolutamente todo dentro del botón expandir */
     [data-testid="stSidebarCollapsedControl"] button > *,
     [data-testid="stSidebarCollapsedControl"] button span,
     [data-testid="stSidebarCollapsedControl"] button p,
@@ -93,7 +91,6 @@ st.markdown("""
         position: absolute !important;
     }
 
-    /* Flecha dorada › con pseudo-elemento */
     [data-testid="stSidebarCollapsedControl"] button::before {
         content: "›" !important;
         position: absolute !important;
@@ -109,7 +106,6 @@ st.markdown("""
         height: auto !important;
     }
 
-    /* COLAPSAR: sidebar abierto */
     [data-testid="stSidebar"] [data-testid="stSidebarCollapseButton"] button {
         color: transparent !important;
         background: transparent !important;
@@ -154,7 +150,6 @@ st.markdown("""
         box-shadow: 4px 0 24px rgba(0,0,0,0.4) !important;
     }
 
-    /* Botones del menú - SIN tooltip blanco */
     [data-testid="stSidebar"] .stButton button {
         background: rgba(50, 50, 60, 0.8) !important;
         border: 1px solid rgba(212, 160, 23, 0.5) !important;
@@ -176,17 +171,14 @@ st.markdown("""
         color: #1a1a1f !important;
     }
     
-    /* Eliminar tooltip blanco del sidebar */
     [data-testid="stSidebar"] [data-baseweb="tooltip"] {
         display: none !important;
     }
     
-    /* Eliminar tooltips de todos los botones */
     [data-baseweb="tooltip"] {
         display: none !important;
     }
 
-    /* ── Sidebar header con logo en óvalo blanco ── */
     .sidebar-header {
         text-align: center;
         padding: 1.6rem 0 1.2rem 0;
@@ -234,7 +226,6 @@ st.markdown("""
         font-weight: 700;
     }
 
-    /* ── Profile card ── */
     .profile-card {
         text-align: center;
         padding: 0.9rem 1rem;
@@ -258,7 +249,6 @@ st.markdown("""
         margin-top: 3px;
     }
 
-    /* ── Título login ── */
     .title-container {
         display: flex;
         flex-direction: column;
@@ -325,7 +315,6 @@ st.markdown("""
         letter-spacing: 0.07em !important;
     }
 
-    /* ── Title bubbles ── */
     .title-bubble {
         background: linear-gradient(135deg, rgba(200, 160, 96, 0.95) 0%, rgba(184, 144, 90, 0.95) 100%);
         border-radius: 20px;
@@ -353,7 +342,6 @@ st.markdown("""
         font-weight: 500;
     }
 
-    /* ── Filtros panel ── */
     .filters-panel {
         background: rgba(45, 45, 52, 0.85) !important;
         backdrop-filter: blur(12px);
@@ -372,7 +360,6 @@ st.markdown("""
         text-transform: uppercase;
     }
 
-    /* ── Metric cards ── */
     .metric-card {
         background: linear-gradient(145deg, rgba(55, 55, 62, 0.9) 0%, rgba(45, 45, 52, 0.95) 100%) !important;
         border: 1px solid rgba(212, 160, 23, 0.35);
@@ -418,7 +405,6 @@ st.markdown("""
         font-weight: 500;
     }
 
-    /* ── Section titles ── */
     .section-title {
         font-family: 'DM Sans', sans-serif !important;
         font-size: 1.2rem !important;
@@ -431,7 +417,6 @@ st.markdown("""
         text-transform: uppercase;
     }
 
-    /* ── Buttons con icono de flecha ── */
     .stButton > button {
         background: linear-gradient(135deg, #d4a017, #b87a0c) !important;
         color: #1a1a1f !important;
@@ -451,13 +436,11 @@ st.markdown("""
         color: #000000 !important;
     }
     
-    /* Icono de flecha para botones de submit */
     button[kind="primary"]::after {
         content: " →";
         font-size: 1.1rem;
     }
 
-    /* ── Forms ── */
     [data-testid="stForm"] {
         background: rgba(45, 45, 52, 0.85) !important;
         backdrop-filter: blur(12px);
@@ -466,11 +449,6 @@ st.markdown("""
         border: 1px solid rgba(212, 160, 23, 0.3);
     }
 
-    /* ============================================================ */
-    /* ESTILOS PARA SELECTS - COMPLETOS Y FORZADOS                 */
-    /* ============================================================ */
-
-    /* Contenedor del select - fondo oscuro */
     .stSelectbox > div,
     .stSelectbox div[data-baseweb="select"] {
         background-color: #2d2d34 !important;
@@ -478,7 +456,6 @@ st.markdown("""
         border: 1px solid #d4a017 !important;
     }
 
-    /* El texto seleccionado - CLARO */
     .stSelectbox div[data-baseweb="select"] > div,
     .stSelectbox div[data-baseweb="select"] div,
     .stSelectbox div[data-baseweb="select"] span,
@@ -488,7 +465,6 @@ st.markdown("""
         background-color: transparent !important;
     }
 
-    /* Ocultar cursor de texto del input interno del select */
     .stSelectbox input,
     .stSelectbox [data-baseweb="select"] input {
         caret-color: transparent !important;
@@ -501,7 +477,6 @@ st.markdown("""
         opacity: 0 !important;
     }
 
-    /* Texto del valor seleccionado - padding para no solapar con la flecha */
     .stSelectbox div[data-baseweb="select"] > div:first-child {
         padding-right: 2rem !important;
         overflow: hidden !important;
@@ -509,14 +484,10 @@ st.markdown("""
         white-space: nowrap !important;
     }
 
-    /* Icono flecha - DORADO */
     .stSelectbox svg {
         fill: #d4a017 !important;
         stroke: #d4a017 !important;
     }
-
-    /* ── DROPDOWN PORTAL - forzado a nivel body ── */
-    /* BaseWeb inyecta el portal directo en <body>, hay que usar selectores globales */
 
     body [data-baseweb="popover"],
     body [data-baseweb="popover"] *:not(svg):not(path),
@@ -533,7 +504,6 @@ st.markdown("""
         box-shadow: 0 8px 24px rgba(0,0,0,0.5) !important;
     }
 
-    /* Lista y contenedor interno */
     body [data-baseweb="menu"],
     body ul[data-baseweb="menu"],
     body [data-baseweb="menu"] > div,
@@ -542,7 +512,6 @@ st.markdown("""
         color: #f0f0f5 !important;
     }
 
-    /* Cada opción */
     body [data-baseweb="menu"] li,
     body [data-baseweb="menu"] [role="option"],
     body [role="option"] {
@@ -558,7 +527,6 @@ st.markdown("""
         background-color: transparent !important;
     }
 
-    /* Hover */
     body [data-baseweb="menu"] li:hover,
     body [data-baseweb="menu"] [role="option"]:hover,
     body [role="option"]:hover {
@@ -566,38 +534,6 @@ st.markdown("""
         color: #f0f0f5 !important;
     }
 
-    body [data-baseweb="menu"] li:hover *,
-    body [data-baseweb="menu"] [role="option"]:hover *,
-    body [role="option"]:hover * {
-        color: #f0f0f5 !important;
-    }
-
-    /* Seleccionado */
-    body [data-baseweb="menu"] li[aria-selected="true"],
-    body [role="option"][aria-selected="true"] {
-        background-color: rgba(212, 160, 23, 0.4) !important;
-        color: #f0f0f5 !important;
-        font-weight: 700 !important;
-    }
-
-    body [data-baseweb="menu"] li[aria-selected="true"] *,
-    body [role="option"][aria-selected="true"] * {
-        color: #f0f0f5 !important;
-    }
-
-    /* Scrollbar del menú */
-    body [data-baseweb="menu"] ::-webkit-scrollbar {
-        width: 6px;
-    }
-    body [data-baseweb="menu"] ::-webkit-scrollbar-track {
-        background: #1a1a1f;
-    }
-    body [data-baseweb="menu"] ::-webkit-scrollbar-thumb {
-        background: #d4a017;
-        border-radius: 3px;
-    }
-
-    /* Inputs de texto */
     input, textarea {
         color: #f0f0f5 !important;
         background-color: #2d2d34 !important;
@@ -618,7 +554,6 @@ st.markdown("""
         text-shadow: 0 1px 4px rgba(0,0,0,0.9), 0 0px 8px rgba(0,0,0,0.8) !important;
     }
 
-    /* Títulos de sección y markdown sobre el fondo */
     .stMarkdown p, .stMarkdown h1, .stMarkdown h2, .stMarkdown h3,
     [data-testid="stMarkdownContainer"] p,
     [data-testid="stMarkdownContainer"] h1,
@@ -628,7 +563,6 @@ st.markdown("""
         text-shadow: 0 1px 6px rgba(0,0,0,0.95), 0 0 12px rgba(0,0,0,0.8) !important;
     }
 
-    /* Fondo oscuro semitransparente detrás de los widgets de input */
     [data-testid="stWidgetLabel"] > div,
     [data-testid="stWidgetLabel"] p {
         color: #f0f0f5 !important;
@@ -640,7 +574,6 @@ st.markdown("""
         display: inline-block !important;
     }
 
-    /* ── Tables ── */
     .stDataFrame {
         background: rgba(35, 35, 42, 0.7);
         border-radius: 16px;
@@ -652,7 +585,6 @@ st.markdown("""
         color: #e8e8ec !important;
     }
 
-    /* ── Alerts ── */
     .stAlert {
         background: rgba(45, 45, 52, 0.85) !important;
         backdrop-filter: blur(8px);
@@ -661,7 +593,6 @@ st.markdown("""
         color: #e8e8ec !important;
     }
 
-    /* ── Badges ── */
     .badge-admin {
         background: linear-gradient(135deg, #d4a017, #b87a0c);
         color: #1a1a1f !important;
@@ -680,7 +611,6 @@ st.markdown("""
         font-weight: 700;
     }
 
-    /* ── Footer ── */
     .footer {
         text-align: center;
         padding: 1.6rem 2rem;
@@ -693,7 +623,6 @@ st.markdown("""
         border-radius: 16px;
     }
 
-    /* ── General text ── */
     p, span, div, label, .stMarkdown {
         color: #e8e8ec !important;
         font-family: 'DM Sans', sans-serif !important;
@@ -703,7 +632,6 @@ st.markdown("""
         color: #f0f0f5 !important;
     }
 
-    /* ── Animations ── */
     .main-content {
         animation: fadeUp 0.45s cubic-bezier(.4,0,.2,1);
     }
@@ -719,7 +647,6 @@ st.markdown("""
         margin: 1.5rem 0 !important;
     }
 
-    /* ── Estilo para los textos del sidebar ── */
     [data-testid="stSidebar"] .stMarkdown, 
     [data-testid="stSidebar"] .stMarkdown p,
     [data-testid="stSidebar"] .stMarkdown div {
@@ -731,7 +658,6 @@ st.markdown("""
         color: #d4a017 !important;
     }
     
-    /* Eliminar cualquier tooltip */
     [role="tooltip"] {
         display: none !important;
     }
@@ -740,7 +666,6 @@ st.markdown("""
         display: none !important;
     }
 
-    /* ── Expanders con fondo oscuro sólido ── */
     [data-testid="stExpander"],
     [data-testid="stExpander"] > details,
     details[data-testid="stExpander"] {
@@ -760,35 +685,6 @@ st.markdown("""
         border-radius: 14px !important;
         padding: 0.8rem 1rem !important;
     }
-
-    [data-testid="stExpander"] summary p,
-    [data-testid="stExpander"] summary span,
-    [data-testid="stExpander"] summary * {
-        color: #f0f0f5 !important;
-        background: transparent !important;
-    }
-
-    [data-testid="stExpander"] > details > div,
-    [data-testid="stExpander"] details > div {
-        background: #1e1e24 !important;
-        border-radius: 0 0 14px 14px !important;
-        padding: 0.5rem 1rem !important;
-    }
-
-    /* Header clickeable del expander (Streamlit lo renderiza como div con rol button) */
-    [data-testid="stExpander"] [role="button"],
-    [data-testid="stExpander"] [data-testid="stExpanderToggleIcon"],
-    div[data-testid="stExpanderHeader"] {
-        background: #1e1e24 !important;
-        color: #f0f0f5 !important;
-        border-radius: 14px !important;
-    }
-
-    div[data-testid="stExpanderHeader"] p,
-    div[data-testid="stExpanderHeader"] span {
-        color: #f0f0f5 !important;
-        background: transparent !important;
-    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -799,10 +695,7 @@ components.html("""
 <script>
 (function() {
     function fixSidebarBtn() {
-        // El botón está en el documento padre (iframe parent)
         var doc = window.parent.document;
-
-        // Ocultar cualquier elemento de texto que contenga variantes de "keyboard"
         var allElems = doc.querySelectorAll('button, span, p, div');
         allElems.forEach(function(el) {
             var txt = (el.innerText || el.textContent || '').trim().toLowerCase();
@@ -815,8 +708,6 @@ components.html("""
                 el.style.display = 'none';
             }
         });
-
-        // Agregar flecha › al contenedor del botón si aún no la tiene
         var collapsed = doc.querySelector('[data-testid="stSidebarCollapsedControl"]');
         if (collapsed && !collapsed.querySelector('.flecha-custom')) {
             var btn = collapsed.querySelector('button');
@@ -830,11 +721,8 @@ components.html("""
             }
         }
     }
-
-    // Ejecutar con retardo para asegurar que el DOM esté listo
     setTimeout(fixSidebarBtn, 500);
     setTimeout(fixSidebarBtn, 1500);
-
     var observer = new MutationObserver(function() {
         fixSidebarBtn();
     });
@@ -969,7 +857,7 @@ def sidebar():
         badge_class = "badge-admin" if rol == "admin" else "badge-operator"
         badge_text = "Administrador" if rol == "admin" else "Operador"
 
-        # ── SELECTOR DE ESTABLECIMIENTO ──────────────────────────────
+        # ── SELECTOR DE ESTABLECIMIENTO (Solo para Admin) ─────────────────
         st.markdown("### 🏢 ESTABLECIMIENTO")
         
         establecimientos = get_establecimientos()
@@ -978,42 +866,52 @@ def sidebar():
             # Admin puede elegir cualquier establecimiento + Consociado
             opciones_estab = ["🌐 Consociado"] + [e["nombre"] for e in establecimientos]
         else:
-            # Operador solo ve su establecimiento + Consociado
+            # Operador SOLO ve su establecimiento asignado (sin opción de cambiar)
             mi_estab = st.session_state.get("establecimiento_nombre", "")
-            opciones_estab = ["🌐 Consociado", mi_estab] if mi_estab else ["🌐 Consociado"]
+            if not mi_estab:
+                st.warning("⚠️ No tienes un establecimiento asignado.")
+                return
+            opciones_estab = [mi_estab]
+            # Forzar selección para operador
+            st.session_state["estab_seleccionado"] = mi_estab
+            st.session_state["estab_activo_id"] = st.session_state.get("establecimiento_id")
+            st.session_state["estab_activo_nombre"] = mi_estab
+            st.markdown(f"""
+            <div style="background:rgba(212,160,23,0.2); border-radius:10px; padding:0.5rem; text-align:center; margin-bottom:0.8rem;">
+                <span style="color:#d4a017;">📍 {mi_estab}</span>
+            </div>
+            """, unsafe_allow_html=True)
 
-        # Inicializar selección si no existe
-        if "estab_seleccionado" not in st.session_state:
-            if rol == "admin":
+        if rol == "admin":
+            # Inicializar selección si no existe
+            if "estab_seleccionado" not in st.session_state:
                 st.session_state["estab_seleccionado"] = "🌐 Consociado"
+
+            estab_sel = st.selectbox(
+                "Seleccionar",
+                opciones_estab,
+                index=opciones_estab.index(st.session_state["estab_seleccionado"]) if st.session_state["estab_seleccionado"] in opciones_estab else 0,
+                key="sb_estab_selector",
+                label_visibility="collapsed"
+            )
+            
+            # Si cambió la selección, actualizar
+            if estab_sel != st.session_state.get("estab_seleccionado"):
+                st.session_state["estab_seleccionado"] = estab_sel
+                st.session_state["pagina"] = "Dashboard"
+                st.rerun()
+
+            # Resolver el ID del establecimiento seleccionado
+            if estab_sel == "🌐 Consociado":
+                st.session_state["estab_activo_id"] = None
+                st.session_state["estab_activo_nombre"] = "Consociado"
             else:
-                st.session_state["estab_seleccionado"] = opciones_estab[1] if len(opciones_estab) > 1 else "🌐 Consociado"
+                match = next((e for e in establecimientos if e["nombre"] == estab_sel), None)
+                if match:
+                    st.session_state["estab_activo_id"] = match["id"]
+                    st.session_state["estab_activo_nombre"] = match["nombre"]
 
-        estab_sel = st.selectbox(
-            "Seleccionar",
-            opciones_estab,
-            index=opciones_estab.index(st.session_state["estab_seleccionado"]) if st.session_state["estab_seleccionado"] in opciones_estab else 0,
-            key="sb_estab_selector",
-            label_visibility="collapsed"
-        )
-        
-        # Si cambió la selección, actualizar y resetear página
-        if estab_sel != st.session_state.get("estab_seleccionado"):
-            st.session_state["estab_seleccionado"] = estab_sel
-            st.session_state["pagina"] = "Dashboard"
-            st.rerun()
-
-        # Resolver el ID del establecimiento seleccionado
-        if estab_sel == "🌐 Consociado":
-            st.session_state["estab_activo_id"] = None
-            st.session_state["estab_activo_nombre"] = "Consociado"
-        else:
-            match = next((e for e in establecimientos if e["nombre"] == estab_sel), None)
-            if match:
-                st.session_state["estab_activo_id"] = match["id"]
-                st.session_state["estab_activo_nombre"] = match["nombre"]
-
-        estab_activo = st.session_state.get("estab_activo_nombre", "Consociado")
+        estab_activo = st.session_state.get("estab_activo_nombre", "Consociado" if rol == "admin" else st.session_state.get("establecimiento_nombre", ""))
         es_consociado = (estab_activo == "Consociado")
 
         st.markdown(f"""
@@ -1029,15 +927,18 @@ def sidebar():
         # ── MENÚ ADAPTADO ────────────────────────────────────────────
         st.markdown("### 📌 MENÚ")
 
-        if es_consociado:
-            # Consociado: solo vista consolidada
+        if es_consociado and rol == "admin":
+            # Admin en vista Consociado: menú consolidado
             paginas_menu = [
                 ("🌐", "Consociado"),
                 ("⚠️", "Alertas"),
                 ("📈", "Reportes"),
+                ("🏭", "Proveedores"),
+                ("📦", "Productos"),
+                ("👥", "Usuarios"),
             ]
-        else:
-            # Establecimiento individual: menú completo
+        elif rol == "admin":
+            # Admin en establecimiento individual: menú completo
             paginas_menu = [
                 ("📊", "Dashboard"),
                 ("📥", "Nuevo Ingreso"),
@@ -1045,13 +946,19 @@ def sidebar():
                 ("📋", "Historial"),
                 ("⚠️", "Alertas"),
                 ("📈", "Reportes"),
-            ]
-
-        if rol == "admin":
-            paginas_menu += [
                 ("🏭", "Proveedores"),
                 ("📦", "Productos"),
                 ("👥", "Usuarios"),
+            ]
+        else:
+            # Operador: solo su establecimiento
+            paginas_menu = [
+                ("📊", "Dashboard"),
+                ("📥", "Nuevo Ingreso"),
+                ("📤", "Nuevo Egreso"),
+                ("📋", "Historial"),
+                ("⚠️", "Alertas"),
+                ("📈", "Reportes"),
             ]
 
         # Si la página actual no está disponible en el menú actual, resetear
@@ -1091,18 +998,20 @@ def get_proveedores():
     res = supabase.table("proveedores").select("*").eq("activo", True).execute()
     return res.data
 
-def get_movimientos(establecimiento_id=None, limit=1000):
+def get_movimientos(establecimiento_id=None, limit=5000):
     try:
-        q = supabase.table("movimientos").select("*, productos!inner(nombre, categorias(nombre)), establecimientos!inner(nombre)").limit(limit)
+        q = supabase.table("movimientos").select("*, productos!inner(nombre, categorias(nombre), presentacion, unidad_medida), establecimientos!inner(nombre)").order("fecha", desc=True).limit(limit)
         if establecimiento_id:
             q = q.eq("establecimiento_id", establecimiento_id)
         return q.execute().data
-    except:
+    except Exception as e:
+        st.error(f"Error al obtener movimientos: {e}")
         return []
 
 
-def get_stock_por_producto():
-    movimientos = get_movimientos()
+def get_stock_por_producto(establecimiento_id=None):
+    """Calcula stock actual por producto para un establecimiento específico o todos si None"""
+    movimientos = get_movimientos(establecimiento_id, limit=10000)
     if not movimientos:
         return pd.DataFrame()
     
@@ -1116,6 +1025,8 @@ def get_stock_por_producto():
     productos = get_productos()
     nombre_map = {p["id"]: p["nombre"] for p in productos}
     categoria_map = {p["id"]: p.get("categorias", {}).get("nombre", "Sin categoría") if p.get("categorias") else "Sin categoría" for p in productos}
+    presentacion_map = {p["id"]: p.get("presentacion", "") for p in productos}
+    unidad_map = {p["id"]: p.get("unidad_medida", "unidad") for p in productos}
     
     stock = {}
     for prod_id in set(ingresos.index) | set(egresos.index):
@@ -1123,31 +1034,43 @@ def get_stock_por_producto():
     
     result = []
     for prod_id, cantidad in stock.items():
-        result.append({
-            "producto": nombre_map.get(prod_id, "Desconocido"),
-            "categoria": categoria_map.get(prod_id, "Sin categoría"),
-            "stock": cantidad
-        })
+        if cantidad != 0:  # Solo mostrar productos con stock
+            result.append({
+                "producto_id": prod_id,
+                "producto": nombre_map.get(prod_id, "Desconocido"),
+                "categoria": categoria_map.get(prod_id, "Sin categoría"),
+                "presentacion": presentacion_map.get(prod_id, ""),
+                "unidad": unidad_map.get(prod_id, "unidad"),
+                "stock": cantidad
+            })
     
     return pd.DataFrame(result).sort_values("stock", ascending=False)
 
 
-def get_movimientos_con_filtros(establecimiento_id=None, fecha_desde=None, fecha_hasta=None, tipo=None, producto_id=None):
-    movimientos = get_movimientos(establecimiento_id, limit=2000)
+def get_movimientos_con_filtros(establecimiento_id=None, fecha_desde=None, fecha_hasta=None, tipo=None, producto_id=None, categoria_id=None):
+    movimientos = get_movimientos(establecimiento_id, limit=5000)
     if not movimientos:
         return []
     
     df = pd.DataFrame(movimientos)
-    df["fecha"] = pd.to_datetime(df["fecha"])
+    if "fecha" in df.columns:
+        df["fecha"] = pd.to_datetime(df["fecha"])
+        
+        if fecha_desde:
+            df = df[df["fecha"] >= pd.Timestamp(fecha_desde)]
+        if fecha_hasta:
+            df = df[df["fecha"] <= pd.Timestamp(fecha_hasta)]
     
-    if fecha_desde:
-        df = df[df["fecha"] >= pd.Timestamp(fecha_desde)]
-    if fecha_hasta:
-        df = df[df["fecha"] <= pd.Timestamp(fecha_hasta)]
     if tipo and tipo != "Todos":
         df = df[df["tipo"] == tipo]
+    
     if producto_id:
         df = df[df["producto_id"] == producto_id]
+    
+    if categoria_id:
+        # Filtrar por categoría usando la relación productos
+        productos_cat = [p["id"] for p in get_productos(categoria_id)]
+        df = df[df["producto_id"].isin(productos_cat)]
     
     return df.to_dict("records")
 
@@ -1159,6 +1082,33 @@ def estab_filter():
 
 def es_vista_consociado():
     return st.session_state.get("estab_activo_nombre", "Consociado") == "Consociado"
+
+
+def get_stock_por_establecimiento():
+    """Calcula el stock actual por producto y establecimiento (para la vista Consociado)."""
+    try:
+        movimientos = supabase.table("movimientos").select(
+            "*, productos!inner(nombre, categorias(nombre), presentacion, unidad_medida), establecimientos!inner(nombre)"
+        ).limit(10000).execute().data
+    except Exception:
+        return pd.DataFrame()
+
+    if not movimientos:
+        return pd.DataFrame()
+
+    df = pd.DataFrame(movimientos)
+    df["producto_nombre"] = df["productos"].apply(lambda x: x["nombre"] if x else "")
+    df["producto_presentacion"] = df["productos"].apply(lambda x: x.get("presentacion", "") if x else "")
+    df["producto_unidad"] = df["productos"].apply(lambda x: x.get("unidad_medida", "unidad") if x else "unidad")
+    df["categoria_nombre"] = df["productos"].apply(lambda x: x.get("categorias", {}).get("nombre", "Sin categoría") if x and x.get("categorias") else "Sin categoría")
+    df["establecimiento_nombre"] = df["establecimientos"].apply(lambda x: x["nombre"] if x else "")
+
+    ingresos = df[df["tipo"] == "ingreso"].groupby(["producto_nombre", "producto_presentacion", "producto_unidad", "categoria_nombre", "establecimiento_nombre"])["cantidad"].sum()
+    egresos = df[df["tipo"] == "egreso"].groupby(["producto_nombre", "producto_presentacion", "producto_unidad", "categoria_nombre", "establecimiento_nombre"])["cantidad"].sum()
+
+    stock_df = (ingresos - egresos.reindex(ingresos.index, fill_value=0)).reset_index()
+    stock_df.columns = ["producto", "presentacion", "unidad", "categoria", "establecimiento", "stock"]
+    return stock_df[stock_df["stock"] != 0].sort_values(["establecimiento", "producto"])
 
 
 # ══════════════════════════════════════════════════════════════
@@ -1189,7 +1139,7 @@ def pagina_dashboard():
     # ── FILTROS DINÁMICOS ──────────────────────────────────────────
     st.markdown("### 🔍 FILTROS DINÁMICOS")
     
-    col_f1, col_f2, col_f3 = st.columns(3)
+    col_f1, col_f2, col_f3, col_f4 = st.columns(4)
     
     with col_f1:
         fecha_desde = st.date_input("📅 Desde", value=date.today() - timedelta(days=90))
@@ -1211,13 +1161,18 @@ def pagina_dashboard():
         prod_seleccionado = st.selectbox("🏷️ Producto", list(prod_options.keys()))
         prod_id = prod_options[prod_seleccionado] if prod_seleccionado != "Todos" else None
     
+    with col_f4:
+        # Filtro por producto con stock bajo
+        stock_min = st.number_input("⚠️ Stock mínimo (alerta)", min_value=0, value=50, step=10)
+    
     # Obtener datos con filtros
     movimientos = get_movimientos_con_filtros(
         establecimiento_id=estab_filter(),
         fecha_desde=fecha_desde,
         fecha_hasta=fecha_hasta,
         tipo=tipo_filtro if tipo_filtro != "Todos" else None,
-        producto_id=prod_id
+        producto_id=prod_id,
+        categoria_id=cat_id
     )
     
     # ── MÉTRICAS CON TENDENCIAS ─────────────────────────────────────
@@ -1231,13 +1186,15 @@ def pagina_dashboard():
         stock_total = ingresos - egresos
         total_movimientos = len(df_mov)
         
+        # Calcular tendencia (comparación con período anterior)
         fecha_anterior_inicio = fecha_desde - timedelta(days=(fecha_hasta - fecha_desde).days)
         mov_anterior = get_movimientos_con_filtros(
             establecimiento_id=estab_filter(),
             fecha_desde=fecha_anterior_inicio,
             fecha_hasta=fecha_desde - timedelta(days=1),
             tipo=tipo_filtro if tipo_filtro != "Todos" else None,
-            producto_id=prod_id
+            producto_id=prod_id,
+            categoria_id=cat_id
         )
         
         if mov_anterior:
@@ -1328,7 +1285,7 @@ def pagina_dashboard():
         st.plotly_chart(fig_evolucion, use_container_width=True)
         
         # Gráfico 2: Distribución por Categoría
-        stock_por_categoria = get_stock_por_producto()
+        stock_por_categoria = get_stock_por_producto(estab_filter())
         if not stock_por_categoria.empty:
             stock_cat = stock_por_categoria.groupby("categoria")["stock"].sum().reset_index()
             
@@ -1350,7 +1307,7 @@ def pagina_dashboard():
         
         # Gráfico 3: Top 10 Productos
         st.markdown("---")
-        stock_productos = get_stock_por_producto()
+        stock_productos = get_stock_por_producto(estab_filter())
         if not stock_productos.empty:
             top_productos = stock_productos.head(10)
             
@@ -1372,6 +1329,12 @@ def pagina_dashboard():
                 font=dict(color="#e8e8ec")
             )
             st.plotly_chart(fig_barras, use_container_width=True)
+            
+            # Tabla de stock con alertas
+            st.markdown("### 📋 Detalle de Stock Actual")
+            stock_display = stock_productos.copy()
+            stock_display["alerta"] = stock_display["stock"].apply(lambda x: "🔴 Crítico" if x < stock_min else ("⚠️ Bajo" if x < stock_min * 2 else "✅ Normal"))
+            st.dataframe(stock_display[["producto", "categoria", "presentacion", "stock", "unidad", "alerta"]], use_container_width=True, height=400)
         
         # Gráfico 4: Movimientos por Mes
         df_mov["mes"] = df_mov["fecha"].dt.to_period("M").astype(str)
@@ -1428,43 +1391,39 @@ def pagina_ingreso():
         st.warning("⚠️ No hay categorías cargadas.")
         return
 
-    # Selección de categoría FUERA del form para que filtre dinámicamente
-    col_pre1, col_pre2 = st.columns(2)
-    with col_pre1:
-        if st.session_state.get("rol") == "admin":
-            estab_options = {e["nombre"]: e["id"] for e in establecimientos}
-            estab_sel_pre = st.selectbox("🏢 Establecimiento *", list(estab_options.keys()), key="ing_estab")
+    # Determinar establecimiento según rol
+    if st.session_state.get("rol") == "admin":
+        estab_options = {e["nombre"]: e["id"] for e in establecimientos}
+        estab_sel = st.selectbox("🏢 Establecimiento *", list(estab_options.keys()), key="ing_estab")
+        establecimiento_id = estab_options[estab_sel]
+        establecimiento_nombre = estab_sel
+    else:
+        establecimiento_id = st.session_state.get("establecimiento_id")
+        establecimiento_nombre = st.session_state.get("establecimiento_nombre", "")
+        st.info(f"📍 Establecimiento: {establecimiento_nombre}")
+
+    # Selección de categoría y producto
+    col1, col2 = st.columns(2)
+    with col1:
         cat_options = {c["nombre"]: c["id"] for c in categorias}
-        cat_sel_pre = st.selectbox("📁 Categoría *", list(cat_options.keys()), key="ing_cat")
-        cat_id_pre = cat_options[cat_sel_pre]
-    with col_pre2:
-        productos_pre = get_productos(cat_id_pre)
-        if not productos_pre:
+        cat_sel = st.selectbox("📁 Categoría *", list(cat_options.keys()))
+        cat_id = cat_options[cat_sel]
+    
+    with col2:
+        productos = get_productos(cat_id)
+        if not productos:
             st.warning("⚠️ No hay productos en esta categoría.")
             return
-        prod_options_pre = {p["nombre"]: p["id"] for p in productos_pre}
-        prod_sel_pre = st.selectbox("🏷️ Producto *", list(prod_options_pre.keys()), key="ing_prod")
+        prod_options = {p["nombre"]: p["id"] for p in productos}
+        prod_sel = st.selectbox("🏷️ Producto *", list(prod_options.keys()))
+        producto_id = prod_options[prod_sel]
+        
+        # Mostrar información del producto seleccionado
+        prod_info = next((p for p in productos if p["id"] == producto_id), None)
+        if prod_info:
+            st.caption(f"📦 {prod_info.get('presentacion', 'Sin presentación')} | {prod_info.get('unidad_medida', 'unidad')}")
 
     with st.form("form_ingreso", clear_on_submit=True):
-        col1, col2 = st.columns(2)
-        
-        with col1:
-            if st.session_state.get("rol") == "admin":
-                establecimiento_id = estab_options[estab_sel_pre]
-            else:
-                establecimiento_id = st.session_state.get("estab_activo_id") or st.session_state.get("establecimiento_id")
-                estab_name = st.session_state.get("estab_activo_nombre") or st.session_state.get("establecimiento_nombre", "")
-                st.info(f"📍 Establecimiento: {estab_name}")
-            
-            cat_sel = cat_sel_pre
-            cat_id = cat_id_pre
-            st.markdown(f"**📁 Categoría:** {cat_sel}")
-        
-        with col2:
-            prod_sel = prod_sel_pre
-            producto_id = prod_options_pre[prod_sel]
-            st.markdown(f"**🏷️ Producto:** {prod_sel}")
-        
         col3, col4, col5 = st.columns(3)
         
         with col3:
@@ -1480,8 +1439,12 @@ def pagina_ingreso():
                 proveedor_id = prov_options[prov_sel] if prov_sel != "Sin proveedor" else None
             else:
                 proveedor_id = None
+                st.info("💡 No hay proveedores cargados")
         
-        observaciones = st.text_area("📝 Observaciones", placeholder="N° factura, lote, fecha de vencimiento, etc.")
+        # Tipo de ingreso (compra, devolución, etc.)
+        tipo_ingreso = st.selectbox("📌 Tipo de Ingreso", ["Compra", "Devolución", "Traslado", "Otro"])
+        
+        observaciones = st.text_area("📝 Observaciones", placeholder="N° factura, lote, fecha de vencimiento, detalles adicionales...")
         
         submitted = st.form_submit_button("✅ Registrar Ingreso", use_container_width=True)
         
@@ -1492,6 +1455,7 @@ def pagina_ingreso():
             
             try:
                 with st.spinner("Registrando ingreso..."):
+                    observaciones_full = f"[{tipo_ingreso}] {observaciones}" if observaciones else f"[{tipo_ingreso}]"
                     payload = {
                         "tipo": "ingreso",
                         "producto_id": producto_id,
@@ -1499,7 +1463,7 @@ def pagina_ingreso():
                         "cantidad": float(cantidad),
                         "fecha": str(fecha),
                         "proveedor_id": proveedor_id,
-                        "observaciones": observaciones or None,
+                        "observaciones": observaciones_full,
                         "usuario_id": st.session_state.get("user_id"),
                     }
                     supabase.table("movimientos").insert(payload).execute()
@@ -1531,39 +1495,54 @@ def pagina_egreso():
         st.warning("⚠️ No hay establecimientos cargados.")
         return
 
-    with st.form("form_egreso", clear_on_submit=True):
-        col1, col2 = st.columns(2)
-        
-        with col1:
-            if st.session_state.get("rol") == "admin":
-                estab_options = {e["nombre"]: e["id"] for e in establecimientos}
-                estab_sel = st.selectbox("🏢 Establecimiento *", list(estab_options.keys()))
-                establecimiento_id = estab_options[estab_sel]
-            else:
-                establecimiento_id = st.session_state.get("estab_activo_id") or st.session_state.get("establecimiento_id")
-                estab_name = st.session_state.get("estab_activo_nombre") or st.session_state.get("establecimiento_nombre", "")
-                st.info(f"📍 Establecimiento: {estab_name}")
-        
-        with col2:
-            cat_options = {c["nombre"]: c["id"] for c in categorias}
-            cat_sel = st.selectbox("📁 Categoría *", list(cat_options.keys()))
-            cat_id = cat_options[cat_sel]
-        
+    # Determinar establecimiento según rol
+    if st.session_state.get("rol") == "admin":
+        estab_options = {e["nombre"]: e["id"] for e in establecimientos}
+        estab_sel = st.selectbox("🏢 Establecimiento *", list(estab_options.keys()), key="egr_estab")
+        establecimiento_id = estab_options[estab_sel]
+        establecimiento_nombre = estab_sel
+    else:
+        establecimiento_id = st.session_state.get("establecimiento_id")
+        establecimiento_nombre = st.session_state.get("establecimiento_nombre", "")
+        st.info(f"📍 Establecimiento: {establecimiento_nombre}")
+
+    # Selección de categoría y producto
+    col1, col2 = st.columns(2)
+    with col1:
+        cat_options = {c["nombre"]: c["id"] for c in categorias}
+        cat_sel = st.selectbox("📁 Categoría *", list(cat_options.keys()))
+        cat_id = cat_options[cat_sel]
+    
+    with col2:
         productos = get_productos(cat_id)
         if not productos:
             st.warning("⚠️ No hay productos en esta categoría.")
             return
-        
         prod_options = {p["nombre"]: p["id"] for p in productos}
         prod_sel = st.selectbox("🏷️ Producto *", list(prod_options.keys()))
+        producto_id = prod_options[prod_sel]
         
-        col3, col4 = st.columns(2)
+        # Mostrar stock actual del producto seleccionado
+        stock_actual_df = get_stock_por_producto(establecimiento_id)
+        if not stock_actual_df.empty:
+            prod_stock = stock_actual_df[stock_actual_df["producto_id"] == producto_id]
+            if not prod_stock.empty:
+                stock_disponible = prod_stock.iloc[0]["stock"]
+                st.caption(f"📊 Stock disponible: {stock_disponible:.2f} {prod_stock.iloc[0]['unidad']}")
+            else:
+                st.caption("📊 Stock disponible: 0")
+
+    with st.form("form_egreso", clear_on_submit=True):
+        col3, col4, col5 = st.columns(3)
         
         with col3:
             cantidad = st.number_input("📦 Cantidad *", min_value=0.001, step=0.5, format="%.3f")
         
         with col4:
             fecha = st.date_input("📅 Fecha *", value=date.today())
+        
+        with col5:
+            tipo_egreso = st.selectbox("📌 Tipo de Egreso", ["Uso", "Venta", "Traslado", "Merma", "Otro"])
         
         observaciones = st.text_area("📝 Observaciones", placeholder="Motivo del egreso, destino, responsable, etc.")
         
@@ -1574,15 +1553,24 @@ def pagina_egreso():
                 st.error("❌ La cantidad debe ser mayor a 0")
                 return
             
+            # Verificar stock disponible si es un egreso
+            stock_actual_df = get_stock_por_producto(establecimiento_id)
+            if not stock_actual_df.empty:
+                prod_stock = stock_actual_df[stock_actual_df["producto_id"] == producto_id]
+                if not prod_stock.empty and prod_stock.iloc[0]["stock"] < cantidad:
+                    st.error(f"❌ Stock insuficiente. Disponible: {prod_stock.iloc[0]['stock']:.2f} {prod_stock.iloc[0]['unidad']}")
+                    return
+            
             try:
                 with st.spinner("Registrando egreso..."):
+                    observaciones_full = f"[{tipo_egreso}] {observaciones}" if observaciones else f"[{tipo_egreso}]"
                     payload = {
                         "tipo": "egreso",
-                        "producto_id": prod_options[prod_sel],
+                        "producto_id": producto_id,
                         "establecimiento_id": establecimiento_id,
                         "cantidad": float(cantidad),
                         "fecha": str(fecha),
-                        "observaciones": observaciones or None,
+                        "observaciones": observaciones_full,
                         "usuario_id": st.session_state.get("user_id"),
                     }
                     supabase.table("movimientos").insert(payload).execute()
@@ -1606,7 +1594,7 @@ def pagina_historial():
     </div>
     """, unsafe_allow_html=True)
 
-    col_f1, col_f2, col_f3 = st.columns(3)
+    col_f1, col_f2, col_f3, col_f4 = st.columns(4)
     
     with col_f1:
         tipo_filtro = st.selectbox("Tipo de movimiento", ["Todos", "ingreso", "egreso"])
@@ -1614,12 +1602,19 @@ def pagina_historial():
         fecha_desde = st.date_input("Desde", value=date.today() - timedelta(days=30))
     with col_f3:
         fecha_hasta = st.date_input("Hasta", value=date.today())
+    with col_f4:
+        categorias = get_categorias()
+        cat_options = {c["nombre"]: c["id"] for c in categorias}
+        cat_options["Todas"] = None
+        cat_seleccionada = st.selectbox("Categoría", list(cat_options.keys()))
+        cat_id = cat_options[cat_seleccionada] if cat_seleccionada != "Todas" else None
     
     movimientos = get_movimientos_con_filtros(
         establecimiento_id=estab_filter(),
         fecha_desde=fecha_desde,
         fecha_hasta=fecha_hasta,
-        tipo=tipo_filtro if tipo_filtro != "Todos" else None
+        tipo=tipo_filtro if tipo_filtro != "Todos" else None,
+        categoria_id=cat_id
     )
     
     if not movimientos:
@@ -1627,20 +1622,28 @@ def pagina_historial():
         return
     
     df = pd.DataFrame(movimientos)
-    df["fecha"] = pd.to_datetime(df["fecha"])
-    df = df.sort_values("fecha", ascending=False)
+    if "fecha" in df.columns:
+        df["fecha"] = pd.to_datetime(df["fecha"])
+        df = df.sort_values("fecha", ascending=False)
+    
+    # Extraer información del producto
+    df["producto_nombre"] = df["productos"].apply(lambda x: x["nombre"] if x else "")
+    df["producto_presentacion"] = df["productos"].apply(lambda x: x.get("presentacion", "") if x else "")
+    df["producto_unidad"] = df["productos"].apply(lambda x: x.get("unidad_medida", "unidad") if x else "unidad")
+    df["categoria"] = df["productos"].apply(lambda x: x.get("categorias", {}).get("nombre", "") if x else "")
+    df["establecimiento"] = df["establecimientos"].apply(lambda x: x["nombre"] if x else "")
     
     st.markdown(f"### 📊 Resultados: **{len(df)}** movimientos encontrados")
     
-    display_df = df[["fecha", "tipo", "cantidad", "observaciones"]].copy()
-    display_df.columns = ["Fecha", "Tipo", "Cantidad", "Observaciones"]
+    display_df = df[["fecha", "tipo", "establecimiento", "categoria", "producto_nombre", "producto_presentacion", "cantidad", "producto_unidad", "observaciones"]].copy()
+    display_df.columns = ["Fecha", "Tipo", "Establecimiento", "Categoría", "Producto", "Presentación", "Cantidad", "Unidad", "Observaciones"]
     
-    st.dataframe(display_df, use_container_width=True, height=400)
+    st.dataframe(display_df, use_container_width=True, height=500)
     
     if not df.empty:
         buffer = BytesIO()
         with pd.ExcelWriter(buffer, engine="openpyxl") as writer:
-            df.to_excel(writer, index=False, sheet_name="Movimientos")
+            display_df.to_excel(writer, index=False, sheet_name="Movimientos")
         st.download_button(
             "📥 Exportar a Excel",
             data=buffer.getvalue(),
@@ -1663,14 +1666,21 @@ def pagina_alertas():
     </div>
     """, unsafe_allow_html=True)
     
-    stock_productos = get_stock_por_producto()
+    # Umbrales configurables
+    col_u1, col_u2 = st.columns(2)
+    with col_u1:
+        umbral_bajo = st.number_input("⚠️ Umbral de stock bajo (unidades)", min_value=0, value=100, step=10)
+    with col_u2:
+        umbral_critico = st.number_input("🔴 Umbral de stock crítico (unidades)", min_value=0, value=50, step=10)
+    
+    stock_productos = get_stock_por_producto(estab_filter())
     
     if stock_productos.empty:
         st.info("💡 Sin datos para mostrar alertas.")
         return
     
-    stock_bajo = stock_productos[stock_productos["stock"] < 100]
-    stock_critico = stock_productos[stock_productos["stock"] < 50]
+    stock_bajo = stock_productos[stock_productos["stock"] < umbral_bajo]
+    stock_critico = stock_productos[stock_productos["stock"] < umbral_critico]
     
     col1, col2 = st.columns(2)
     
@@ -1679,7 +1689,7 @@ def pagina_alertas():
         <div class="metric-card">
             <div class="metric-label">⚠️ STOCK BAJO</div>
             <div class="metric-value">{len(stock_bajo)}</div>
-            <div style="font-size:0.7rem;">productos con menos de 100 unidades</div>
+            <div style="font-size:0.7rem;">productos con menos de {umbral_bajo} unidades</div>
         </div>
         """, unsafe_allow_html=True)
     
@@ -1688,14 +1698,15 @@ def pagina_alertas():
         <div class="metric-card">
             <div class="metric-label">🔴 STOCK CRÍTICO</div>
             <div class="metric-value">{len(stock_critico)}</div>
-            <div style="font-size:0.7rem;">productos con menos de 50 unidades</div>
+            <div style="font-size:0.7rem;">productos con menos de {umbral_critico} unidades</div>
         </div>
         """, unsafe_allow_html=True)
     
     if not stock_bajo.empty:
         st.markdown("---")
         st.markdown("### 📋 Productos con Stock Bajo")
-        st.dataframe(stock_bajo, use_container_width=True)
+        stock_bajo["alerta"] = stock_bajo["stock"].apply(lambda x: "🔴 Crítico" if x < umbral_critico else "⚠️ Bajo")
+        st.dataframe(stock_bajo[["producto", "categoria", "presentacion", "stock", "unidad", "alerta"]], use_container_width=True)
     else:
         st.success("✅ Todos los productos tienen stock suficiente.")
 
@@ -1714,7 +1725,7 @@ def pagina_reportes():
     </div>
     """, unsafe_allow_html=True)
     
-    movimientos = get_movimientos(estab_filter(), limit=2000)
+    movimientos = get_movimientos(estab_filter(), limit=5000)
     
     if not movimientos:
         st.info("💡 Sin datos para generar reportes.")
@@ -1724,13 +1735,25 @@ def pagina_reportes():
     df["fecha"] = pd.to_datetime(df["fecha"])
     df["mes"] = df["fecha"].dt.to_period("M").astype(str)
     df["año"] = df["fecha"].dt.year
+    df["producto_nombre"] = df["productos"].apply(lambda x: x["nombre"] if x else "")
     
     años = sorted(df["año"].unique())
     año_seleccionado = st.selectbox("📅 Seleccionar año", años, index=len(años)-1)
     
     df_año = df[df["año"] == año_seleccionado]
     
-    st.markdown(f"### 📊 Resumen {año_seleccionado}")
+    col_r1, col_r2, col_r3 = st.columns(3)
+    with col_r1:
+        total_ingresos = df_año[df_año["tipo"] == "ingreso"]["cantidad"].sum() if "ingreso" in df_año["tipo"].values else 0
+        st.metric("📥 Total Ingresos", f"{total_ingresos:,.0f}")
+    with col_r2:
+        total_egresos = df_año[df_año["tipo"] == "egreso"]["cantidad"].sum() if "egreso" in df_año["tipo"].values else 0
+        st.metric("📤 Total Egresos", f"{total_egresos:,.0f}")
+    with col_r3:
+        total_movimientos = len(df_año)
+        st.metric("🔄 Total Movimientos", total_movimientos)
+    
+    st.markdown(f"### 📊 Resumen Mensual {año_seleccionado}")
     
     resumen = df_año.groupby(["mes", "tipo"])["cantidad"].sum().reset_index()
     st.dataframe(resumen, use_container_width=True)
@@ -1738,6 +1761,12 @@ def pagina_reportes():
     st.markdown("### 📈 Tendencia de Movimientos")
     chart_data = df_año.groupby(["mes", "tipo"])["cantidad"].sum().unstack()
     st.bar_chart(chart_data)
+    
+    # Top productos movidos
+    st.markdown("### 🏆 Top 10 Productos más movidos")
+    top_movidos = df_año.groupby("producto_nombre")["cantidad"].sum().sort_values(ascending=False).head(10).reset_index()
+    top_movidos.columns = ["Producto", "Cantidad total movida"]
+    st.dataframe(top_movidos, use_container_width=True)
     
     buffer = BytesIO()
     with pd.ExcelWriter(buffer, engine="openpyxl") as writer:
@@ -1769,15 +1798,21 @@ def pagina_proveedores():
     with st.expander("➕ Agregar nuevo proveedor", expanded=False):
         with st.form("nuevo_proveedor"):
             nombre = st.text_input("Nombre del proveedor")
+            contacto = st.text_input("Contacto (teléfono/email)", placeholder="Opcional")
             if st.form_submit_button("Guardar"):
                 if nombre:
-                    supabase.table("proveedores").insert({"nombre": nombre, "activo": True}).execute()
+                    supabase.table("proveedores").insert({
+                        "nombre": nombre,
+                        "contacto": contacto if contacto else None,
+                        "activo": True
+                    }).execute()
                     st.success(f"✅ Proveedor '{nombre}' agregado")
                     st.rerun()
     
     if proveedores:
         df = pd.DataFrame(proveedores)
-        st.dataframe(df[["nombre", "activo", "created_at"]], use_container_width=True)
+        display_cols = ["nombre", "contacto", "activo", "created_at"] if "contacto" in df.columns else ["nombre", "activo", "created_at"]
+        st.dataframe(df[display_cols], use_container_width=True)
     else:
         st.info("💡 No hay proveedores cargados.")
 
@@ -1799,11 +1834,15 @@ def pagina_productos():
         with st.form("nuevo_producto"):
             cat_sel = st.selectbox("Categoría", list(cat_options.keys()))
             nombre = st.text_input("Nombre del producto")
+            presentacion = st.text_input("Presentación", placeholder="Ej: Bidón 20L, Bolsa 50kg, etc.")
+            unidad_medida = st.selectbox("Unidad de medida", ["litros", "kg", "unidades", "bolsas", "bidones", "otros"])
             if st.form_submit_button("Guardar"):
                 if nombre:
                     supabase.table("productos").insert({
                         "categoria_id": cat_options[cat_sel],
                         "nombre": nombre,
+                        "presentacion": presentacion if presentacion else None,
+                        "unidad_medida": unidad_medida,
                         "activo": True
                     }).execute()
                     st.success(f"✅ Producto '{nombre}' agregado")
@@ -1813,7 +1852,8 @@ def pagina_productos():
     if productos:
         df = pd.DataFrame(productos)
         df["categoria"] = df["categorias"].apply(lambda x: x["nombre"] if x else "N/A")
-        st.dataframe(df[["categoria", "nombre", "activo"]], use_container_width=True)
+        display_cols = ["categoria", "nombre", "presentacion", "unidad_medida", "activo"]
+        st.dataframe(df[display_cols], use_container_width=True)
     else:
         st.info("💡 No hay productos cargados.")
 
@@ -1834,36 +1874,37 @@ def pagina_usuarios():
         usuarios = supabase.table("usuarios").select("*").execute().data
         if usuarios:
             df = pd.DataFrame(usuarios)
-            st.dataframe(df[["nombre", "rol", "created_at"]], use_container_width=True)
+            display_cols = ["nombre", "email", "rol", "establecimiento_nombre", "created_at"]
+            st.dataframe(df[display_cols], use_container_width=True)
         else:
             st.info("💡 No hay usuarios cargados")
     except Exception as e:
         st.error(f"❌ Error: {e}")
-
-
-def get_stock_por_establecimiento():
-    """Calcula el stock actual por producto y establecimiento (para la vista Consociado)."""
-    try:
-        movimientos = supabase.table("movimientos").select(
-            "*, productos!inner(nombre, categorias(nombre)), establecimientos!inner(nombre)"
-        ).limit(5000).execute().data
-    except Exception:
-        return pd.DataFrame()
-
-    if not movimientos:
-        return pd.DataFrame()
-
-    df = pd.DataFrame(movimientos)
-    df["producto_nombre"] = df["productos"].apply(lambda x: x["nombre"] if x else "")
-    df["categoria_nombre"] = df["productos"].apply(lambda x: x.get("categorias", {}).get("nombre", "Sin categoría") if x and x.get("categorias") else "Sin categoría")
-    df["establecimiento_nombre"] = df["establecimientos"].apply(lambda x: x["nombre"] if x else "")
-
-    ingresos = df[df["tipo"] == "ingreso"].groupby(["producto_nombre", "categoria_nombre", "establecimiento_nombre"])["cantidad"].sum()
-    egresos = df[df["tipo"] == "egreso"].groupby(["producto_nombre", "categoria_nombre", "establecimiento_nombre"])["cantidad"].sum()
-
-    stock_df = (ingresos - egresos.reindex(ingresos.index, fill_value=0)).reset_index()
-    stock_df.columns = ["producto", "categoria", "establecimiento", "stock"]
-    return stock_df.sort_values(["establecimiento", "producto"])
+    
+    st.markdown("---")
+    st.markdown("### 📝 Asignar usuario a establecimiento")
+    
+    # Listar usuarios sin establecimiento asignado o con rol operador
+    usuarios_sin_estab = supabase.table("usuarios").select("*").is_("establecimiento_id", "null").execute().data
+    if usuarios_sin_estab:
+        usuario_opciones = {u["nombre"]: u["id"] for u in usuarios_sin_estab if u["rol"] != "admin"}
+        if usuario_opciones:
+            usuario_sel = st.selectbox("Seleccionar usuario", list(usuario_opciones.keys()))
+            establecimientos = get_establecimientos()
+            estab_opciones = {e["nombre"]: e["id"] for e in establecimientos}
+            estab_sel = st.selectbox("Asignar a establecimiento", list(estab_opciones.keys()))
+            
+            if st.button("Asignar establecimiento"):
+                supabase.table("usuarios").update({
+                    "establecimiento_id": estab_opciones[estab_sel],
+                    "establecimiento_nombre": estab_sel
+                }).eq("id", usuario_opciones[usuario_sel]).execute()
+                st.success(f"✅ Usuario '{usuario_sel}' asignado a {estab_sel}")
+                st.rerun()
+        else:
+            st.info("Todos los usuarios ya tienen establecimiento asignado")
+    else:
+        st.info("No hay usuarios sin establecimiento asignado")
 
 
 # ══════════════════════════════════════════════════════════════
@@ -1937,7 +1978,7 @@ def pagina_consociado():
     with tabs[0]:
         # Tabla consolidada pivoteada: producto × establecimiento
         pivot = stock_df.pivot_table(
-            index=["categoria", "producto"],
+            index=["categoria", "producto", "presentacion", "unidad"],
             columns="establecimiento",
             values="stock",
             aggfunc="sum",
@@ -1945,7 +1986,7 @@ def pagina_consociado():
         ).reset_index()
         pivot["TOTAL"] = pivot[establecimientos_lista].sum(axis=1)
         pivot = pivot.sort_values("TOTAL", ascending=False)
-        st.dataframe(pivot, use_container_width=True, height=420)
+        st.dataframe(pivot, use_container_width=True, height=500)
 
         # Gráfico: stock total por establecimiento
         stock_por_estab = stock_df.groupby("establecimiento")["stock"].sum().reset_index()
@@ -1985,29 +2026,6 @@ def pagina_consociado():
             font=dict(color="#e8e8ec")
         )
         st.plotly_chart(fig_torta, use_container_width=True)
-
-        # Heatmap: producto × establecimiento
-        if len(establecimientos_lista) > 1:
-            pivot_heat = stock_df.pivot_table(
-                index="producto",
-                columns="establecimiento",
-                values="stock",
-                aggfunc="sum",
-                fill_value=0
-            )
-            fig_heat = px.imshow(
-                pivot_heat,
-                title="🗺️ Mapa de Calor: Producto × Establecimiento",
-                template="plotly_dark",
-                color_continuous_scale="Oranges",
-                aspect="auto"
-            )
-            fig_heat.update_layout(
-                height=max(400, len(pivot_heat) * 22),
-                paper_bgcolor="rgba(0,0,0,0)",
-                font=dict(color="#e8e8ec")
-            )
-            st.plotly_chart(fig_heat, use_container_width=True)
 
         # Exportar consolidado
         buffer = BytesIO()
@@ -2053,7 +2071,7 @@ def pagina_consociado():
                     <div style="font-size:0.7rem; color:#a8a8b0;">stock bajo 50</div>
                 </div>""", unsafe_allow_html=True)
 
-            st.dataframe(df_e[["categoria", "producto", "stock"]], use_container_width=True, height=350)
+            st.dataframe(df_e[["categoria", "producto", "presentacion", "stock", "unidad"]], use_container_width=True, height=400)
 
             fig_e = px.bar(
                 df_e.head(15),
@@ -2077,7 +2095,9 @@ def pagina_consociado():
     st.markdown('</div>', unsafe_allow_html=True)
 
 
-
+# ══════════════════════════════════════════════════════════════
+# MAIN
+# ══════════════════════════════════════════════════════════════
 
 def main():
     if not check_auth():
@@ -2093,36 +2113,45 @@ def main():
     rol = st.session_state.get("rol", "establecimiento")
     consociado = es_vista_consociado()
 
-    if consociado:
+    if consociado and rol == "admin":
         rutas_consociado = {
             "Consociado": pagina_consociado,
             "Alertas": pagina_alertas,
             "Reportes": pagina_reportes,
+            "Proveedores": pagina_proveedores,
+            "Productos": pagina_productos,
+            "Usuarios": pagina_usuarios,
         }
-        if rol == "admin":
-            rutas_consociado.update({
-                "Proveedores": pagina_proveedores,
-                "Productos": pagina_productos,
-                "Usuarios": pagina_usuarios,
-            })
         pagina_funcion = rutas_consociado.get(pagina, pagina_consociado)
-    else:
-        rutas = {
+    elif rol == "admin":
+        rutas_admin = {
             "Dashboard": pagina_dashboard,
             "Nuevo Ingreso": pagina_ingreso,
             "Nuevo Egreso": pagina_egreso,
             "Historial": pagina_historial,
             "Alertas": pagina_alertas,
             "Reportes": pagina_reportes,
-            "Proveedores": pagina_proveedores if rol == "admin" else pagina_dashboard,
-            "Productos": pagina_productos if rol == "admin" else pagina_dashboard,
-            "Usuarios": pagina_usuarios if rol == "admin" else pagina_dashboard,
+            "Proveedores": pagina_proveedores,
+            "Productos": pagina_productos,
+            "Usuarios": pagina_usuarios,
         }
-        pagina_funcion = rutas.get(pagina, pagina_dashboard)
+        pagina_funcion = rutas_admin.get(pagina, pagina_dashboard)
+    else:
+        # Operador
+        rutas_operador = {
+            "Dashboard": pagina_dashboard,
+            "Nuevo Ingreso": pagina_ingreso,
+            "Nuevo Egreso": pagina_egreso,
+            "Historial": pagina_historial,
+            "Alertas": pagina_alertas,
+            "Reportes": pagina_reportes,
+        }
+        pagina_funcion = rutas_operador.get(pagina, pagina_dashboard)
 
     pagina_funcion()
 
-    estab_nombre = st.session_state.get("estab_activo_nombre", "Consociado")
+    estab_nombre = st.session_state.get("estab_activo_nombre", 
+                                         st.session_state.get("establecimiento_nombre", "Consociado"))
     st.markdown(f"""
     <div class="footer">
         <p>🌾 Sistema de Control de Stock Agrícola</p>
