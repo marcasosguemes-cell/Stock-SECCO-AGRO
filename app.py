@@ -1523,6 +1523,12 @@ def pagina_ingreso():
                 proveedor_id = None
                 st.info("💡 No hay proveedores cargados")
         
+        col_mc1, col_mc2 = st.columns(2)
+        with col_mc1:
+            marca_ing = st.text_input("🏷️ Marca", placeholder="Ej: Bayer, YPF Agro, Dow...")
+        with col_mc2:
+            concentracion_ing = st.text_input("🧪 Concentración", placeholder="Ej: 48%, 500 g/L...")
+        
         tipo_ingreso = st.selectbox("📌 Tipo de Ingreso", ["Compra", "Devolución", "Traslado", "Otro"])
         observaciones = st.text_area("📝 Observaciones", placeholder="N° factura, lote, fecha de vencimiento, detalles adicionales...")
         
@@ -1545,6 +1551,8 @@ def pagina_ingreso():
                         "proveedor_id": proveedor_id,
                         "observaciones": observaciones_full,
                         "usuario_id": st.session_state.get("user_id"),
+                        "marca": marca_ing.strip() if marca_ing and marca_ing.strip() else None,
+                        "concentracion": concentracion_ing.strip() if concentracion_ing and concentracion_ing.strip() else None,
                     }
                     supabase.table("movimientos").insert(payload).execute()
                     st.success(f"✅ Ingreso registrado exitosamente!")
@@ -1630,6 +1638,12 @@ def pagina_egreso():
         with col5:
             tipo_egreso = st.selectbox("📌 Tipo de Egreso", ["Uso", "Venta", "Traslado", "Merma", "Otro"])
         
+        col_mc1e, col_mc2e = st.columns(2)
+        with col_mc1e:
+            marca_egr_form = st.text_input("🏷️ Marca", placeholder="Ej: Bayer, YPF Agro, Dow...")
+        with col_mc2e:
+            concentracion_egr_form = st.text_input("🧪 Concentración", placeholder="Ej: 48%, 500 g/L...")
+        
         observaciones = st.text_area("📝 Observaciones", placeholder="Motivo del egreso, destino, responsable, etc.")
         
         submitted = st.form_submit_button("✅ Registrar Egreso", use_container_width=True)
@@ -1657,6 +1671,8 @@ def pagina_egreso():
                         "fecha": str(fecha),
                         "observaciones": observaciones_full,
                         "usuario_id": st.session_state.get("user_id"),
+                        "marca": marca_egr_form.strip() if marca_egr_form and marca_egr_form.strip() else None,
+                        "concentracion": concentracion_egr_form.strip() if concentracion_egr_form and concentracion_egr_form.strip() else None,
                     }
                     supabase.table("movimientos").insert(payload).execute()
                     st.success(f"✅ Egreso registrado exitosamente!")
@@ -1712,8 +1728,11 @@ def pagina_historial():
         df = df.sort_values("fecha", ascending=False)
     
     df["producto_nombre"] = df["productos"].apply(lambda x: x.get("nombre", "") if isinstance(x, dict) else "")
-    df["producto_marca"] = df["productos"].apply(lambda x: x.get("marca", "") or "" if isinstance(x, dict) else "")
-    df["producto_concentracion"] = df["productos"].apply(lambda x: x.get("concentracion", "") or "" if isinstance(x, dict) else "")
+    # marca y concentracion vienen del movimiento directamente
+    def _safe_str(v):
+        return str(v).strip() if v and str(v).strip() not in ("None", "none", "") else ""
+    df["producto_marca"] = df.apply(lambda r: _safe_str(r.get("marca")), axis=1)
+    df["producto_concentracion"] = df.apply(lambda r: _safe_str(r.get("concentracion")), axis=1)
     df["producto_presentacion"] = df["productos"].apply(lambda x: x.get("presentacion", "") if isinstance(x, dict) else "")
     df["producto_unidad"] = df["productos"].apply(lambda x: x.get("unidad_medida", "unidad") if isinstance(x, dict) else "unidad")
     df["categoria"] = df["productos"].apply(lambda x: x.get("categorias", {}).get("nombre", "") if isinstance(x, dict) else "")
