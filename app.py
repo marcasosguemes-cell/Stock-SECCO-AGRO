@@ -765,7 +765,7 @@ def logout():
     try:
         supabase.auth.sign_out()
         keys_to_clear = ["session", "user_id", "perfil", "rol", "establecimiento_id", 
-                         "establecimiento_nombre", "pagina", "password_changed"]
+                         "establecimiento_nombre", "pagina", "password_changed", "skip_password_check"]
         for key in keys_to_clear:
             if key in st.session_state:
                 del st.session_state[key]
@@ -839,6 +839,8 @@ def login():
                             st.session_state["establecimiento_nombre"] = perfil.data[0].get("establecimiento_nombre")
                             st.session_state["password_changed"] = perfil.data[0].get("password_changed", False)
                             st.session_state["pagina"] = "Dashboard"
+                            # Limpiar bandera temporal de sesión anterior
+                            st.session_state.pop("skip_password_check", None)
                             st.success("✅ Login exitoso!")
                             st.rerun()
                         else:
@@ -848,7 +850,7 @@ def login():
 
 
 # ══════════════════════════════════════════════════════════════
-# FUNCIÓN PARA MOSTRAR CAMBIO DE CONTRASEÑA
+# FUNCIÓN PARA MOSTRAR CAMBIO DE CONTRASEÑA - CORREGIDA
 # ══════════════════════════════════════════════════════════════
 
 def mostrar_cambio_password():
@@ -884,6 +886,8 @@ def mostrar_cambio_password():
                         supabase.auth.update_user({"password": nueva_password})
                         supabase.table("usuarios").update({"password_changed": True}).eq("id", st.session_state["user_id"]).execute()
                         st.session_state["password_changed"] = True
+                        # Limpiar bandera temporal
+                        st.session_state.pop("skip_password_check", None)
                         st.success("✅ Contraseña actualizada correctamente!")
                         st.balloons()
                         st.rerun()
@@ -891,7 +895,8 @@ def mostrar_cambio_password():
                     st.error(f"❌ Error al actualizar contraseña: {e}")
         
         if mas_tarde_btn:
-            st.info("🔔 Recuerda cambiar tu contraseña en tu próximo ingreso.")
+            # Establecer bandera temporal para esta sesión
+            st.session_state["skip_password_check"] = True
             st.rerun()
 
 
@@ -2163,9 +2168,10 @@ def main():
         return
 
     # Verificar si el usuario necesita cambiar la contraseña
-    # Solo si NO es admin Y password_changed es False
+    # Solo si NO es admin Y password_changed es False Y no hay bandera temporal
     if (st.session_state.get("rol") != "admin" and 
-        not st.session_state.get("password_changed", False)):
+        not st.session_state.get("password_changed", False) and
+        not st.session_state.get("skip_password_check", False)):
         mostrar_cambio_password()
         return
 
