@@ -3,7 +3,7 @@ SISTEMA DE CONTROL DE STOCK AGRÍCOLA
 App principal Streamlit — La Sonia / San Guillermo / Camba Pora
 Versión con gráficos interactivos y filtros dinámicos
 Estructura mejorada: Admin con visión global + usuarios por establecimiento
-CON CAMBIO DE CONTRASEÑA OBLIGATORIO EN PRIMER INGRESO
+CON CAMBIO DE CONTRASEÑA OBLIGATORIO EN CADA INGRESO HASTA QUE SE CAMBIE
 """
 
 import streamlit as st
@@ -684,7 +684,6 @@ st.markdown("""
         padding: 0.8rem 1rem !important;
     }
     
-    /* Estilos para el modal de cambio de contraseña */
     .password-warning {
         background: linear-gradient(135deg, rgba(212, 160, 23, 0.2), rgba(184, 122, 12, 0.2));
         border-left: 4px solid #d4a017;
@@ -765,7 +764,9 @@ def check_auth():
 def logout():
     try:
         supabase.auth.sign_out()
-        for key in ["session", "user_id", "perfil", "rol", "establecimiento_id", "establecimiento_nombre", "pagina", "password_changed"]:
+        keys_to_clear = ["session", "user_id", "perfil", "rol", "establecimiento_id", 
+                         "establecimiento_nombre", "pagina", "password_changed"]
+        for key in keys_to_clear:
             if key in st.session_state:
                 del st.session_state[key]
         st.rerun()
@@ -795,54 +796,6 @@ def verificar_perfil():
                 return False
         return False
     return True
-
-
-def cambiar_contraseña():
-    """Función para cambiar la contraseña del usuario actual"""
-    st.markdown("""
-    <div class="password-warning">
-        <h3>🔐 Cambio de Contraseña Obligatorio</h3>
-        <p>Por razones de seguridad, debes cambiar tu contraseña en este primer ingreso.</p>
-    </div>
-    """, unsafe_allow_html=True)
-    
-    with st.form("cambiar_password_form"):
-        nueva_password = st.text_input("Nueva Contraseña", type="password", placeholder="••••••••")
-        confirmar_password = st.text_input("Confirmar Contraseña", type="password", placeholder="••••••••")
-        
-        col1, col2 = st.columns(2)
-        with col1:
-            cambiar_btn = st.form_submit_button("✅ Cambiar Contraseña", use_container_width=True)
-        with col2:
-            mas_tarde_btn = st.form_submit_button("⏰ Más Tarde", use_container_width=True)
-        
-        if cambiar_btn:
-            if not nueva_password:
-                st.error("❌ Por favor ingresa una nueva contraseña")
-            elif len(nueva_password) < 6:
-                st.error("❌ La contraseña debe tener al menos 6 caracteres")
-            elif nueva_password != confirmar_password:
-                st.error("❌ Las contraseñas no coinciden")
-            else:
-                try:
-                    with st.spinner("Actualizando contraseña..."):
-                        # Actualizar contraseña en Supabase Auth
-                        supabase.auth.update_user({"password": nueva_password})
-                        
-                        # Marcar como que ya cambió la contraseña
-                        supabase.table("usuarios").update({"password_changed": True}).eq("id", st.session_state["user_id"]).execute()
-                        
-                        st.session_state["password_changed"] = True
-                        st.success("✅ Contraseña actualizada correctamente!")
-                        st.rerun()
-                except Exception as e:
-                    st.error(f"❌ Error al actualizar contraseña: {e}")
-        
-        if mas_tarde_btn:
-            st.info("🔔 Recuerda cambiar tu contraseña en tu próximo ingreso. Por ahora continuarás con tu contraseña temporal.")
-            # No marcamos como cambiada, solo permitimos continuar
-            st.session_state["skip_password_change"] = True
-            st.rerun()
 
 
 # ══════════════════════════════════════════════════════════════
@@ -895,6 +848,54 @@ def login():
 
 
 # ══════════════════════════════════════════════════════════════
+# FUNCIÓN PARA MOSTRAR CAMBIO DE CONTRASEÑA
+# ══════════════════════════════════════════════════════════════
+
+def mostrar_cambio_password():
+    st.markdown("""
+    <div class="password-warning">
+        <h3>🔐 Cambio de Contraseña Obligatorio</h3>
+        <p>Por razones de seguridad, debes cambiar tu contraseña.</p>
+        <p><strong>Importante:</strong> Esta contraseña temporal caducará pronto. Por favor, establécela ahora.</p>
+        <p>Si eliges "Más Tarde", el sistema te recordará en cada ingreso hasta que la cambies.</p>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    with st.form("cambiar_password_form_main"):
+        nueva_password = st.text_input("Nueva Contraseña", type="password", placeholder="Mínimo 6 caracteres")
+        confirmar_password = st.text_input("Confirmar Contraseña", type="password", placeholder="Repite tu nueva contraseña")
+        
+        col1, col2 = st.columns(2)
+        with col1:
+            cambiar_btn = st.form_submit_button("✅ Cambiar Contraseña", use_container_width=True)
+        with col2:
+            mas_tarde_btn = st.form_submit_button("⏰ Más Tarde", use_container_width=True)
+        
+        if cambiar_btn:
+            if not nueva_password:
+                st.error("❌ Por favor ingresa una nueva contraseña")
+            elif len(nueva_password) < 6:
+                st.error("❌ La contraseña debe tener al menos 6 caracteres")
+            elif nueva_password != confirmar_password:
+                st.error("❌ Las contraseñas no coinciden")
+            else:
+                try:
+                    with st.spinner("Actualizando contraseña..."):
+                        supabase.auth.update_user({"password": nueva_password})
+                        supabase.table("usuarios").update({"password_changed": True}).eq("id", st.session_state["user_id"]).execute()
+                        st.session_state["password_changed"] = True
+                        st.success("✅ Contraseña actualizada correctamente!")
+                        st.balloons()
+                        st.rerun()
+                except Exception as e:
+                    st.error(f"❌ Error al actualizar contraseña: {e}")
+        
+        if mas_tarde_btn:
+            st.info("🔔 Recuerda cambiar tu contraseña en tu próximo ingreso.")
+            st.rerun()
+
+
+# ══════════════════════════════════════════════════════════════
 # SIDEBAR
 # ══════════════════════════════════════════════════════════════
 
@@ -919,7 +920,6 @@ def sidebar():
         badge_class = "badge-admin" if rol == "admin" else "badge-operator"
         badge_text = "Administrador" if rol == "admin" else "Operador"
 
-        # ── SELECTOR DE ESTABLECIMIENTO ─────────────────
         st.markdown("### 🏢 ESTABLECIMIENTO")
         
         establecimientos = get_establecimientos()
@@ -985,8 +985,6 @@ def sidebar():
         """, unsafe_allow_html=True)
         
         st.markdown("---")
-        
-        # ── MENÚ ADAPTADO ────────────────────────────────────────────
         st.markdown("### 📌 MENÚ")
 
         if es_consolidado and rol == "admin":
@@ -1036,67 +1034,12 @@ def sidebar():
                 st.session_state["pagina"] = nombre
         
         st.markdown("---")
-        
-        # Botón para cambiar contraseña (opcional, si ya la cambió)
-        if st.session_state.get("password_changed", False):
-            if st.button("🔐 Cambiar Contraseña", key="btn_cambiar_password"):
-                st.session_state["mostrar_cambio_password"] = True
-        
         if st.button("🚪 Cerrar sesión"):
             logout()
 
 
 # ══════════════════════════════════════════════════════════════
-# FUNCIÓN PARA MOSTRAR MODAL DE CAMBIO DE CONTRASEÑA
-# ══════════════════════════════════════════════════════════════
-
-def mostrar_cambio_password():
-    """Muestra el formulario de cambio de contraseña en el main content"""
-    st.markdown("""
-    <div class="password-warning">
-        <h3>🔐 Cambio de Contraseña Obligatorio</h3>
-        <p>Por razones de seguridad, debes cambiar tu contraseña en este primer ingreso.</p>
-        <p><strong>Nota:</strong> Si eliges "Más Tarde", el sistema te recordará en cada ingreso hasta que la cambies.</p>
-    </div>
-    """, unsafe_allow_html=True)
-    
-    with st.form("cambiar_password_form_main"):
-        nueva_password = st.text_input("Nueva Contraseña", type="password", placeholder="Mínimo 6 caracteres")
-        confirmar_password = st.text_input("Confirmar Contraseña", type="password", placeholder="Repite tu nueva contraseña")
-        
-        col1, col2 = st.columns(2)
-        with col1:
-            cambiar_btn = st.form_submit_button("✅ Cambiar Contraseña", use_container_width=True)
-        with col2:
-            mas_tarde_btn = st.form_submit_button("⏰ Más Tarde", use_container_width=True)
-        
-        if cambiar_btn:
-            if not nueva_password:
-                st.error("❌ Por favor ingresa una nueva contraseña")
-            elif len(nueva_password) < 6:
-                st.error("❌ La contraseña debe tener al menos 6 caracteres")
-            elif nueva_password != confirmar_password:
-                st.error("❌ Las contraseñas no coinciden")
-            else:
-                try:
-                    with st.spinner("Actualizando contraseña..."):
-                        supabase.auth.update_user({"password": nueva_password})
-                        supabase.table("usuarios").update({"password_changed": True}).eq("id", st.session_state["user_id"]).execute()
-                        st.session_state["password_changed"] = True
-                        st.session_state.pop("skip_password_change", None)
-                        st.success("✅ Contraseña actualizada correctamente!")
-                        st.rerun()
-                except Exception as e:
-                    st.error(f"❌ Error al actualizar contraseña: {e}")
-        
-        if mas_tarde_btn:
-            st.session_state["skip_password_change"] = True
-            st.info("🔔 Recuerda cambiar tu contraseña en tu próximo ingreso.")
-            st.rerun()
-
-
-# ══════════════════════════════════════════════════════════════
-# HELPERS DE DATOS - CORREGIDOS PARA EVITAR ERROR DE MÚLTIPLES RELACIONES
+# HELPERS DE DATOS
 # ══════════════════════════════════════════════════════════════
 
 def get_establecimientos():
@@ -2220,8 +2163,9 @@ def main():
         return
 
     # Verificar si el usuario necesita cambiar la contraseña
-    if (not st.session_state.get("password_changed", False) and 
-        not st.session_state.get("skip_password_change", False)):
+    # Solo si NO es admin Y password_changed es False
+    if (st.session_state.get("rol") != "admin" and 
+        not st.session_state.get("password_changed", False)):
         mostrar_cambio_password()
         return
 
@@ -2268,12 +2212,6 @@ def main():
         st.error("⚠️ Configuración de usuario incompleta. Contacta al administrador.")
         if st.button("Cerrar sesión"):
             logout()
-        return
-
-    # Si se solicitó cambio de contraseña desde el sidebar
-    if st.session_state.get("mostrar_cambio_password", False):
-        mostrar_cambio_password()
-        st.session_state["mostrar_cambio_password"] = False
         return
 
     pagina_funcion()
