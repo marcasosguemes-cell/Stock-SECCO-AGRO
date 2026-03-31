@@ -3,6 +3,7 @@ SISTEMA DE CONTROL DE STOCK AGRÍCOLA
 App principal Streamlit — La Sonia / San Guillermo / Camba Pora
 Versión con gráficos interactivos y filtros dinámicos
 Estructura mejorada: Admin con visión global + usuarios por establecimiento
+CORREGIDO: Manejo de múltiples relaciones en Supabase
 """
 
 import streamlit as st
@@ -40,7 +41,6 @@ st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:wght@300;400;500;600;700&display=swap');
 
-    /* ── Fondo con imagen muy apagada y tonos grises ── */
     .stApp {
         background-image: url('https://raw.githubusercontent.com/marcasosguemes-cell/Stock-SECCO-AGRO/main/Fondo.PNG') !important;
         background-size: cover !important;
@@ -59,7 +59,6 @@ st.markdown("""
         pointer-events: none;
     }
 
-    /* ── Botón colapsar/expandir sidebar ── */
     [data-testid="stSidebarCollapsedControl"] {
         background: linear-gradient(135deg, #1a1a1f, #0f0f12) !important;
         border: 1px solid rgba(212, 160, 23, 0.5) !important;
@@ -143,7 +142,6 @@ st.markdown("""
         height: auto !important;
     }
 
-    /* ── Sidebar con tonos grises oscuros ── */
     [data-testid="stSidebar"] {
         background: linear-gradient(180deg, #1a1a1f 0%, #0f0f12 60%, #0a0a0c 100%) !important;
         border-right: 1px solid rgba(100, 100, 120, 0.3) !important;
@@ -863,16 +861,13 @@ def sidebar():
         establecimientos = get_establecimientos()
         
         if rol == "admin":
-            # Admin puede elegir cualquier establecimiento + Consociado
             opciones_estab = ["🌐 Consociado"] + [e["nombre"] for e in establecimientos]
         else:
-            # Operador SOLO ve su establecimiento asignado (sin opción de cambiar)
             mi_estab = st.session_state.get("establecimiento_nombre", "")
             if not mi_estab:
                 st.warning("⚠️ No tienes un establecimiento asignado.")
                 return
             opciones_estab = [mi_estab]
-            # Forzar selección para operador
             st.session_state["estab_seleccionado"] = mi_estab
             st.session_state["estab_activo_id"] = st.session_state.get("establecimiento_id")
             st.session_state["estab_activo_nombre"] = mi_estab
@@ -883,7 +878,6 @@ def sidebar():
             """, unsafe_allow_html=True)
 
         if rol == "admin":
-            # Inicializar selección si no existe
             if "estab_seleccionado" not in st.session_state:
                 st.session_state["estab_seleccionado"] = "🌐 Consociado"
 
@@ -895,13 +889,11 @@ def sidebar():
                 label_visibility="collapsed"
             )
             
-            # Si cambió la selección, actualizar
             if estab_sel != st.session_state.get("estab_seleccionado"):
                 st.session_state["estab_seleccionado"] = estab_sel
                 st.session_state["pagina"] = "Dashboard"
                 st.rerun()
 
-            # Resolver el ID del establecimiento seleccionado
             if estab_sel == "🌐 Consociado":
                 st.session_state["estab_activo_id"] = None
                 st.session_state["estab_activo_nombre"] = "Consociado"
@@ -928,7 +920,6 @@ def sidebar():
         st.markdown("### 📌 MENÚ")
 
         if es_consociado and rol == "admin":
-            # Admin en vista Consociado: menú consolidado
             paginas_menu = [
                 ("🌐", "Consociado"),
                 ("⚠️", "Alertas"),
@@ -938,7 +929,6 @@ def sidebar():
                 ("👥", "Usuarios"),
             ]
         elif rol == "admin":
-            # Admin en establecimiento individual: menú completo
             paginas_menu = [
                 ("📊", "Dashboard"),
                 ("📥", "Nuevo Ingreso"),
@@ -951,7 +941,6 @@ def sidebar():
                 ("👥", "Usuarios"),
             ]
         else:
-            # Operador: solo su establecimiento
             paginas_menu = [
                 ("📊", "Dashboard"),
                 ("📥", "Nuevo Ingreso"),
@@ -961,7 +950,6 @@ def sidebar():
                 ("📈", "Reportes"),
             ]
 
-        # Si la página actual no está disponible en el menú actual, resetear
         pagina_actual = st.session_state.get("pagina", "Dashboard")
         nombres_menu = [n for _, n in paginas_menu]
         if pagina_actual not in nombres_menu:
@@ -977,7 +965,7 @@ def sidebar():
 
 
 # ══════════════════════════════════════════════════════════════
-# HELPERS DE DATOS
+# HELPERS DE DATOS - CORREGIDOS PARA EVITAR ERROR DE MÚLTIPLES RELACIONES
 # ══════════════════════════════════════════════════════════════
 
 def get_establecimientos():
@@ -999,11 +987,40 @@ def get_proveedores():
     return res.data
 
 def get_movimientos(establecimiento_id=None, limit=5000):
+    """Obtiene movimientos con joins explícitos para evitar ambigüedades"""
     try:
-        q = supabase.table("movimientos").select("*, productos!inner(nombre, categorias(nombre), presentacion, unidad_medida), establecimientos!inner(nombre)").order("fecha", desc=True).limit(limit)
+        # Primero obtenemos los movimientos base
+        q = supabase.table("movimientos").select("*").limit(limit)
         if establecimiento_id:
             q = q.eq("establecimiento_id", establecimiento_id)
-        return q.execute().data
+        movimientos = q.execute().data
+        
+        if not movimientos:
+            return []
+        
+        # Obtenemos IDs únicos para hacer consultas separadas
+        producto_ids = list(set([m.get("producto_id") for m in movimientos if m.get("producto_id")]))
+        establecimiento_ids = list(set([m.get("establecimiento_id") for m in movimientos if m.get("establecimiento_id")]))
+        
+        # Consultas separadas para productos y establecimientos
+        productos_data = {}
+        if producto_ids:
+            productos_res = supabase.table("productos").select("*, categorias(nombre)").in_("id", producto_ids).execute()
+            for p in productos_res.data:
+                productos_data[p["id"]] = p
+        
+        establecimientos_data = {}
+        if establecimiento_ids:
+            establecimientos_res = supabase.table("establecimientos").select("*").in_("id", establecimiento_ids).execute()
+            for e in establecimientos_res.data:
+                establecimientos_data[e["id"]] = e
+        
+        # Enriquecer movimientos
+        for m in movimientos:
+            m["productos"] = productos_data.get(m.get("producto_id"), {})
+            m["establecimientos"] = establecimientos_data.get(m.get("establecimiento_id"), {})
+        
+        return movimientos
     except Exception as e:
         st.error(f"Error al obtener movimientos: {e}")
         return []
@@ -1034,7 +1051,7 @@ def get_stock_por_producto(establecimiento_id=None):
     
     result = []
     for prod_id, cantidad in stock.items():
-        if cantidad != 0:  # Solo mostrar productos con stock
+        if cantidad != 0:
             result.append({
                 "producto_id": prod_id,
                 "producto": nombre_map.get(prod_id, "Desconocido"),
@@ -1068,7 +1085,6 @@ def get_movimientos_con_filtros(establecimiento_id=None, fecha_desde=None, fecha
         df = df[df["producto_id"] == producto_id]
     
     if categoria_id:
-        # Filtrar por categoría usando la relación productos
         productos_cat = [p["id"] for p in get_productos(categoria_id)]
         df = df[df["producto_id"].isin(productos_cat)]
     
@@ -1076,7 +1092,6 @@ def get_movimientos_con_filtros(establecimiento_id=None, fecha_desde=None, fecha
 
 
 def estab_filter():
-    """Retorna el ID del establecimiento actualmente seleccionado, o None para Consociado/todos."""
     return st.session_state.get("estab_activo_id", None)
 
 
@@ -1087,21 +1102,25 @@ def es_vista_consociado():
 def get_stock_por_establecimiento():
     """Calcula el stock actual por producto y establecimiento (para la vista Consociado)."""
     try:
-        movimientos = supabase.table("movimientos").select(
-            "*, productos!inner(nombre, categorias(nombre), presentacion, unidad_medida), establecimientos!inner(nombre)"
-        ).limit(10000).execute().data
-    except Exception:
+        # Obtener todos los movimientos
+        movimientos = get_movimientos(None, limit=10000)
+    except Exception as e:
+        st.error(f"Error al obtener movimientos: {e}")
         return pd.DataFrame()
 
     if not movimientos:
         return pd.DataFrame()
 
     df = pd.DataFrame(movimientos)
-    df["producto_nombre"] = df["productos"].apply(lambda x: x["nombre"] if x else "")
-    df["producto_presentacion"] = df["productos"].apply(lambda x: x.get("presentacion", "") if x else "")
-    df["producto_unidad"] = df["productos"].apply(lambda x: x.get("unidad_medida", "unidad") if x else "unidad")
-    df["categoria_nombre"] = df["productos"].apply(lambda x: x.get("categorias", {}).get("nombre", "Sin categoría") if x and x.get("categorias") else "Sin categoría")
-    df["establecimiento_nombre"] = df["establecimientos"].apply(lambda x: x["nombre"] if x else "")
+    
+    # Extraer información de los diccionarios anidados
+    df["producto_nombre"] = df["productos"].apply(lambda x: x.get("nombre", "") if isinstance(x, dict) else "")
+    df["producto_presentacion"] = df["productos"].apply(lambda x: x.get("presentacion", "") if isinstance(x, dict) else "")
+    df["producto_unidad"] = df["productos"].apply(lambda x: x.get("unidad_medida", "unidad") if isinstance(x, dict) else "unidad")
+    df["categoria_nombre"] = df["productos"].apply(
+        lambda x: x.get("categorias", {}).get("nombre", "Sin categoría") if isinstance(x, dict) and x.get("categorias") else "Sin categoría"
+    )
+    df["establecimiento_nombre"] = df["establecimientos"].apply(lambda x: x.get("nombre", "") if isinstance(x, dict) else "")
 
     ingresos = df[df["tipo"] == "ingreso"].groupby(["producto_nombre", "producto_presentacion", "producto_unidad", "categoria_nombre", "establecimiento_nombre"])["cantidad"].sum()
     egresos = df[df["tipo"] == "egreso"].groupby(["producto_nombre", "producto_presentacion", "producto_unidad", "categoria_nombre", "establecimiento_nombre"])["cantidad"].sum()
@@ -1136,7 +1155,6 @@ def pagina_dashboard():
         </div>
         """, unsafe_allow_html=True)
     
-    # ── FILTROS DINÁMICOS ──────────────────────────────────────────
     st.markdown("### 🔍 FILTROS DINÁMICOS")
     
     col_f1, col_f2, col_f3, col_f4 = st.columns(4)
@@ -1162,10 +1180,8 @@ def pagina_dashboard():
         prod_id = prod_options[prod_seleccionado] if prod_seleccionado != "Todos" else None
     
     with col_f4:
-        # Filtro por producto con stock bajo
         stock_min = st.number_input("⚠️ Stock mínimo (alerta)", min_value=0, value=50, step=10)
     
-    # Obtener datos con filtros
     movimientos = get_movimientos_con_filtros(
         establecimiento_id=estab_filter(),
         fecha_desde=fecha_desde,
@@ -1175,7 +1191,6 @@ def pagina_dashboard():
         categoria_id=cat_id
     )
     
-    # ── MÉTRICAS CON TENDENCIAS ─────────────────────────────────────
     col1, col2, col3, col4 = st.columns(4)
     
     if movimientos:
@@ -1186,7 +1201,6 @@ def pagina_dashboard():
         stock_total = ingresos - egresos
         total_movimientos = len(df_mov)
         
-        # Calcular tendencia (comparación con período anterior)
         fecha_anterior_inicio = fecha_desde - timedelta(days=(fecha_hasta - fecha_desde).days)
         mov_anterior = get_movimientos_con_filtros(
             establecimiento_id=estab_filter(),
@@ -1254,12 +1268,10 @@ def pagina_dashboard():
     
     st.markdown("---")
     
-    # ── GRÁFICOS ─────────────────────────────────────────────────────
     if movimientos:
         df_mov = pd.DataFrame(movimientos)
         df_mov["fecha"] = pd.to_datetime(df_mov["fecha"])
         
-        # Gráfico 1: Evolución del Stock
         df_mov["stock_diario"] = df_mov.apply(lambda x: x["cantidad"] if x["tipo"] == "ingreso" else -x["cantidad"], axis=1)
         df_daily = df_mov.groupby(df_mov["fecha"].dt.date)["stock_diario"].sum().reset_index()
         df_daily.columns = ["fecha", "movimiento_diario"]
@@ -1284,7 +1296,6 @@ def pagina_dashboard():
         )
         st.plotly_chart(fig_evolucion, use_container_width=True)
         
-        # Gráfico 2: Distribución por Categoría
         stock_por_categoria = get_stock_por_producto(estab_filter())
         if not stock_por_categoria.empty:
             stock_cat = stock_por_categoria.groupby("categoria")["stock"].sum().reset_index()
@@ -1305,7 +1316,6 @@ def pagina_dashboard():
             )
             st.plotly_chart(fig_torta, use_container_width=True)
         
-        # Gráfico 3: Top 10 Productos
         st.markdown("---")
         stock_productos = get_stock_por_producto(estab_filter())
         if not stock_productos.empty:
@@ -1330,13 +1340,11 @@ def pagina_dashboard():
             )
             st.plotly_chart(fig_barras, use_container_width=True)
             
-            # Tabla de stock con alertas
             st.markdown("### 📋 Detalle de Stock Actual")
             stock_display = stock_productos.copy()
             stock_display["alerta"] = stock_display["stock"].apply(lambda x: "🔴 Crítico" if x < stock_min else ("⚠️ Bajo" if x < stock_min * 2 else "✅ Normal"))
             st.dataframe(stock_display[["producto", "categoria", "presentacion", "stock", "unidad", "alerta"]], use_container_width=True, height=400)
         
-        # Gráfico 4: Movimientos por Mes
         df_mov["mes"] = df_mov["fecha"].dt.to_period("M").astype(str)
         movimientos_mensuales = df_mov.groupby(["mes", "tipo"])["cantidad"].sum().reset_index()
         
@@ -1391,7 +1399,6 @@ def pagina_ingreso():
         st.warning("⚠️ No hay categorías cargadas.")
         return
 
-    # Determinar establecimiento según rol
     if st.session_state.get("rol") == "admin":
         estab_options = {e["nombre"]: e["id"] for e in establecimientos}
         estab_sel = st.selectbox("🏢 Establecimiento *", list(estab_options.keys()), key="ing_estab")
@@ -1402,7 +1409,6 @@ def pagina_ingreso():
         establecimiento_nombre = st.session_state.get("establecimiento_nombre", "")
         st.info(f"📍 Establecimiento: {establecimiento_nombre}")
 
-    # Selección de categoría y producto
     col1, col2 = st.columns(2)
     with col1:
         cat_options = {c["nombre"]: c["id"] for c in categorias}
@@ -1418,7 +1424,6 @@ def pagina_ingreso():
         prod_sel = st.selectbox("🏷️ Producto *", list(prod_options.keys()))
         producto_id = prod_options[prod_sel]
         
-        # Mostrar información del producto seleccionado
         prod_info = next((p for p in productos if p["id"] == producto_id), None)
         if prod_info:
             st.caption(f"📦 {prod_info.get('presentacion', 'Sin presentación')} | {prod_info.get('unidad_medida', 'unidad')}")
@@ -1441,9 +1446,7 @@ def pagina_ingreso():
                 proveedor_id = None
                 st.info("💡 No hay proveedores cargados")
         
-        # Tipo de ingreso (compra, devolución, etc.)
         tipo_ingreso = st.selectbox("📌 Tipo de Ingreso", ["Compra", "Devolución", "Traslado", "Otro"])
-        
         observaciones = st.text_area("📝 Observaciones", placeholder="N° factura, lote, fecha de vencimiento, detalles adicionales...")
         
         submitted = st.form_submit_button("✅ Registrar Ingreso", use_container_width=True)
@@ -1495,7 +1498,6 @@ def pagina_egreso():
         st.warning("⚠️ No hay establecimientos cargados.")
         return
 
-    # Determinar establecimiento según rol
     if st.session_state.get("rol") == "admin":
         estab_options = {e["nombre"]: e["id"] for e in establecimientos}
         estab_sel = st.selectbox("🏢 Establecimiento *", list(estab_options.keys()), key="egr_estab")
@@ -1506,7 +1508,6 @@ def pagina_egreso():
         establecimiento_nombre = st.session_state.get("establecimiento_nombre", "")
         st.info(f"📍 Establecimiento: {establecimiento_nombre}")
 
-    # Selección de categoría y producto
     col1, col2 = st.columns(2)
     with col1:
         cat_options = {c["nombre"]: c["id"] for c in categorias}
@@ -1522,7 +1523,6 @@ def pagina_egreso():
         prod_sel = st.selectbox("🏷️ Producto *", list(prod_options.keys()))
         producto_id = prod_options[prod_sel]
         
-        # Mostrar stock actual del producto seleccionado
         stock_actual_df = get_stock_por_producto(establecimiento_id)
         if not stock_actual_df.empty:
             prod_stock = stock_actual_df[stock_actual_df["producto_id"] == producto_id]
@@ -1553,7 +1553,6 @@ def pagina_egreso():
                 st.error("❌ La cantidad debe ser mayor a 0")
                 return
             
-            # Verificar stock disponible si es un egreso
             stock_actual_df = get_stock_por_producto(establecimiento_id)
             if not stock_actual_df.empty:
                 prod_stock = stock_actual_df[stock_actual_df["producto_id"] == producto_id]
@@ -1626,12 +1625,11 @@ def pagina_historial():
         df["fecha"] = pd.to_datetime(df["fecha"])
         df = df.sort_values("fecha", ascending=False)
     
-    # Extraer información del producto
-    df["producto_nombre"] = df["productos"].apply(lambda x: x["nombre"] if x else "")
-    df["producto_presentacion"] = df["productos"].apply(lambda x: x.get("presentacion", "") if x else "")
-    df["producto_unidad"] = df["productos"].apply(lambda x: x.get("unidad_medida", "unidad") if x else "unidad")
-    df["categoria"] = df["productos"].apply(lambda x: x.get("categorias", {}).get("nombre", "") if x else "")
-    df["establecimiento"] = df["establecimientos"].apply(lambda x: x["nombre"] if x else "")
+    df["producto_nombre"] = df["productos"].apply(lambda x: x.get("nombre", "") if isinstance(x, dict) else "")
+    df["producto_presentacion"] = df["productos"].apply(lambda x: x.get("presentacion", "") if isinstance(x, dict) else "")
+    df["producto_unidad"] = df["productos"].apply(lambda x: x.get("unidad_medida", "unidad") if isinstance(x, dict) else "unidad")
+    df["categoria"] = df["productos"].apply(lambda x: x.get("categorias", {}).get("nombre", "") if isinstance(x, dict) else "")
+    df["establecimiento"] = df["establecimientos"].apply(lambda x: x.get("nombre", "") if isinstance(x, dict) else "")
     
     st.markdown(f"### 📊 Resultados: **{len(df)}** movimientos encontrados")
     
@@ -1666,7 +1664,6 @@ def pagina_alertas():
     </div>
     """, unsafe_allow_html=True)
     
-    # Umbrales configurables
     col_u1, col_u2 = st.columns(2)
     with col_u1:
         umbral_bajo = st.number_input("⚠️ Umbral de stock bajo (unidades)", min_value=0, value=100, step=10)
@@ -1735,7 +1732,7 @@ def pagina_reportes():
     df["fecha"] = pd.to_datetime(df["fecha"])
     df["mes"] = df["fecha"].dt.to_period("M").astype(str)
     df["año"] = df["fecha"].dt.year
-    df["producto_nombre"] = df["productos"].apply(lambda x: x["nombre"] if x else "")
+    df["producto_nombre"] = df["productos"].apply(lambda x: x.get("nombre", "") if isinstance(x, dict) else "")
     
     años = sorted(df["año"].unique())
     año_seleccionado = st.selectbox("📅 Seleccionar año", años, index=len(años)-1)
@@ -1762,7 +1759,6 @@ def pagina_reportes():
     chart_data = df_año.groupby(["mes", "tipo"])["cantidad"].sum().unstack()
     st.bar_chart(chart_data)
     
-    # Top productos movidos
     st.markdown("### 🏆 Top 10 Productos más movidos")
     top_movidos = df_año.groupby("producto_nombre")["cantidad"].sum().sort_values(ascending=False).head(10).reset_index()
     top_movidos.columns = ["Producto", "Cantidad total movida"]
@@ -1884,7 +1880,6 @@ def pagina_usuarios():
     st.markdown("---")
     st.markdown("### 📝 Asignar usuario a establecimiento")
     
-    # Listar usuarios sin establecimiento asignado o con rol operador
     usuarios_sin_estab = supabase.table("usuarios").select("*").is_("establecimiento_id", "null").execute().data
     if usuarios_sin_estab:
         usuario_opciones = {u["nombre"]: u["id"] for u in usuarios_sin_estab if u["rol"] != "admin"}
@@ -1932,7 +1927,6 @@ def pagina_consociado():
 
     establecimientos_lista = sorted(stock_df["establecimiento"].unique())
 
-    # ── MÉTRICAS GLOBALES ─────────────────────────────────────────
     total_stock = stock_df["stock"].sum()
     total_productos_distintos = stock_df["producto"].nunique()
     total_establecimientos = stock_df["establecimiento"].nunique()
@@ -1969,14 +1963,11 @@ def pagina_consociado():
         </div>""", unsafe_allow_html=True)
 
     st.markdown("---")
-
-    # ── STOCK POR ESTABLECIMIENTO (tabs) ─────────────────────────
     st.markdown("### 🏢 Stock por Establecimiento")
 
     tabs = st.tabs(["📊 Consolidado"] + [f"🏠 {e}" for e in establecimientos_lista])
 
     with tabs[0]:
-        # Tabla consolidada pivoteada: producto × establecimiento
         pivot = stock_df.pivot_table(
             index=["categoria", "producto", "presentacion", "unidad"],
             columns="establecimiento",
@@ -1984,50 +1975,49 @@ def pagina_consociado():
             aggfunc="sum",
             fill_value=0
         ).reset_index()
-        pivot["TOTAL"] = pivot[establecimientos_lista].sum(axis=1)
+        pivot["TOTAL"] = pivot[establecimientos_lista].sum(axis=1) if establecimientos_lista else 0
         pivot = pivot.sort_values("TOTAL", ascending=False)
         st.dataframe(pivot, use_container_width=True, height=500)
 
-        # Gráfico: stock total por establecimiento
         stock_por_estab = stock_df.groupby("establecimiento")["stock"].sum().reset_index()
-        fig_estab = px.bar(
-            stock_por_estab,
-            x="establecimiento",
-            y="stock",
-            title="📊 Stock Total por Establecimiento",
-            labels={"establecimiento": "Establecimiento", "stock": "Stock (unidades)"},
-            template="plotly_dark",
-            color="stock",
-            color_continuous_scale="Oranges"
-        )
-        fig_estab.update_layout(
-            height=380,
-            plot_bgcolor="rgba(30,30,35,0.8)",
-            paper_bgcolor="rgba(0,0,0,0)",
-            font=dict(color="#e8e8ec"),
-            showlegend=False,
-        )
-        st.plotly_chart(fig_estab, use_container_width=True)
+        if not stock_por_estab.empty:
+            fig_estab = px.bar(
+                stock_por_estab,
+                x="establecimiento",
+                y="stock",
+                title="📊 Stock Total por Establecimiento",
+                labels={"establecimiento": "Establecimiento", "stock": "Stock (unidades)"},
+                template="plotly_dark",
+                color="stock",
+                color_continuous_scale="Oranges"
+            )
+            fig_estab.update_layout(
+                height=380,
+                plot_bgcolor="rgba(30,30,35,0.8)",
+                paper_bgcolor="rgba(0,0,0,0)",
+                font=dict(color="#e8e8ec"),
+                showlegend=False,
+            )
+            st.plotly_chart(fig_estab, use_container_width=True)
 
-        # Gráfico: distribución por categoría (global)
         stock_cat = stock_df.groupby("categoria")["stock"].sum().reset_index()
-        fig_torta = px.pie(
-            stock_cat,
-            values="stock",
-            names="categoria",
-            title="🥧 Distribución Global por Categoría",
-            template="plotly_dark",
-            color_discrete_sequence=px.colors.sequential.Oranges_r
-        )
-        fig_torta.update_traces(textposition="inside", textinfo="percent+label")
-        fig_torta.update_layout(
-            height=420,
-            paper_bgcolor="rgba(0,0,0,0)",
-            font=dict(color="#e8e8ec")
-        )
-        st.plotly_chart(fig_torta, use_container_width=True)
+        if not stock_cat.empty:
+            fig_torta = px.pie(
+                stock_cat,
+                values="stock",
+                names="categoria",
+                title="🥧 Distribución Global por Categoría",
+                template="plotly_dark",
+                color_discrete_sequence=px.colors.sequential.Oranges_r
+            )
+            fig_torta.update_traces(textposition="inside", textinfo="percent+label")
+            fig_torta.update_layout(
+                height=420,
+                paper_bgcolor="rgba(0,0,0,0)",
+                font=dict(color="#e8e8ec")
+            )
+            st.plotly_chart(fig_torta, use_container_width=True)
 
-        # Exportar consolidado
         buffer = BytesIO()
         with pd.ExcelWriter(buffer, engine="openpyxl") as writer:
             pivot.to_excel(writer, index=False, sheet_name="Consociado")
@@ -2041,7 +2031,6 @@ def pagina_consociado():
             mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         )
 
-    # Tabs por establecimiento individual
     for i, estab in enumerate(establecimientos_lista):
         with tabs[i + 1]:
             df_e = stock_df[stock_df["establecimiento"] == estab].copy()
@@ -2073,24 +2062,25 @@ def pagina_consociado():
 
             st.dataframe(df_e[["categoria", "producto", "presentacion", "stock", "unidad"]], use_container_width=True, height=400)
 
-            fig_e = px.bar(
-                df_e.head(15),
-                x="producto",
-                y="stock",
-                title=f"📊 Top 15 Productos — {estab}",
-                labels={"producto": "Producto", "stock": "Stock"},
-                template="plotly_dark",
-                color="stock",
-                color_continuous_scale="Oranges"
-            )
-            fig_e.update_layout(
-                height=400,
-                xaxis_tickangle=-40,
-                plot_bgcolor="rgba(30,30,35,0.8)",
-                paper_bgcolor="rgba(0,0,0,0)",
-                font=dict(color="#e8e8ec"),
-            )
-            st.plotly_chart(fig_e, use_container_width=True)
+            if not df_e.empty:
+                fig_e = px.bar(
+                    df_e.head(15),
+                    x="producto",
+                    y="stock",
+                    title=f"📊 Top 15 Productos — {estab}",
+                    labels={"producto": "Producto", "stock": "Stock"},
+                    template="plotly_dark",
+                    color="stock",
+                    color_continuous_scale="Oranges"
+                )
+                fig_e.update_layout(
+                    height=400,
+                    xaxis_tickangle=-40,
+                    plot_bgcolor="rgba(30,30,35,0.8)",
+                    paper_bgcolor="rgba(0,0,0,0)",
+                    font=dict(color="#e8e8ec"),
+                )
+                st.plotly_chart(fig_e, use_container_width=True)
 
     st.markdown('</div>', unsafe_allow_html=True)
 
@@ -2137,7 +2127,6 @@ def main():
         }
         pagina_funcion = rutas_admin.get(pagina, pagina_dashboard)
     else:
-        # Operador
         rutas_operador = {
             "Dashboard": pagina_dashboard,
             "Nuevo Ingreso": pagina_ingreso,
