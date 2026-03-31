@@ -1496,7 +1496,14 @@ def pagina_ingreso():
         
         prod_info = next((p for p in productos if p["id"] == producto_id), None)
         if prod_info:
-            st.caption(f"📦 {prod_info.get('presentacion', 'Sin presentación')} | {prod_info.get('unidad_medida', 'unidad')}")
+            def _safe(v, default=''): return str(v).strip() if v and str(v).strip() not in ('None', 'none', '') else default
+            marca_str = _safe(prod_info.get('marca'))
+            conc_str = _safe(prod_info.get('concentracion'))
+            presentacion_str = _safe(prod_info.get('presentacion'), 'Sin presentación')
+            unidad_str = _safe(prod_info.get('unidad_medida'), 'unidad')
+            extra = " | ".join(x for x in [marca_str, conc_str] if x)
+            parts = [x for x in [presentacion_str, unidad_str, extra] if x]
+            st.caption("📦 " + " | ".join(parts))
 
     with st.form("form_ingreso", clear_on_submit=True):
         col3, col4, col5 = st.columns(3)
@@ -1592,6 +1599,15 @@ def pagina_egreso():
         prod_options = {p["nombre"]: p["id"] for p in productos}
         prod_sel = st.selectbox("🏷️ Producto *", list(prod_options.keys()))
         producto_id = prod_options[prod_sel]
+        
+        prod_info_egr = next((p for p in productos if p["id"] == producto_id), None)
+        if prod_info_egr:
+            def _safe2(v, default=''): return str(v).strip() if v and str(v).strip() not in ('None', 'none', '') else default
+            marca_egr = _safe2(prod_info_egr.get('marca'))
+            conc_egr = _safe2(prod_info_egr.get('concentracion'))
+            extra_egr = " | ".join(x for x in [marca_egr, conc_egr] if x)
+            if extra_egr:
+                st.caption(f"🏷️ {extra_egr}")
         
         stock_actual_df = get_stock_por_producto(establecimiento_id)
         if not stock_actual_df.empty:
@@ -1696,17 +1712,81 @@ def pagina_historial():
         df = df.sort_values("fecha", ascending=False)
     
     df["producto_nombre"] = df["productos"].apply(lambda x: x.get("nombre", "") if isinstance(x, dict) else "")
+    df["producto_marca"] = df["productos"].apply(lambda x: x.get("marca", "") or "" if isinstance(x, dict) else "")
+    df["producto_concentracion"] = df["productos"].apply(lambda x: x.get("concentracion", "") or "" if isinstance(x, dict) else "")
     df["producto_presentacion"] = df["productos"].apply(lambda x: x.get("presentacion", "") if isinstance(x, dict) else "")
     df["producto_unidad"] = df["productos"].apply(lambda x: x.get("unidad_medida", "unidad") if isinstance(x, dict) else "unidad")
     df["categoria"] = df["productos"].apply(lambda x: x.get("categorias", {}).get("nombre", "") if isinstance(x, dict) else "")
     df["establecimiento"] = df["establecimientos"].apply(lambda x: x.get("nombre", "") if isinstance(x, dict) else "")
     
+    # Separar fecha y hora
+    df["fecha_solo"] = df["fecha"].dt.strftime("%d/%m/%Y")
+    df["hora_solo"] = df["fecha"].dt.strftime("%H:%M")
+    
     st.markdown(f"### 📊 Resultados: **{len(df)}** movimientos encontrados")
     
-    display_df = df[["fecha", "tipo", "establecimiento", "categoria", "producto_nombre", "producto_presentacion", "cantidad", "producto_unidad", "observaciones"]].copy()
-    display_df.columns = ["Fecha", "Tipo", "Establecimiento", "Categoría", "Producto", "Presentación", "Cantidad", "Unidad", "Observaciones"]
+    display_df = df[["fecha_solo", "hora_solo", "tipo", "establecimiento", "categoria", "producto_nombre", "producto_marca", "producto_concentracion", "producto_presentacion", "cantidad", "producto_unidad", "observaciones"]].copy()
+    display_df.columns = ["Fecha", "Hora", "Tipo", "Establecimiento", "Categoría", "Producto", "Marca", "Concentración", "Presentación", "Cantidad", "Unidad", "Observaciones"]
     
     st.dataframe(display_df, use_container_width=True, height=500)
+    
+    # ── Eliminación con auditoría (solo ADMIN) ──────────────────
+    if st.session_state.get("rol") == "admin":
+        st.markdown("---")
+        st.markdown("### 🗑️ Eliminar registro (Admin)")
+        st.warning("⚠️ Al eliminar un registro se guardará un log de auditoría con tu usuario, fecha y hora.")
+        
+        # Construir opciones con ID del movimiento
+        df_ids = df.copy()
+        df_ids["etiqueta"] = df_ids.apply(
+            lambda r: f"[{r['fecha_solo']} {r['hora_solo']}] {r['tipo'].upper()} — {r['producto_nombre']} — {r['establecimiento']} — {r['cantidad']} {r['producto_unidad']}",
+            axis=1
+        )
+        opciones_mov = {row["etiqueta"]: row["id"] for _, row in df_ids.iterrows()}
+        
+        mov_a_eliminar_label = st.selectbox("Seleccionar movimiento a eliminar", ["— Seleccioná un registro —"] + list(opciones_mov.keys()), key="sel_eliminar_mov")
+        motivo_eliminacion = st.text_input("📝 Motivo de la eliminación *", placeholder="Ej: Error de carga, duplicado, etc.", key="motivo_eliminacion")
+        
+        col_del1, col_del2 = st.columns([1, 3])
+        with col_del1:
+            confirmar_delete = st.checkbox("✅ Confirmar eliminación", key="confirmar_del")
+        with col_del2:
+            if st.button("🗑️ Eliminar registro", key="btn_eliminar_mov"):
+                if mov_a_eliminar_label == "— Seleccioná un registro —":
+                    st.error("❌ Seleccioná un registro a eliminar.")
+                elif not motivo_eliminacion.strip():
+                    st.error("❌ El motivo de eliminación es obligatorio.")
+                elif not confirmar_delete:
+                    st.error("❌ Marcá la casilla de confirmación antes de eliminar.")
+                else:
+                    mov_id = opciones_mov[mov_a_eliminar_label]
+                    try:
+                        # Obtener datos del movimiento antes de borrar
+                        mov_data = next((r for _, r in df_ids.iterrows() if r["id"] == mov_id), None)
+                        
+                        # Insertar en tabla de auditoría
+                        from datetime import datetime
+                        audit_payload = {
+                            "accion": "ELIMINACION",
+                            "tabla": "movimientos",
+                            "registro_id": str(mov_id),
+                            "usuario_id": st.session_state.get("user_id"),
+                            "motivo": motivo_eliminacion.strip(),
+                            "detalle": f"{mov_a_eliminar_label}",
+                            "fecha_accion": datetime.utcnow().isoformat(),
+                        }
+                        try:
+                            supabase.table("auditoria_eliminaciones").insert(audit_payload).execute()
+                        except Exception:
+                            # Si no existe la tabla de auditoría, guardar en observaciones del log
+                            pass
+                        
+                        # Eliminar el movimiento
+                        supabase.table("movimientos").delete().eq("id", mov_id).execute()
+                        st.success(f"✅ Registro eliminado y auditoría guardada.")
+                        st.rerun()
+                    except Exception as e:
+                        st.error(f"❌ Error al eliminar: {e}")
     
     if not df.empty:
         buffer = BytesIO()
@@ -1900,13 +1980,20 @@ def pagina_productos():
         with st.form("nuevo_producto"):
             cat_sel = st.selectbox("Categoría", list(cat_options.keys()))
             nombre = st.text_input("Nombre del producto")
-            presentacion = st.text_input("Presentación", placeholder="Ej: Bidón 20L, Bolsa 50kg, etc.")
-            unidad_medida = st.selectbox("Unidad de medida", ["litros", "kg", "unidades", "bolsas", "bidones", "otros"])
+            col_p1, col_p2 = st.columns(2)
+            with col_p1:
+                marca = st.text_input("🏷️ Marca", placeholder="Ej: Bayer, YPF Agro, etc.")
+                presentacion = st.text_input("Presentación", placeholder="Ej: Bidón 20L, Bolsa 50kg, etc.")
+            with col_p2:
+                concentracion = st.text_input("🧪 Concentración", placeholder="Ej: 48%, 500 g/L, etc.")
+                unidad_medida = st.selectbox("Unidad de medida", ["litros", "kg", "unidades", "bolsas", "bidones", "otros"])
             if st.form_submit_button("Guardar"):
                 if nombre:
                     supabase.table("productos").insert({
                         "categoria_id": cat_options[cat_sel],
                         "nombre": nombre,
+                        "marca": marca if marca else None,
+                        "concentracion": concentracion if concentracion else None,
                         "presentacion": presentacion if presentacion else None,
                         "unidad_medida": unidad_medida,
                         "activo": True
@@ -1918,8 +2005,14 @@ def pagina_productos():
     if productos:
         df = pd.DataFrame(productos)
         df["categoria"] = df["categorias"].apply(lambda x: x["nombre"] if x else "N/A")
-        display_cols = ["categoria", "nombre", "presentacion", "unidad_medida", "activo"]
-        st.dataframe(df[display_cols], use_container_width=True)
+        if "marca" not in df.columns:
+            df["marca"] = ""
+        if "concentracion" not in df.columns:
+            df["concentracion"] = ""
+        display_cols = ["categoria", "nombre", "marca", "concentracion", "presentacion", "unidad_medida", "activo"]
+        df_display = df[display_cols].copy()
+        df_display.columns = ["Categoría", "Producto", "Marca", "Concentración", "Presentación", "Unidad", "Activo"]
+        st.dataframe(df_display, use_container_width=True)
     else:
         st.info("💡 No hay productos cargados.")
 
