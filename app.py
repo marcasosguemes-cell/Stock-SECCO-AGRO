@@ -831,7 +831,7 @@ def login():
 
 
 # ══════════════════════════════════════════════════════════════
-# SIDEBAR
+# SIDEBAR - VERSIÓN MEJORADA CON MANEJO DE OPERADORES SIN ESTABLECIMIENTO
 # ══════════════════════════════════════════════════════════════
 
 def sidebar():
@@ -855,7 +855,7 @@ def sidebar():
         badge_class = "badge-admin" if rol == "admin" else "badge-operator"
         badge_text = "Administrador" if rol == "admin" else "Operador"
 
-        # ── SELECTOR DE ESTABLECIMIENTO (Solo para Admin) ─────────────────
+        # ── SELECTOR DE ESTABLECIMIENTO ─────────────────
         st.markdown("### 🏢 ESTABLECIMIENTO")
         
         establecimientos = get_establecimientos()
@@ -863,17 +863,25 @@ def sidebar():
         if rol == "admin":
             opciones_estab = ["🌐 Consolidado"] + [e["nombre"] for e in establecimientos]
         else:
-            mi_estab = st.session_state.get("establecimiento_nombre", "")
-            if not mi_estab:
-                st.warning("⚠️ No tienes un establecimiento asignado.")
+            # Operador: verificar si tiene establecimiento asignado
+            mi_estab_id = st.session_state.get("establecimiento_id")
+            mi_estab_nombre = st.session_state.get("establecimiento_nombre", "")
+            
+            if not mi_estab_id or not mi_estab_nombre:
+                # El operador no tiene establecimiento asignado
+                st.error("⚠️ No tienes un establecimiento asignado. Contacta al administrador.")
+                st.markdown("---")
+                if st.button("🚪 Cerrar sesión"):
+                    logout()
                 return
-            opciones_estab = [mi_estab]
-            st.session_state["estab_seleccionado"] = mi_estab
-            st.session_state["estab_activo_id"] = st.session_state.get("establecimiento_id")
-            st.session_state["estab_activo_nombre"] = mi_estab
+            
+            opciones_estab = [mi_estab_nombre]
+            st.session_state["estab_seleccionado"] = mi_estab_nombre
+            st.session_state["estab_activo_id"] = mi_estab_id
+            st.session_state["estab_activo_nombre"] = mi_estab_nombre
             st.markdown(f"""
             <div style="background:rgba(212,160,23,0.2); border-radius:10px; padding:0.5rem; text-align:center; margin-bottom:0.8rem;">
-                <span style="color:#d4a017;">📍 {mi_estab}</span>
+                <span style="color:#d4a017;">📍 {mi_estab_nombre}</span>
             </div>
             """, unsafe_allow_html=True)
 
@@ -940,7 +948,8 @@ def sidebar():
                 ("📦", "Productos"),
                 ("👥", "Usuarios"),
             ]
-        else:
+        elif rol == "establecimiento" and st.session_state.get("establecimiento_id"):
+            # Operador con establecimiento válido - menú completo para operar
             paginas_menu = [
                 ("📊", "Dashboard"),
                 ("📥", "Nuevo Ingreso"),
@@ -949,6 +958,13 @@ def sidebar():
                 ("⚠️", "Alertas"),
                 ("📈", "Reportes"),
             ]
+        else:
+            # Operador sin establecimiento - solo mostrar mensaje de error
+            st.error("⚠️ Configuración incompleta. Contacta al administrador.")
+            st.markdown("---")
+            if st.button("🚪 Cerrar sesión"):
+                logout()
+            return
 
         pagina_actual = st.session_state.get("pagina", "Dashboard")
         nombres_menu = [n for _, n in paginas_menu]
@@ -2120,7 +2136,7 @@ def main():
             "Usuarios": pagina_usuarios,
         }
         pagina_funcion = rutas_admin.get(pagina, pagina_dashboard)
-    else:
+    elif rol == "establecimiento" and st.session_state.get("establecimiento_id"):
         rutas_operador = {
             "Dashboard": pagina_dashboard,
             "Nuevo Ingreso": pagina_ingreso,
@@ -2130,6 +2146,12 @@ def main():
             "Reportes": pagina_reportes,
         }
         pagina_funcion = rutas_operador.get(pagina, pagina_dashboard)
+    else:
+        # Usuario sin rol válido o sin establecimiento
+        st.error("⚠️ Configuración de usuario incompleta. Contacta al administrador.")
+        if st.button("Cerrar sesión"):
+            logout()
+        return
 
     pagina_funcion()
 
