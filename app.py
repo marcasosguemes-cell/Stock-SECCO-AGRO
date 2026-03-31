@@ -861,7 +861,7 @@ def sidebar():
         establecimientos = get_establecimientos()
         
         if rol == "admin":
-            opciones_estab = ["🌐 Consociado"] + [e["nombre"] for e in establecimientos]
+            opciones_estab = ["🌐 Consolidado"] + [e["nombre"] for e in establecimientos]
         else:
             mi_estab = st.session_state.get("establecimiento_nombre", "")
             if not mi_estab:
@@ -879,7 +879,7 @@ def sidebar():
 
         if rol == "admin":
             if "estab_seleccionado" not in st.session_state:
-                st.session_state["estab_seleccionado"] = "🌐 Consociado"
+                st.session_state["estab_seleccionado"] = "🌐 Consolidado"
 
             estab_sel = st.selectbox(
                 "Seleccionar",
@@ -894,23 +894,23 @@ def sidebar():
                 st.session_state["pagina"] = "Dashboard"
                 st.rerun()
 
-            if estab_sel == "🌐 Consociado":
+            if estab_sel == "🌐 Consolidado":
                 st.session_state["estab_activo_id"] = None
-                st.session_state["estab_activo_nombre"] = "Consociado"
+                st.session_state["estab_activo_nombre"] = "Consolidado"
             else:
                 match = next((e for e in establecimientos if e["nombre"] == estab_sel), None)
                 if match:
                     st.session_state["estab_activo_id"] = match["id"]
                     st.session_state["estab_activo_nombre"] = match["nombre"]
 
-        estab_activo = st.session_state.get("estab_activo_nombre", "Consociado" if rol == "admin" else st.session_state.get("establecimiento_nombre", ""))
-        es_consociado = (estab_activo == "Consociado")
+        estab_activo = st.session_state.get("estab_activo_nombre", "Consolidado" if rol == "admin" else st.session_state.get("establecimiento_nombre", ""))
+        es_consolidado = (estab_activo == "Consolidado")
 
         st.markdown(f"""
         <div class="profile-card">
             <div class="profile-name">👤 {perfil.get('nombre', 'Usuario')}</div>
             <div class="profile-role"><span class="{badge_class}">{badge_text}</span></div>
-            <div class="profile-location">📍 {'🌐 Todos los establecimientos' if es_consociado else estab_activo}</div>
+            <div class="profile-location">📍 {'🌐 Todos los establecimientos' if es_consolidado else estab_activo}</div>
         </div>
         """, unsafe_allow_html=True)
         
@@ -919,9 +919,9 @@ def sidebar():
         # ── MENÚ ADAPTADO ────────────────────────────────────────────
         st.markdown("### 📌 MENÚ")
 
-        if es_consociado and rol == "admin":
+        if es_consolidado and rol == "admin":
             paginas_menu = [
-                ("🌐", "Consociado"),
+                ("🌐", "Consolidado"),
                 ("⚠️", "Alertas"),
                 ("📈", "Reportes"),
                 ("🏭", "Proveedores"),
@@ -989,7 +989,6 @@ def get_proveedores():
 def get_movimientos(establecimiento_id=None, limit=5000):
     """Obtiene movimientos con joins explícitos para evitar ambigüedades"""
     try:
-        # Primero obtenemos los movimientos base
         q = supabase.table("movimientos").select("*").limit(limit)
         if establecimiento_id:
             q = q.eq("establecimiento_id", establecimiento_id)
@@ -998,11 +997,9 @@ def get_movimientos(establecimiento_id=None, limit=5000):
         if not movimientos:
             return []
         
-        # Obtenemos IDs únicos para hacer consultas separadas
         producto_ids = list(set([m.get("producto_id") for m in movimientos if m.get("producto_id")]))
         establecimiento_ids = list(set([m.get("establecimiento_id") for m in movimientos if m.get("establecimiento_id")]))
         
-        # Consultas separadas para productos y establecimientos
         productos_data = {}
         if producto_ids:
             productos_res = supabase.table("productos").select("*, categorias(nombre)").in_("id", producto_ids).execute()
@@ -1015,7 +1012,6 @@ def get_movimientos(establecimiento_id=None, limit=5000):
             for e in establecimientos_res.data:
                 establecimientos_data[e["id"]] = e
         
-        # Enriquecer movimientos
         for m in movimientos:
             m["productos"] = productos_data.get(m.get("producto_id"), {})
             m["establecimientos"] = establecimientos_data.get(m.get("establecimiento_id"), {})
@@ -1095,14 +1091,13 @@ def estab_filter():
     return st.session_state.get("estab_activo_id", None)
 
 
-def es_vista_consociado():
-    return st.session_state.get("estab_activo_nombre", "Consociado") == "Consociado"
+def es_vista_consolidado():
+    return st.session_state.get("estab_activo_nombre", "Consolidado") == "Consolidado"
 
 
 def get_stock_por_establecimiento():
-    """Calcula el stock actual por producto y establecimiento (para la vista Consociado)."""
+    """Calcula el stock actual por producto y establecimiento (para la vista Consolidado)."""
     try:
-        # Obtener todos los movimientos
         movimientos = get_movimientos(None, limit=10000)
     except Exception as e:
         st.error(f"Error al obtener movimientos: {e}")
@@ -1113,7 +1108,6 @@ def get_stock_por_establecimiento():
 
     df = pd.DataFrame(movimientos)
     
-    # Extraer información de los diccionarios anidados
     df["producto_nombre"] = df["productos"].apply(lambda x: x.get("nombre", "") if isinstance(x, dict) else "")
     df["producto_presentacion"] = df["productos"].apply(lambda x: x.get("presentacion", "") if isinstance(x, dict) else "")
     df["producto_unidad"] = df["productos"].apply(lambda x: x.get("unidad_medida", "unidad") if isinstance(x, dict) else "unidad")
@@ -1147,7 +1141,7 @@ def pagina_dashboard():
     """, unsafe_allow_html=True)
 
     estab_activo = st.session_state.get("estab_activo_nombre", "")
-    if estab_activo and estab_activo != "Consociado":
+    if estab_activo and estab_activo != "Consolidado":
         st.markdown(f"""
         <div style="background:rgba(212,160,23,0.15);border:1px solid rgba(212,160,23,0.5);border-radius:12px;padding:0.6rem 1.2rem;margin-bottom:1rem;display:inline-block;">
             <span style="color:#d4a017;font-weight:700;">🏢 Establecimiento activo:</span>
@@ -1903,16 +1897,16 @@ def pagina_usuarios():
 
 
 # ══════════════════════════════════════════════════════════════
-# VISTA CONSOCIADO — Estadísticas consolidadas de todos los establecimientos
+# VISTA CONSOLIDADO — Estadísticas consolidadas de todos los establecimientos
 # ══════════════════════════════════════════════════════════════
 
-def pagina_consociado():
+def pagina_consolidado():
     st.markdown('<div class="main-content">', unsafe_allow_html=True)
 
     st.markdown("""
     <div>
         <div class="title-bubble">
-            <h1>🌐 Vista Consociada</h1>
+            <h1>🌐 Vista Consolidada</h1>
             <p>📋 Estadísticas consolidadas de todos los establecimientos</p>
         </div>
     </div>
@@ -2020,14 +2014,14 @@ def pagina_consociado():
 
         buffer = BytesIO()
         with pd.ExcelWriter(buffer, engine="openpyxl") as writer:
-            pivot.to_excel(writer, index=False, sheet_name="Consociado")
+            pivot.to_excel(writer, index=False, sheet_name="Consolidado")
             for estab in establecimientos_lista:
                 df_e = stock_df[stock_df["establecimiento"] == estab]
                 df_e.to_excel(writer, index=False, sheet_name=estab[:30])
         st.download_button(
             "📥 Exportar reporte consolidado",
             data=buffer.getvalue(),
-            file_name=f"consociado_{date.today()}.xlsx",
+            file_name=f"consolidado_{date.today()}.xlsx",
             mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         )
 
@@ -2101,18 +2095,18 @@ def main():
 
     pagina = st.session_state.get("pagina", "Dashboard")
     rol = st.session_state.get("rol", "establecimiento")
-    consociado = es_vista_consociado()
+    consolidado = es_vista_consolidado()
 
-    if consociado and rol == "admin":
-        rutas_consociado = {
-            "Consociado": pagina_consociado,
+    if consolidado and rol == "admin":
+        rutas_consolidado = {
+            "Consolidado": pagina_consolidado,
             "Alertas": pagina_alertas,
             "Reportes": pagina_reportes,
             "Proveedores": pagina_proveedores,
             "Productos": pagina_productos,
             "Usuarios": pagina_usuarios,
         }
-        pagina_funcion = rutas_consociado.get(pagina, pagina_consociado)
+        pagina_funcion = rutas_consolidado.get(pagina, pagina_consolidado)
     elif rol == "admin":
         rutas_admin = {
             "Dashboard": pagina_dashboard,
@@ -2140,7 +2134,7 @@ def main():
     pagina_funcion()
 
     estab_nombre = st.session_state.get("estab_activo_nombre", 
-                                         st.session_state.get("establecimiento_nombre", "Consociado"))
+                                         st.session_state.get("establecimiento_nombre", "Consolidado"))
     st.markdown(f"""
     <div class="footer">
         <p>🌾 Sistema de Control de Stock Agrícola</p>
