@@ -1061,11 +1061,6 @@ def get_productos(categoria_id=None):
         q = q.eq("categoria_id", categoria_id)
     return q.execute().data
 
-def get_all_productos():
-    """Obtiene todos los productos (incluyendo inactivos) para edición administrativa"""
-    q = supabase.table("productos").select("*,categorias(nombre)")
-    return q.execute().data
-
 def get_proveedores():
     res = supabase.table("proveedores").select("*").eq("activo", True).execute()
     return res.data
@@ -2004,187 +1999,32 @@ def pagina_productos():
     categorias = get_categorias()
     cat_options = {c["nombre"]: c["id"] for c in categorias}
     
-    # --- Pestañas para agregar y editar productos ---
-    tab1, tab2 = st.tabs(["➕ Agregar Producto", "✏️ Editar Producto"])
-    
-    with tab1:
+    with st.expander("➕ Agregar nuevo producto", expanded=False):
         with st.form("nuevo_producto"):
-            cat_sel = st.selectbox("Categoría", list(cat_options.keys()), key="new_cat")
-            nombre = st.text_input("Nombre del producto", key="new_nombre")
+            cat_sel = st.selectbox("Categoría", list(cat_options.keys()))
+            nombre = st.text_input("Nombre del producto")
             col_p1, col_p2 = st.columns(2)
             with col_p1:
-                marca = st.text_input("🏷️ Marca", placeholder="Ej: Bayer, YPF Agro, etc.", key="new_marca")
-                presentacion = st.text_input("Presentación", placeholder="Ej: Bidón 20L, Bolsa 50kg, etc.", key="new_presentacion")
+                marca = st.text_input("🏷️ Marca", placeholder="Ej: Bayer, YPF Agro, etc.")
+                presentacion = st.text_input("Presentación", placeholder="Ej: Bidón 20L, Bolsa 50kg, etc.")
             with col_p2:
-                concentracion = st.text_input("🧪 Concentración", placeholder="Ej: 48%, 500 g/L, etc.", key="new_concentracion")
-                unidad_medida = st.selectbox("Unidad de medida", ["litros", "kg", "unidades", "bolsas", "bidones", "otros"], key="new_unidad")
-            if st.form_submit_button("Guardar Nuevo Producto"):
+                concentracion = st.text_input("🧪 Concentración", placeholder="Ej: 48%, 500 g/L, etc.")
+                unidad_medida = st.selectbox("Unidad de medida", ["litros", "kg", "unidades", "bolsas", "bidones", "otros"])
+            if st.form_submit_button("Guardar"):
                 if nombre:
-                    # Verificar si ya existe un producto con el mismo nombre
-                    productos_existentes = supabase.table("productos").select("*").eq("nombre", nombre).execute()
-                    if productos_existentes.data:
-                        st.error(f"❌ Ya existe un producto con el nombre '{nombre}'")
-                    else:
-                        supabase.table("productos").insert({
-                            "categoria_id": cat_options[cat_sel],
-                            "nombre": nombre,
-                            "marca": marca if marca else None,
-                            "concentracion": concentracion if concentracion else None,
-                            "presentacion": presentacion if presentacion else None,
-                            "unidad_medida": unidad_medida,
-                            "activo": True
-                        }).execute()
-                        st.success(f"✅ Producto '{nombre}' agregado")
-                        st.rerun()
-                else:
-                    st.error("❌ El nombre del producto es obligatorio")
+                    supabase.table("productos").insert({
+                        "categoria_id": cat_options[cat_sel],
+                        "nombre": nombre,
+                        "marca": marca if marca else None,
+                        "concentracion": concentracion if concentracion else None,
+                        "presentacion": presentacion if presentacion else None,
+                        "unidad_medida": unidad_medida,
+                        "activo": True
+                    }).execute()
+                    st.success(f"✅ Producto '{nombre}' agregado")
+                    st.rerun()
     
-    with tab2:
-        st.markdown("### ✏️ Seleccionar producto para editar")
-        
-        # Obtener todos los productos (incluyendo inactivos) para edición
-        productos = get_all_productos()
-        
-        if not productos:
-            st.info("💡 No hay productos cargados para editar.")
-        else:
-            # Crear opciones para el selector
-            prod_options = {p["nombre"]: p for p in productos}
-            prod_sel_nombre = st.selectbox(
-                "Seleccionar producto", 
-                list(prod_options.keys()),
-                key="edit_producto_selector"
-            )
-            
-            if prod_sel_nombre:
-                producto_seleccionado = prod_options[prod_sel_nombre]
-                
-                # Mostrar información actual
-                with st.expander("📋 Información actual del producto", expanded=False):
-                    col_info1, col_info2 = st.columns(2)
-                    with col_info1:
-                        st.write(f"**Categoría:** {producto_seleccionado.get('categorias', {}).get('nombre', 'N/A')}")
-                        st.write(f"**Nombre:** {producto_seleccionado.get('nombre', 'N/A')}")
-                        st.write(f"**Marca:** {producto_seleccionado.get('marca', 'No especificada')}")
-                    with col_info2:
-                        st.write(f"**Concentración:** {producto_seleccionado.get('concentracion', 'No especificada')}")
-                        st.write(f"**Presentación:** {producto_seleccionado.get('presentacion', 'No especificada')}")
-                        st.write(f"**Unidad:** {producto_seleccionado.get('unidad_medida', 'N/A')}")
-                        st.write(f"**Estado:** {'✅ Activo' if producto_seleccionado.get('activo', True) else '❌ Inactivo'}")
-                
-                st.markdown("### ✏️ Datos a modificar")
-                
-                with st.form("editar_producto"):
-                    # Categoría
-                    cat_actual = producto_seleccionado.get("categoria_id")
-                    cat_actual_nombre = next((k for k, v in cat_options.items() if v == cat_actual), list(cat_options.keys())[0])
-                    cat_nueva = st.selectbox("Categoría", list(cat_options.keys()), index=list(cat_options.keys()).index(cat_actual_nombre), key="edit_cat")
-                    
-                    # Nombre
-                    nombre_actual = producto_seleccionado.get("nombre", "")
-                    nombre_nuevo = st.text_input("Nombre del producto *", value=nombre_actual, key="edit_nombre")
-                    
-                    col_e1, col_e2 = st.columns(2)
-                    with col_e1:
-                        marca_actual = producto_seleccionado.get("marca", "")
-                        marca_nueva = st.text_input("🏷️ Marca", value=marca_actual if marca_actual else "", placeholder="Ej: Bayer, YPF Agro, etc.", key="edit_marca")
-                        
-                        presentacion_actual = producto_seleccionado.get("presentacion", "")
-                        presentacion_nueva = st.text_input("Presentación", value=presentacion_actual if presentacion_actual else "", placeholder="Ej: Bidón 20L, Bolsa 50kg, etc.", key="edit_presentacion")
-                    
-                    with col_e2:
-                        concentracion_actual = producto_seleccionado.get("concentracion", "")
-                        concentracion_nueva = st.text_input("🧪 Concentración", value=concentracion_actual if concentracion_actual else "", placeholder="Ej: 48%, 500 g/L, etc.", key="edit_concentracion")
-                        
-                        unidad_actual = producto_seleccionado.get("unidad_medida", "unidades")
-                        unidad_opciones = ["litros", "kg", "unidades", "bolsas", "bidones", "otros"]
-                        unidad_idx = unidad_opciones.index(unidad_actual) if unidad_actual in unidad_opciones else 2
-                        unidad_nueva = st.selectbox("Unidad de medida", unidad_opciones, index=unidad_idx, key="edit_unidad")
-                    
-                    # Estado activo/inactivo
-                    activo_actual = producto_seleccionado.get("activo", True)
-                    activo_nuevo = st.checkbox("Producto activo", value=activo_actual, key="edit_activo")
-                    
-                    col_btn1, col_btn2 = st.columns([1, 3])
-                    with col_btn1:
-                        submitted_edit = st.form_submit_button("💾 Guardar Cambios", use_container_width=True)
-                    
-                    if submitted_edit:
-                        if not nombre_nuevo:
-                            st.error("❌ El nombre del producto es obligatorio")
-                        else:
-                            # Verificar si el nuevo nombre ya existe (excepto si es el mismo producto)
-                            productos_existentes = supabase.table("productos").select("*").eq("nombre", nombre_nuevo).execute()
-                            nombre_duplicado = False
-                            for p in productos_existentes.data:
-                                if p["id"] != producto_seleccionado["id"]:
-                                    nombre_duplicado = True
-                                    break
-                            
-                            if nombre_duplicado:
-                                st.error(f"❌ Ya existe otro producto con el nombre '{nombre_nuevo}'")
-                            else:
-                                try:
-                                    update_data = {
-                                        "categoria_id": cat_options[cat_nueva],
-                                        "nombre": nombre_nuevo,
-                                        "marca": marca_nueva if marca_nueva.strip() else None,
-                                        "concentracion": concentracion_nueva if concentracion_nueva.strip() else None,
-                                        "presentacion": presentacion_nueva if presentacion_nueva.strip() else None,
-                                        "unidad_medida": unidad_nueva,
-                                        "activo": activo_nuevo
-                                    }
-                                    
-                                    supabase.table("productos").update(update_data).eq("id", producto_seleccionado["id"]).execute()
-                                    st.success(f"✅ Producto '{nombre_nuevo}' actualizado correctamente!")
-                                    st.balloons()
-                                    st.rerun()
-                                except Exception as e:
-                                    st.error(f"❌ Error al actualizar: {e}")
-                
-                # Botón separado para eliminar producto (opcional, con confirmación)
-                st.markdown("---")
-                st.markdown("### 🗑️ Eliminar/Desactivar producto")
-                st.warning("⚠️ Desactivar un producto lo ocultará del sistema. No se eliminarán los movimientos históricos.")
-                
-                col_del1, col_del2 = st.columns([1, 3])
-                with col_del1:
-                    confirmar_delete = st.checkbox("✅ Confirmar desactivación", key="confirmar_delete_producto")
-                with col_del2:
-                    if st.button("🗑️ Desactivar producto", key="btn_eliminar_producto"):
-                        if not confirmar_delete:
-                            st.error("❌ Marcá la casilla de confirmación para desactivar el producto")
-                        else:
-                            try:
-                                supabase.table("productos").update({"activo": False}).eq("id", producto_seleccionado["id"]).execute()
-                                st.success(f"✅ Producto '{producto_seleccionado['nombre']}' ha sido desactivado")
-                                st.rerun()
-                            except Exception as e:
-                                st.error(f"❌ Error al desactivar: {e}")
-                
-                # Botón para reactivar producto si está inactivo
-                if not producto_seleccionado.get("activo", True):
-                    st.markdown("### 🔄 Reactivar producto")
-                    col_act1, col_act2 = st.columns([1, 3])
-                    with col_act1:
-                        confirmar_reactivar = st.checkbox("✅ Confirmar reactivación", key="confirmar_reactivar_producto")
-                    with col_act2:
-                        if st.button("🔄 Reactivar producto", key="btn_reactivar_producto"):
-                            if not confirmar_reactivar:
-                                st.error("❌ Marcá la casilla de confirmación para reactivar el producto")
-                            else:
-                                try:
-                                    supabase.table("productos").update({"activo": True}).eq("id", producto_seleccionado["id"]).execute()
-                                    st.success(f"✅ Producto '{producto_seleccionado['nombre']}' ha sido reactivado")
-                                    st.rerun()
-                                except Exception as e:
-                                    st.error(f"❌ Error al reactivar: {e}")
-    
-    # --- Mostrar lista de productos ---
-    st.markdown("---")
-    st.markdown("### 📋 Listado de productos")
-    
-    productos = get_all_productos()
+    productos = get_productos()
     if productos:
         df = pd.DataFrame(productos)
         df["categoria"] = df["categorias"].apply(lambda x: x["nombre"] if x else "N/A")
@@ -2192,23 +2032,69 @@ def pagina_productos():
             df["marca"] = ""
         if "concentracion" not in df.columns:
             df["concentracion"] = ""
-        
+
+        with st.expander("✏️ Editar producto existente", expanded=False):
+            prod_opciones = {
+                f"{row['nombre']} — {row['categoria']} ({row.get('presentacion') or 'sin presentación'})": row["id"]
+                for _, row in df.iterrows()
+            }
+            prod_sel_label = st.selectbox("Seleccionar producto a editar", list(prod_opciones.keys()), key="edit_prod_sel")
+            prod_sel_id = prod_opciones[prod_sel_label]
+            prod_data = df[df["id"] == prod_sel_id].iloc[0]
+
+            with st.form("editar_producto"):
+                cat_sel_edit = st.selectbox(
+                    "Categoría",
+                    list(cat_options.keys()),
+                    index=list(cat_options.keys()).index(prod_data["categoria"]) if prod_data["categoria"] in cat_options else 0
+                )
+                nombre_edit = st.text_input("Nombre del producto", value=prod_data["nombre"])
+                col_e1, col_e2 = st.columns(2)
+                with col_e1:
+                    marca_edit = st.text_input("🏷️ Marca", value=prod_data.get("marca") or "")
+                    presentacion_edit = st.text_input("Presentación", value=prod_data.get("presentacion") or "")
+                with col_e2:
+                    concentracion_edit = st.text_input("🧪 Concentración", value=prod_data.get("concentracion") or "")
+                    unidades = ["litros", "kg", "unidades", "bolsas", "bidones", "otros"]
+                    unidad_actual = prod_data.get("unidad_medida") or "unidades"
+                    unidad_edit = st.selectbox(
+                        "Unidad de medida",
+                        unidades,
+                        index=unidades.index(unidad_actual) if unidad_actual in unidades else 0
+                    )
+                activo_edit = st.checkbox("Producto activo", value=bool(prod_data.get("activo", True)))
+
+                col_btn1, col_btn2 = st.columns([3, 1])
+                with col_btn1:
+                    guardar = st.form_submit_button("💾 Guardar cambios")
+                with col_btn2:
+                    eliminar = st.form_submit_button("🗑️ Desactivar")
+
+                if guardar:
+                    if nombre_edit:
+                        supabase.table("productos").update({
+                            "categoria_id": cat_options[cat_sel_edit],
+                            "nombre": nombre_edit,
+                            "marca": marca_edit if marca_edit else None,
+                            "concentracion": concentracion_edit if concentracion_edit else None,
+                            "presentacion": presentacion_edit if presentacion_edit else None,
+                            "unidad_medida": unidad_edit,
+                            "activo": activo_edit
+                        }).eq("id", prod_sel_id).execute()
+                        st.success(f"✅ Producto '{nombre_edit}' actualizado correctamente")
+                        st.rerun()
+                    else:
+                        st.warning("⚠️ El nombre del producto no puede estar vacío.")
+
+                if eliminar:
+                    supabase.table("productos").update({"activo": False}).eq("id", prod_sel_id).execute()
+                    st.warning(f"⚠️ Producto '{prod_data['nombre']}' desactivado.")
+                    st.rerun()
+
         display_cols = ["categoria", "nombre", "marca", "concentracion", "presentacion", "unidad_medida", "activo"]
         df_display = df[display_cols].copy()
         df_display.columns = ["Categoría", "Producto", "Marca", "Concentración", "Presentación", "Unidad", "Activo"]
-        
-        # Aplicar estilo para resaltar productos inactivos
-        def highlight_inactive(row):
-            if row["Activo"] == False:
-                return ['background-color: rgba(212, 160, 23, 0.2)'] * len(row)
-            return [''] * len(row)
-        
-        st.dataframe(df_display.style.apply(highlight_inactive, axis=1), use_container_width=True)
-        
-        # Mostrar conteo
-        activos = sum(df["activo"])
-        inactivos = len(df) - activos
-        st.caption(f"📊 Total: {len(df)} productos | ✅ Activos: {activos} | ⚠️ Inactivos: {inactivos}")
+        st.dataframe(df_display, use_container_width=True)
     else:
         st.info("💡 No hay productos cargados.")
 
