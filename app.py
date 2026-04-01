@@ -1821,97 +1821,101 @@ def pagina_historial():
             fv_orig = mov_full.get("fecha_vencimiento")
             fecha_venc_orig = date.fromisoformat(fv_orig) if fv_orig else None
 
-            with st.form("form_editar_movimiento"):
-                st.markdown("**Datos del registro original:**")
-                st.caption(mov_a_editar_label)
-                st.markdown("**Modificar campos:**")
+            st.markdown("**Datos del registro original:**")
+            st.caption(mov_a_editar_label)
+            st.markdown("**Modificar campos:**")
 
-                col_ed1, col_ed2, col_ed3 = st.columns(3)
-                with col_ed1:
-                    nueva_cantidad = st.number_input(
-                        "📦 Cantidad",
-                        min_value=0.001, step=0.5, format="%.3f",
-                        value=float(mov_orig.get("cantidad", 1))
-                    )
-                with col_ed2:
-                    nueva_fecha = st.date_input(
-                        "📅 Fecha del movimiento",
-                        value=mov_orig["fecha"].date() if hasattr(mov_orig["fecha"], "date") else date.today()
-                    )
-                with col_ed3:
-                    nueva_hora = st.time_input(
-                        "🕐 Hora (Argentina)",
-                        value=mov_orig["fecha"].time() if hasattr(mov_orig["fecha"], "time") else datetime.now().time()
-                    )
-
-                col_ed4, col_ed5 = st.columns([1, 2])
-                with col_ed4:
-                    actualizar_venc_edit = st.checkbox(
-                        "📅 Actualizar fecha de vencimiento",
-                        value=fecha_venc_orig is not None
-                    )
-                with col_ed5:
-                    nueva_fecha_venc_edit = None
-                    if actualizar_venc_edit:
-                        nueva_fecha_venc_edit = st.date_input(
-                            "Fecha de vencimiento",
-                            value=fecha_venc_orig if fecha_venc_orig else date.today().replace(year=date.today().year + 1),
-                            key="fv_edit_hist"
-                        )
-
-                nueva_obs = st.text_area(
-                    "📝 Observaciones corregidas",
-                    value=mov_full.get("observaciones", "") or "",
-                    placeholder="Podés modificar las observaciones del registro..."
+            col_ed1, col_ed2, col_ed3 = st.columns(3)
+            with col_ed1:
+                nueva_cantidad = st.number_input(
+                    "📦 Cantidad",
+                    min_value=0.001, step=0.5, format="%.3f",
+                    value=float(mov_orig.get("cantidad", 1)),
+                    key="ed_cantidad"
                 )
-                motivo_edicion = st.text_input(
-                    "📋 Motivo de la corrección *",
-                    placeholder="Ej: Error en cantidad, fecha de vencimiento incorrecta, etc."
+            with col_ed2:
+                nueva_fecha = st.date_input(
+                    "📅 Fecha del movimiento",
+                    value=mov_orig["fecha"].date() if hasattr(mov_orig["fecha"], "date") else date.today(),
+                    key="ed_fecha"
+                )
+            with col_ed3:
+                nueva_hora = st.time_input(
+                    "🕐 Hora (Argentina)",
+                    value=mov_orig["fecha"].time() if hasattr(mov_orig["fecha"], "time") else datetime.now().time(),
+                    key="ed_hora"
                 )
 
-                guardar_edit = st.form_submit_button("💾 Guardar corrección", use_container_width=True)
+            # Checkbox FUERA del form para que reactive la UI inmediatamente
+            col_ed4, col_ed5 = st.columns([1, 2])
+            with col_ed4:
+                actualizar_venc_edit = st.checkbox(
+                    "📅 Agregar / actualizar fecha de vencimiento",
+                    value=fecha_venc_orig is not None,
+                    key="chk_venc_edit"
+                )
+            with col_ed5:
+                nueva_fecha_venc_edit = None
+                if actualizar_venc_edit:
+                    nueva_fecha_venc_edit = st.date_input(
+                        "Fecha de vencimiento",
+                        value=fecha_venc_orig if fecha_venc_orig else date.today().replace(year=date.today().year + 1),
+                        key="fv_edit_hist"
+                    )
 
-                if guardar_edit:
-                    if not motivo_edicion.strip():
-                        st.error("❌ El motivo de la corrección es obligatorio.")
-                    else:
-                        try:
-                            from zoneinfo import ZoneInfo
-                            now_arg = datetime.now(ZoneInfo("America/Argentina/Buenos_Aires")).replace(tzinfo=None)
-                            fecha_nueva_con_hora = datetime.combine(nueva_fecha, nueva_hora).isoformat()
+            nueva_obs = st.text_area(
+                "📝 Observaciones corregidas",
+                value=mov_full.get("observaciones", "") or "",
+                placeholder="Podés modificar las observaciones del registro...",
+                key="ed_obs"
+            )
+            motivo_edicion = st.text_input(
+                "📋 Motivo de la corrección *",
+                placeholder="Ej: Error en cantidad, fecha de vencimiento incorrecta, etc.",
+                key="ed_motivo"
+            )
 
-                            # 1. Marcar el original como reemplazado
-                            obs_orig = mov_full.get("observaciones", "") or ""
-                            obs_reemplazado = f"{obs_orig} | [REEMPLAZADO por corrección admin {now_arg.strftime('%d/%m/%Y %H:%M')} — {motivo_edicion.strip()}]"
-                            supabase.table("movimientos").update({
-                                "observaciones": obs_reemplazado
-                            }).eq("id", mov_edit_id).execute()
+            if st.button("💾 Guardar corrección", use_container_width=True, key="btn_guardar_correccion"):
+                if not motivo_edicion.strip():
+                    st.error("❌ El motivo de la corrección es obligatorio.")
+                else:
+                    try:
+                        from zoneinfo import ZoneInfo
+                        now_arg = datetime.now(ZoneInfo("America/Argentina/Buenos_Aires")).replace(tzinfo=None)
+                        fecha_nueva_con_hora = datetime.combine(nueva_fecha, nueva_hora).isoformat()
 
-                            # 2. Crear nuevo registro corregido
-                            nuevo_payload = {
-                                "tipo": mov_full.get("tipo"),
-                                "producto_id": mov_full.get("producto_id"),
-                                "establecimiento_id": mov_full.get("establecimiento_id"),
-                                "cantidad": float(nueva_cantidad),
-                                "fecha": fecha_nueva_con_hora,
-                                "proveedor_id": mov_full.get("proveedor_id"),
-                                "observaciones": f"{nueva_obs.strip()} | [CORRECCIÓN de registro {mov_edit_id} — {motivo_edicion.strip()}]",
-                                "usuario_id": st.session_state.get("user_id"),
-                                "marca": mov_full.get("marca"),
-                                "concentracion": mov_full.get("concentracion"),
-                            }
-                            if actualizar_venc_edit and nueva_fecha_venc_edit:
-                                nuevo_payload["fecha_vencimiento"] = nueva_fecha_venc_edit.isoformat()
-                            elif not actualizar_venc_edit:
-                                nuevo_payload["fecha_vencimiento"] = None
+                        # 1. Marcar el original como reemplazado
+                        obs_orig = mov_full.get("observaciones", "") or ""
+                        obs_reemplazado = f"{obs_orig} | [REEMPLAZADO por corrección admin {now_arg.strftime('%d/%m/%Y %H:%M')} — {motivo_edicion.strip()}]"
+                        supabase.table("movimientos").update({
+                            "observaciones": obs_reemplazado
+                        }).eq("id", mov_edit_id).execute()
 
-                            supabase.table("movimientos").insert(nuevo_payload).execute()
+                        # 2. Crear nuevo registro corregido
+                        nuevo_payload = {
+                            "tipo": mov_full.get("tipo"),
+                            "producto_id": mov_full.get("producto_id"),
+                            "establecimiento_id": mov_full.get("establecimiento_id"),
+                            "cantidad": float(nueva_cantidad),
+                            "fecha": fecha_nueva_con_hora,
+                            "proveedor_id": mov_full.get("proveedor_id"),
+                            "observaciones": f"{nueva_obs.strip()} | [CORRECCIÓN de registro {mov_edit_id} — {motivo_edicion.strip()}]",
+                            "usuario_id": st.session_state.get("user_id"),
+                            "marca": mov_full.get("marca"),
+                            "concentracion": mov_full.get("concentracion"),
+                        }
+                        if actualizar_venc_edit and nueva_fecha_venc_edit:
+                            nuevo_payload["fecha_vencimiento"] = nueva_fecha_venc_edit.isoformat()
+                        else:
+                            nuevo_payload["fecha_vencimiento"] = None
 
-                            venc_msg = f" | Vencimiento: {nueva_fecha_venc_edit.strftime('%d/%m/%Y')}" if (actualizar_venc_edit and nueva_fecha_venc_edit) else ""
-                            st.success(f"✅ Corrección guardada como nuevo registro.{venc_msg}")
-                            st.rerun()
-                        except Exception as e:
-                            st.error(f"❌ Error al guardar: {e}")
+                        supabase.table("movimientos").insert(nuevo_payload).execute()
+
+                        venc_msg = f" | Vencimiento: {nueva_fecha_venc_edit.strftime('%d/%m/%Y')}" if (actualizar_venc_edit and nueva_fecha_venc_edit) else ""
+                        st.success(f"✅ Corrección guardada como nuevo registro.{venc_msg}")
+                        st.rerun()
+                    except Exception as e:
+                        st.error(f"❌ Error al guardar: {e}")
 
         # ── ELIMINAR REGISTRO ──────────────────────────────────────
         st.markdown("---")
