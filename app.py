@@ -1825,26 +1825,16 @@ def pagina_historial():
             st.caption(mov_a_editar_label)
             st.markdown("**Modificar campos:**")
 
-            col_ed1, col_ed2, col_ed3 = st.columns(3)
-            with col_ed1:
-                nueva_cantidad = st.number_input(
-                    "📦 Cantidad",
-                    min_value=0.001, step=0.5, format="%.3f",
-                    value=float(mov_orig.get("cantidad", 1)),
-                    key="ed_cantidad"
-                )
-            with col_ed2:
-                nueva_fecha = st.date_input(
-                    "📅 Fecha del movimiento",
-                    value=mov_orig["fecha"].date() if hasattr(mov_orig["fecha"], "date") else date.today(),
-                    key="ed_fecha"
-                )
-            with col_ed3:
-                nueva_hora = st.time_input(
-                    "🕐 Hora (Argentina)",
-                    value=mov_orig["fecha"].time() if hasattr(mov_orig["fecha"], "time") else datetime.now().time(),
-                    key="ed_hora"
-                )
+            # Conservar fecha/hora original del movimiento
+            nueva_fecha = mov_orig["fecha"].date() if hasattr(mov_orig["fecha"], "date") else date.today()
+            nueva_hora = mov_orig["fecha"].time() if hasattr(mov_orig["fecha"], "time") else datetime.now().time()
+
+            nueva_cantidad = st.number_input(
+                "📦 Cantidad",
+                min_value=0.001, step=0.5, format="%.3f",
+                value=float(mov_orig.get("cantidad", 1)),
+                key="ed_cantidad"
+            )
 
             # Checkbox FUERA del form para que reactive la UI inmediatamente
             col_ed4, col_ed5 = st.columns([1, 2])
