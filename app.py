@@ -2012,16 +2012,72 @@ def pagina_productos():
                 unidad_medida = st.selectbox("Unidad de medida", ["litros", "kg", "unidades", "bolsas", "bidones", "otros"])
             if st.form_submit_button("Guardar"):
                 if nombre:
+                    # Verificar si ya existe un producto con el mismo nombre (sin distinción de mayúsculas)
+                    existentes = supabase.table("productos").select("id, nombre, presentacion, activo") \
+                        .ilike("nombre", nombre.strip()).execute().data
+                    duplicado = next(
+                        (p for p in existentes if (p.get("presentacion") or "").strip().lower() == presentacion.strip().lower()),
+                        None
+                    ) if existentes else None
+
+                    if duplicado and not st.session_state.get("confirmar_duplicado"):
+                        estado = "activo" if duplicado.get("activo") else "inactivo (desactivado)"
+                        st.session_state["confirmar_duplicado"] = True
+                        st.session_state["prod_duplicado_info"] = {
+                            "nombre": nombre, "cat_sel": cat_sel, "marca": marca,
+                            "presentacion": presentacion, "concentracion": concentracion,
+                            "unidad_medida": unidad_medida, "estado": estado
+                        }
+                        st.rerun()
+                    else:
+                        # No hay duplicado o el admin confirmó continuar
+                        st.session_state.pop("confirmar_duplicado", None)
+                        st.session_state.pop("prod_duplicado_info", None)
+                        supabase.table("productos").insert({
+                            "categoria_id": cat_options[cat_sel],
+                            "nombre": nombre,
+                            "marca": marca if marca else None,
+                            "concentracion": concentracion if concentracion else None,
+                            "presentacion": presentacion if presentacion else None,
+                            "unidad_medida": unidad_medida,
+                            "activo": True
+                        }).execute()
+                        st.success(f"✅ Producto '{nombre}' agregado")
+                        st.rerun()
+                else:
+                    st.warning("⚠️ El nombre del producto no puede estar vacío.")
+
+        # Aviso de duplicado FUERA del form (para poder mostrar el botón de confirmar)
+        if st.session_state.get("confirmar_duplicado"):
+            info = st.session_state.get("prod_duplicado_info", {})
+            st.warning(
+                f"⚠️ **Producto ya se encuentra en el sistema**\n\n"
+                f"El producto **\"{info.get('nombre')}\"** "
+                f"({'con presentación: ' + info.get('presentacion') if info.get('presentacion') else 'sin presentación especificada'}) "
+                f"ya existe y está **{info.get('estado', 'registrado')}**.\n\n"
+                f"¿Deseás agregarlo de todas formas?"
+            )
+            col_c1, col_c2 = st.columns([1, 3])
+            with col_c1:
+                if st.button("✅ Sí, agregar igual", key="btn_confirmar_dup"):
+                    d = info
                     supabase.table("productos").insert({
-                        "categoria_id": cat_options[cat_sel],
-                        "nombre": nombre,
-                        "marca": marca if marca else None,
-                        "concentracion": concentracion if concentracion else None,
-                        "presentacion": presentacion if presentacion else None,
-                        "unidad_medida": unidad_medida,
+                        "categoria_id": cat_options[d["cat_sel"]],
+                        "nombre": d["nombre"],
+                        "marca": d["marca"] if d["marca"] else None,
+                        "concentracion": d["concentracion"] if d["concentracion"] else None,
+                        "presentacion": d["presentacion"] if d["presentacion"] else None,
+                        "unidad_medida": d["unidad_medida"],
                         "activo": True
                     }).execute()
-                    st.success(f"✅ Producto '{nombre}' agregado")
+                    st.session_state.pop("confirmar_duplicado", None)
+                    st.session_state.pop("prod_duplicado_info", None)
+                    st.success(f"✅ Producto '{d['nombre']}' agregado igualmente.")
+                    st.rerun()
+            with col_c2:
+                if st.button("❌ Cancelar", key="btn_cancelar_dup"):
+                    st.session_state.pop("confirmar_duplicado", None)
+                    st.session_state.pop("prod_duplicado_info", None)
                     st.rerun()
     
     productos = get_productos()
