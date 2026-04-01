@@ -1528,20 +1528,39 @@ def pagina_ingreso():
             marca_ing = st.text_input("🏷️ Marca", placeholder="Ej: Bayer, YPF Agro, Dow...")
         with col_mc2:
             concentracion_ing = st.text_input("🧪 Concentración", placeholder="Ej: 48%, 500 g/L...")
-        
+
+        col_venc1, col_venc2 = st.columns([1, 2])
+        with col_venc1:
+            tiene_vencimiento = st.checkbox("📅 Tiene fecha de vencimiento")
+        with col_venc2:
+            fecha_vencimiento = None
+            if tiene_vencimiento:
+                fecha_vencimiento = st.date_input(
+                    "Fecha de vencimiento",
+                    value=date.today().replace(year=date.today().year + 1),
+                    min_value=date.today(),
+                    key="fecha_venc_ing"
+                )
+
         tipo_ingreso = st.selectbox("📌 Tipo de Ingreso", ["Compra", "Devolución", "Traslado", "Otro"])
-        observaciones = st.text_area("📝 Observaciones", placeholder="N° factura, lote, fecha de vencimiento, detalles adicionales...")
-        
+        observaciones = st.text_area("📝 Observaciones", placeholder="N° factura, lote, detalles adicionales...")
+
         submitted = st.form_submit_button("✅ Registrar Ingreso", use_container_width=True)
-        
+
         if submitted:
             if cantidad <= 0:
                 st.error("❌ La cantidad debe ser mayor a 0")
                 return
-            
+
             try:
                 with st.spinner("Registrando ingreso..."):
-                    observaciones_full = f"[{tipo_ingreso}] {observaciones}" if observaciones else f"[{tipo_ingreso}]"
+                    obs_parts = [f"[{tipo_ingreso}]"]
+                    if fecha_vencimiento:
+                        obs_parts.append(f"Vence: {fecha_vencimiento.strftime('%d/%m/%Y')}")
+                    if observaciones:
+                        obs_parts.append(observaciones)
+                    observaciones_full = " | ".join(obs_parts)
+
                     now = datetime.now()
                     fecha_con_hora = datetime.combine(fecha, now.time()).isoformat()
                     payload = {
@@ -1556,8 +1575,22 @@ def pagina_ingreso():
                         "marca": marca_ing.strip() if marca_ing and marca_ing.strip() else None,
                         "concentracion": concentracion_ing.strip() if concentracion_ing and concentracion_ing.strip() else None,
                     }
-                    supabase.table("movimientos").insert(payload).execute()
-                    st.success(f"✅ Ingreso registrado exitosamente!")
+                    if fecha_vencimiento:
+                        payload["fecha_vencimiento"] = fecha_vencimiento.isoformat()
+
+                    try:
+                        supabase.table("movimientos").insert(payload).execute()
+                    except Exception as e_inner:
+                        if "fecha_vencimiento" in str(e_inner):
+                            payload.pop("fecha_vencimiento", None)
+                            supabase.table("movimientos").insert(payload).execute()
+                        else:
+                            raise e_inner
+
+                    st.success(
+                        "✅ Ingreso registrado exitosamente!"
+                        + (f" — Vencimiento: {fecha_vencimiento.strftime('%d/%m/%Y')}" if fecha_vencimiento else "")
+                    )
                     st.balloons()
                     st.rerun()
             except Exception as e:
