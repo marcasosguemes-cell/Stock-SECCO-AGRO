@@ -1561,7 +1561,8 @@ def pagina_ingreso():
                         obs_parts.append(observaciones)
                     observaciones_full = " | ".join(obs_parts)
 
-                    now = datetime.now() + timedelta(hours=-3)  # UTC → Argentina (UTC-3)
+                    from zoneinfo import ZoneInfo
+                    now = datetime.now(ZoneInfo("America/Argentina/Buenos_Aires")).replace(tzinfo=None)
                     fecha_con_hora = datetime.combine(fecha, now.time()).isoformat()
                     payload = {
                         "tipo": "ingreso",
@@ -1698,7 +1699,8 @@ def pagina_egreso():
             try:
                 with st.spinner("Registrando egreso..."):
                     observaciones_full = f"[{tipo_egreso}] {observaciones}" if observaciones else f"[{tipo_egreso}]"
-                    now = datetime.now() + timedelta(hours=-3)  # UTC → Argentina (UTC-3)
+                    from zoneinfo import ZoneInfo
+                    now = datetime.now(ZoneInfo("America/Argentina/Buenos_Aires")).replace(tzinfo=None)
                     fecha_con_hora = datetime.combine(fecha, now.time()).isoformat()
                     payload = {
                         "tipo": "egreso",
