@@ -1561,7 +1561,7 @@ def pagina_ingreso():
                         obs_parts.append(observaciones)
                     observaciones_full = " | ".join(obs_parts)
 
-                    now = datetime.now()
+                    now = datetime.now() + timedelta(hours=-3)  # UTC → Argentina (UTC-3)
                     fecha_con_hora = datetime.combine(fecha, now.time()).isoformat()
                     payload = {
                         "tipo": "ingreso",
@@ -1698,7 +1698,7 @@ def pagina_egreso():
             try:
                 with st.spinner("Registrando egreso..."):
                     observaciones_full = f"[{tipo_egreso}] {observaciones}" if observaciones else f"[{tipo_egreso}]"
-                    now = datetime.now()
+                    now = datetime.now() + timedelta(hours=-3)  # UTC → Argentina (UTC-3)
                     fecha_con_hora = datetime.combine(fecha, now.time()).isoformat()
                     payload = {
                         "tipo": "egreso",
@@ -1761,7 +1761,7 @@ def pagina_historial():
     
     df = pd.DataFrame(movimientos)
     if "fecha" in df.columns:
-        df["fecha"] = pd.to_datetime(df["fecha"])
+        df["fecha"] = pd.to_datetime(df["fecha"], utc=True).dt.tz_convert("America/Argentina/Buenos_Aires").dt.tz_localize(None)
         df = df.sort_values("fecha", ascending=False)
     
     df["producto_nombre"] = df["productos"].apply(lambda x: x.get("nombre", "") if isinstance(x, dict) else "")
@@ -2131,6 +2131,35 @@ def pagina_productos():
             prod_sel_id = prod_opciones[prod_sel_label]
             prod_data = df[df["id"] == prod_sel_id].iloc[0]
 
+            # Buscar el último ingreso de este producto para mostrar/editar su fecha de vencimiento
+            ultimo_ingreso = None
+            fecha_venc_actual = None
+            try:
+                ingresos = supabase.table("movimientos")                     .select("id, fecha, fecha_vencimiento")                     .eq("producto_id", prod_sel_id)                     .eq("tipo", "ingreso")                     .order("fecha", desc=True)                     .limit(1)                     .execute().data
+                if ingresos:
+                    ultimo_ingreso = ingresos[0]
+                    fv = ultimo_ingreso.get("fecha_vencimiento")
+                    if fv:
+                        fecha_venc_actual = date.fromisoformat(fv)
+            except Exception:
+                pass
+
+            if ultimo_ingreso:
+                fecha_ing_str = ultimo_ingreso.get("fecha", "")[:10] if ultimo_ingreso.get("fecha") else "—"
+                if fecha_venc_actual:
+                    dias_restantes = (fecha_venc_actual - date.today()).days
+                    if dias_restantes < 0:
+                        estado_venc = f"🔴 Vencido hace {abs(dias_restantes)} días"
+                    elif dias_restantes <= 30:
+                        estado_venc = f"🟠 Vence en {dias_restantes} días"
+                    else:
+                        estado_venc = f"🟢 Vence en {dias_restantes} días"
+                    st.info(f"📦 Último ingreso: **{fecha_ing_str}** | 📅 Vencimiento actual: **{fecha_venc_actual.strftime('%d/%m/%Y')}** — {estado_venc}")
+                else:
+                    st.info(f"📦 Último ingreso: **{fecha_ing_str}** | 📅 Sin fecha de vencimiento registrada")
+            else:
+                st.caption("ℹ️ Este producto no tiene ingresos registrados.")
+
             with st.form("editar_producto"):
                 cat_sel_edit = st.selectbox(
                     "Categoría",
@@ -2153,6 +2182,23 @@ def pagina_productos():
                     )
                 activo_edit = st.checkbox("Producto activo", value=bool(prod_data.get("activo", True)))
 
+                st.markdown("---")
+                col_venc_e1, col_venc_e2 = st.columns([1, 2])
+                with col_venc_e1:
+                    actualizar_venc = st.checkbox(
+                        "📅 Actualizar fecha de vencimiento",
+                        value=False,
+                        help="Modifica la fecha de vencimiento del último ingreso de este producto"
+                    )
+                with col_venc_e2:
+                    nueva_fecha_venc = None
+                    if actualizar_venc:
+                        nueva_fecha_venc = st.date_input(
+                            "Nueva fecha de vencimiento",
+                            value=fecha_venc_actual if fecha_venc_actual else date.today().replace(year=date.today().year + 1),
+                            key="nueva_fecha_venc_edit"
+                        )
+
                 col_btn1, col_btn2 = st.columns([3, 1])
                 with col_btn1:
                     guardar = st.form_submit_button("💾 Guardar cambios")
@@ -2170,7 +2216,15 @@ def pagina_productos():
                             "unidad_medida": unidad_edit,
                             "activo": activo_edit
                         }).eq("id", prod_sel_id).execute()
-                        st.success(f"✅ Producto '{nombre_edit}' actualizado correctamente")
+
+                        # Actualizar fecha_vencimiento del último ingreso si se indicó
+                        if actualizar_venc and nueva_fecha_venc and ultimo_ingreso:
+                            supabase.table("movimientos").update({
+                                "fecha_vencimiento": nueva_fecha_venc.isoformat()
+                            }).eq("id", ultimo_ingreso["id"]).execute()
+                            st.success(f"✅ Producto '{nombre_edit}' actualizado | Vencimiento: {nueva_fecha_venc.strftime('%d/%m/%Y')}")
+                        else:
+                            st.success(f"✅ Producto '{nombre_edit}' actualizado correctamente")
                         st.rerun()
                     else:
                         st.warning("⚠️ El nombre del producto no puede estar vacío.")
