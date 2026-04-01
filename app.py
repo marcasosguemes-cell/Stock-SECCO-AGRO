@@ -1721,7 +1721,7 @@ def pagina_egreso():
 
 
 # ══════════════════════════════════════════════════════════════
-# HISTORIAL
+# HISTORIAL - VERSIÓN CORREGIDA (ACTUALIZA DIRECTAMENTE SIN DUPLICAR)
 # ══════════════════════════════════════════════════════════════
 
 def pagina_historial():
@@ -1767,7 +1767,6 @@ def pagina_historial():
         df = df.sort_values("fecha", ascending=False)
     
     df["producto_nombre"] = df["productos"].apply(lambda x: x.get("nombre", "") if isinstance(x, dict) else "")
-    # marca y concentracion vienen del movimiento directamente
     def _safe_str(v):
         return str(v).strip() if v and str(v).strip() not in ("None", "none", "") else ""
     df["producto_marca"] = df.apply(lambda r: _safe_str(r.get("marca")), axis=1)
@@ -1824,10 +1823,10 @@ def pagina_historial():
         )
         opciones_mov = {row["etiqueta"]: row["id"] for _, row in df_ids.iterrows()}
 
-        # ── EDITAR REGISTRO ────────────────────────────────────────
+        # ── EDITAR REGISTRO (ACTUALIZACIÓN DIRECTA - SIN DUPLICAR) ────────────────────────────────────────
         st.markdown("---")
         st.markdown("### ✏️ Editar registro (Admin)")
-        st.info("ℹ️ Se creará un nuevo registro corregido y el original quedará marcado como reemplazado en observaciones.")
+        st.info("ℹ️ Se actualizará el registro existente con los cambios realizados.")
 
         mov_a_editar_label = st.selectbox(
             "Seleccionar movimiento a editar",
@@ -1899,38 +1898,33 @@ def pagina_historial():
                         now_arg = datetime.now(ZoneInfo("America/Argentina/Buenos_Aires")).replace(tzinfo=None)
                         fecha_nueva_con_hora = datetime.combine(nueva_fecha, nueva_hora).isoformat()
 
-                        # 1. Marcar el original como reemplazado
-                        obs_orig = mov_full.get("observaciones", "") or ""
-                        obs_reemplazado = f"{obs_orig} | [REEMPLAZADO por corrección admin {now_arg.strftime('%d/%m/%Y %H:%M')} — {motivo_edicion.strip()}]"
-                        supabase.table("movimientos").update({
-                            "observaciones": obs_reemplazado
-                        }).eq("id", mov_edit_id).execute()
-
-                        # 2. Crear nuevo registro corregido
-                        nuevo_payload = {
-                            "tipo": mov_full.get("tipo"),
-                            "producto_id": mov_full.get("producto_id"),
-                            "establecimiento_id": mov_full.get("establecimiento_id"),
+                        # Construir las nuevas observaciones con el motivo de corrección
+                        obs_original = mov_full.get("observaciones", "") or ""
+                        nuevas_obs = f"{nueva_obs.strip()} | [CORREGIDO {now_arg.strftime('%d/%m/%Y %H:%M')} — {motivo_edicion.strip()}]"
+                        if obs_original and not nuevas_obs.strip().startswith(obs_original):
+                            nuevas_obs = f"{obs_original} | {nuevas_obs}"
+                        
+                        # Preparar payload con los datos actualizados
+                        update_payload = {
                             "cantidad": float(nueva_cantidad),
                             "fecha": fecha_nueva_con_hora,
-                            "proveedor_id": mov_full.get("proveedor_id"),
-                            "observaciones": f"{nueva_obs.strip()} | [CORRECCIÓN de registro {mov_edit_id} — {motivo_edicion.strip()}]",
-                            "usuario_id": st.session_state.get("user_id"),
-                            "marca": mov_full.get("marca"),
-                            "concentracion": mov_full.get("concentracion"),
+                            "observaciones": nuevas_obs,
                         }
+                        
+                        # Actualizar fecha de vencimiento si corresponde
                         if actualizar_venc_edit and nueva_fecha_venc_edit:
-                            nuevo_payload["fecha_vencimiento"] = nueva_fecha_venc_edit.isoformat()
-                        else:
-                            nuevo_payload["fecha_vencimiento"] = None
+                            update_payload["fecha_vencimiento"] = nueva_fecha_venc_edit.isoformat()
+                        elif not actualizar_venc_edit:
+                            update_payload["fecha_vencimiento"] = None
+                        
+                        # ACTUALIZAR DIRECTAMENTE EL REGISTRO EXISTENTE
+                        supabase.table("movimientos").update(update_payload).eq("id", mov_edit_id).execute()
 
-                        supabase.table("movimientos").insert(nuevo_payload).execute()
-
-                        venc_msg = f" | Vencimiento: {nueva_fecha_venc_edit.strftime('%d/%m/%Y')}" if (actualizar_venc_edit and nueva_fecha_venc_edit) else ""
-                        st.success(f"✅ Corrección guardada como nuevo registro.{venc_msg}")
+                        venc_msg = f" | Vencimiento: {nueva_fecha_venc_edit.strftime('%d/%m/%Y')}" if (actualizar_venc_edit and nueva_fecha_venc_edit) else (" | Vencimiento eliminado" if not actualizar_venc_edit and fecha_venc_orig else "")
+                        st.success(f"✅ Registro actualizado correctamente.{venc_msg}")
                         st.rerun()
                     except Exception as e:
-                        st.error(f"❌ Error al guardar: {e}")
+                        st.error(f"❌ Error al actualizar: {e}")
 
         # ── ELIMINAR REGISTRO ──────────────────────────────────────
         st.markdown("---")
