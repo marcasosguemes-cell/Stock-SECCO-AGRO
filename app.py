@@ -1788,23 +1788,139 @@ def pagina_historial():
     
     st.dataframe(display_df, use_container_width=True, height=500)
     
-    # ── Eliminación con auditoría (solo ADMIN) ──────────────────
+    # ── Sección Admin: Editar y Eliminar ──────────────────────────
     if st.session_state.get("rol") == "admin":
-        st.markdown("---")
-        st.markdown("### 🗑️ Eliminar registro (Admin)")
-        st.warning("⚠️ Al eliminar un registro se guardará un log de auditoría con tu usuario, fecha y hora.")
-        
-        # Construir opciones con ID del movimiento
+
+        # Construir opciones con ID del movimiento (compartido entre editar y eliminar)
         df_ids = df.copy()
         df_ids["etiqueta"] = df_ids.apply(
             lambda r: f"[{r['fecha_solo']} {r['hora_solo']}] {r['tipo'].upper()} — {r['producto_nombre']} — {r['establecimiento']} — {r['cantidad']} {r['producto_unidad']}",
             axis=1
         )
         opciones_mov = {row["etiqueta"]: row["id"] for _, row in df_ids.iterrows()}
-        
+
+        # ── EDITAR REGISTRO ────────────────────────────────────────
+        st.markdown("---")
+        st.markdown("### ✏️ Editar registro (Admin)")
+        st.info("ℹ️ Se creará un nuevo registro corregido y el original quedará marcado como reemplazado en observaciones.")
+
+        mov_a_editar_label = st.selectbox(
+            "Seleccionar movimiento a editar",
+            ["— Seleccioná un registro —"] + list(opciones_mov.keys()),
+            key="sel_editar_mov"
+        )
+
+        if mov_a_editar_label != "— Seleccioná un registro —":
+            mov_edit_id = opciones_mov[mov_a_editar_label]
+            mov_orig = df_ids[df_ids["id"] == mov_edit_id].iloc[0]
+
+            # Obtener datos completos del movimiento original desde Supabase
+            mov_full = supabase.table("movimientos").select("*").eq("id", mov_edit_id).execute().data
+            mov_full = mov_full[0] if mov_full else {}
+
+            fv_orig = mov_full.get("fecha_vencimiento")
+            fecha_venc_orig = date.fromisoformat(fv_orig) if fv_orig else None
+
+            with st.form("form_editar_movimiento"):
+                st.markdown("**Datos del registro original:**")
+                st.caption(mov_a_editar_label)
+                st.markdown("**Modificar campos:**")
+
+                col_ed1, col_ed2, col_ed3 = st.columns(3)
+                with col_ed1:
+                    nueva_cantidad = st.number_input(
+                        "📦 Cantidad",
+                        min_value=0.001, step=0.5, format="%.3f",
+                        value=float(mov_orig.get("cantidad", 1))
+                    )
+                with col_ed2:
+                    nueva_fecha = st.date_input(
+                        "📅 Fecha del movimiento",
+                        value=mov_orig["fecha"].date() if hasattr(mov_orig["fecha"], "date") else date.today()
+                    )
+                with col_ed3:
+                    nueva_hora = st.time_input(
+                        "🕐 Hora (Argentina)",
+                        value=mov_orig["fecha"].time() if hasattr(mov_orig["fecha"], "time") else datetime.now().time()
+                    )
+
+                col_ed4, col_ed5 = st.columns([1, 2])
+                with col_ed4:
+                    actualizar_venc_edit = st.checkbox(
+                        "📅 Actualizar fecha de vencimiento",
+                        value=fecha_venc_orig is not None
+                    )
+                with col_ed5:
+                    nueva_fecha_venc_edit = None
+                    if actualizar_venc_edit:
+                        nueva_fecha_venc_edit = st.date_input(
+                            "Fecha de vencimiento",
+                            value=fecha_venc_orig if fecha_venc_orig else date.today().replace(year=date.today().year + 1),
+                            key="fv_edit_hist"
+                        )
+
+                nueva_obs = st.text_area(
+                    "📝 Observaciones corregidas",
+                    value=mov_full.get("observaciones", "") or "",
+                    placeholder="Podés modificar las observaciones del registro..."
+                )
+                motivo_edicion = st.text_input(
+                    "📋 Motivo de la corrección *",
+                    placeholder="Ej: Error en cantidad, fecha de vencimiento incorrecta, etc."
+                )
+
+                guardar_edit = st.form_submit_button("💾 Guardar corrección", use_container_width=True)
+
+                if guardar_edit:
+                    if not motivo_edicion.strip():
+                        st.error("❌ El motivo de la corrección es obligatorio.")
+                    else:
+                        try:
+                            from zoneinfo import ZoneInfo
+                            now_arg = datetime.now(ZoneInfo("America/Argentina/Buenos_Aires")).replace(tzinfo=None)
+                            fecha_nueva_con_hora = datetime.combine(nueva_fecha, nueva_hora).isoformat()
+
+                            # 1. Marcar el original como reemplazado
+                            obs_orig = mov_full.get("observaciones", "") or ""
+                            obs_reemplazado = f"{obs_orig} | [REEMPLAZADO por corrección admin {now_arg.strftime('%d/%m/%Y %H:%M')} — {motivo_edicion.strip()}]"
+                            supabase.table("movimientos").update({
+                                "observaciones": obs_reemplazado
+                            }).eq("id", mov_edit_id).execute()
+
+                            # 2. Crear nuevo registro corregido
+                            nuevo_payload = {
+                                "tipo": mov_full.get("tipo"),
+                                "producto_id": mov_full.get("producto_id"),
+                                "establecimiento_id": mov_full.get("establecimiento_id"),
+                                "cantidad": float(nueva_cantidad),
+                                "fecha": fecha_nueva_con_hora,
+                                "proveedor_id": mov_full.get("proveedor_id"),
+                                "observaciones": f"{nueva_obs.strip()} | [CORRECCIÓN de registro {mov_edit_id} — {motivo_edicion.strip()}]",
+                                "usuario_id": st.session_state.get("user_id"),
+                                "marca": mov_full.get("marca"),
+                                "concentracion": mov_full.get("concentracion"),
+                            }
+                            if actualizar_venc_edit and nueva_fecha_venc_edit:
+                                nuevo_payload["fecha_vencimiento"] = nueva_fecha_venc_edit.isoformat()
+                            elif not actualizar_venc_edit:
+                                nuevo_payload["fecha_vencimiento"] = None
+
+                            supabase.table("movimientos").insert(nuevo_payload).execute()
+
+                            venc_msg = f" | Vencimiento: {nueva_fecha_venc_edit.strftime('%d/%m/%Y')}" if (actualizar_venc_edit and nueva_fecha_venc_edit) else ""
+                            st.success(f"✅ Corrección guardada como nuevo registro.{venc_msg}")
+                            st.rerun()
+                        except Exception as e:
+                            st.error(f"❌ Error al guardar: {e}")
+
+        # ── ELIMINAR REGISTRO ──────────────────────────────────────
+        st.markdown("---")
+        st.markdown("### 🗑️ Eliminar registro (Admin)")
+        st.warning("⚠️ Al eliminar un registro se guardará un log de auditoría con tu usuario, fecha y hora.")
+
         mov_a_eliminar_label = st.selectbox("Seleccionar movimiento a eliminar", ["— Seleccioná un registro —"] + list(opciones_mov.keys()), key="sel_eliminar_mov")
         motivo_eliminacion = st.text_input("📝 Motivo de la eliminación *", placeholder="Ej: Error de carga, duplicado, etc.", key="motivo_eliminacion")
-        
+
         col_del1, col_del2 = st.columns([1, 3])
         with col_del1:
             confirmar_delete = st.checkbox("✅ Confirmar eliminación", key="confirmar_del")
@@ -1819,10 +1935,6 @@ def pagina_historial():
                 else:
                     mov_id = opciones_mov[mov_a_eliminar_label]
                     try:
-                        # Obtener datos del movimiento antes de borrar
-                        mov_data = next((r for _, r in df_ids.iterrows() if r["id"] == mov_id), None)
-                        
-                        # Insertar en tabla de auditoría
                         from datetime import datetime
                         audit_payload = {
                             "accion": "ELIMINACION",
@@ -1836,10 +1948,7 @@ def pagina_historial():
                         try:
                             supabase.table("auditoria_eliminaciones").insert(audit_payload).execute()
                         except Exception:
-                            # Si no existe la tabla de auditoría, guardar en observaciones del log
                             pass
-                        
-                        # Eliminar el movimiento
                         supabase.table("movimientos").delete().eq("id", mov_id).execute()
                         st.success(f"✅ Registro eliminado y auditoría guardada.")
                         st.rerun()
