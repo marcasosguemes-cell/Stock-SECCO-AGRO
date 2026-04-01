@@ -1780,13 +1780,38 @@ def pagina_historial():
     # Separar fecha y hora
     df["fecha_solo"] = df["fecha"].dt.strftime("%d/%m/%Y")
     df["hora_solo"] = df["fecha"].dt.strftime("%H:%M")
-    
+
+    # Formatear fecha de vencimiento si existe
+    if "fecha_vencimiento" in df.columns:
+        df["vencimiento"] = pd.to_datetime(df["fecha_vencimiento"], errors="coerce").dt.strftime("%d/%m/%Y").fillna("—")
+    else:
+        df["vencimiento"] = "—"
+
     st.markdown(f"### 📊 Resultados: **{len(df)}** movimientos encontrados")
-    
-    display_df = df[["fecha_solo", "hora_solo", "tipo", "establecimiento", "categoria", "producto_nombre", "producto_marca", "producto_concentracion", "producto_presentacion", "cantidad", "producto_unidad", "observaciones"]].copy()
-    display_df.columns = ["Fecha", "Hora", "Tipo", "Establecimiento", "Categoría", "Producto", "Marca", "Concentración", "Presentación", "Cantidad", "Unidad", "Observaciones"]
-    
-    st.dataframe(display_df, use_container_width=True, height=500)
+
+    display_df = df[["fecha_solo", "hora_solo", "tipo", "establecimiento", "categoria", "producto_nombre", "producto_marca", "producto_concentracion", "producto_presentacion", "cantidad", "producto_unidad", "vencimiento", "observaciones"]].copy()
+    display_df.columns = ["Fecha", "Hora", "Tipo", "Establecimiento", "Categoría", "Producto", "Marca", "Concentración", "Presentación", "Cantidad", "Unidad", "Vencimiento", "Observaciones"]
+
+    st.dataframe(
+        display_df,
+        use_container_width=True,
+        height=500,
+        column_config={
+            "Fecha":         st.column_config.TextColumn("Fecha",        width="small"),
+            "Hora":          st.column_config.TextColumn("Hora",         width="small"),
+            "Tipo":          st.column_config.TextColumn("Tipo",         width="small"),
+            "Establecimiento": st.column_config.TextColumn("Estab.",     width="small"),
+            "Categoría":     st.column_config.TextColumn("Categoría",    width="medium"),
+            "Producto":      st.column_config.TextColumn("Producto",     width="medium"),
+            "Marca":         st.column_config.TextColumn("Marca",        width="medium"),
+            "Concentración": st.column_config.TextColumn("Conc.",        width="small"),
+            "Presentación":  st.column_config.TextColumn("Presentación", width="small"),
+            "Cantidad":      st.column_config.NumberColumn("Cantidad",   width="small"),
+            "Unidad":        st.column_config.TextColumn("Unidad",       width="small"),
+            "Vencimiento":   st.column_config.TextColumn("Vencimiento",  width="small"),
+            "Observaciones": st.column_config.TextColumn("Observaciones",width="large"),
+        }
+    )
     
     # ── Sección Admin: Editar y Eliminar ──────────────────────────
     if st.session_state.get("rol") == "admin":
