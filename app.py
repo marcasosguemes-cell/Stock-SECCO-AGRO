@@ -1929,7 +1929,6 @@ def pagina_historial():
                 else:
                     mov_id = opciones_mov[mov_a_eliminar_label]
                     try:
-                        from datetime import datetime
                         audit_payload = {
                             "accion": "ELIMINACION",
                             "tabla": "movimientos",
