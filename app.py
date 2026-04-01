@@ -8,7 +8,7 @@ CON CAMBIO DE CONTRASEÑA OBLIGATORIO EN CADA INGRESO HASTA QUE SE CAMBIE
 
 import streamlit as st
 from supabase import create_client, Client
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
@@ -1542,12 +1542,14 @@ def pagina_ingreso():
             try:
                 with st.spinner("Registrando ingreso..."):
                     observaciones_full = f"[{tipo_ingreso}] {observaciones}" if observaciones else f"[{tipo_ingreso}]"
+                    now = datetime.now()
+                    fecha_con_hora = datetime.combine(fecha, now.time()).isoformat()
                     payload = {
                         "tipo": "ingreso",
                         "producto_id": producto_id,
                         "establecimiento_id": establecimiento_id,
                         "cantidad": float(cantidad),
-                        "fecha": str(fecha),
+                        "fecha": fecha_con_hora,
                         "proveedor_id": proveedor_id,
                         "observaciones": observaciones_full,
                         "usuario_id": st.session_state.get("user_id"),
@@ -1663,12 +1665,14 @@ def pagina_egreso():
             try:
                 with st.spinner("Registrando egreso..."):
                     observaciones_full = f"[{tipo_egreso}] {observaciones}" if observaciones else f"[{tipo_egreso}]"
+                    now = datetime.now()
+                    fecha_con_hora = datetime.combine(fecha, now.time()).isoformat()
                     payload = {
                         "tipo": "egreso",
                         "producto_id": producto_id,
                         "establecimiento_id": establecimiento_id,
                         "cantidad": float(cantidad),
-                        "fecha": str(fecha),
+                        "fecha": fecha_con_hora,
                         "observaciones": observaciones_full,
                         "usuario_id": st.session_state.get("user_id"),
                         "marca": marca_egr_form.strip() if marca_egr_form and marca_egr_form.strip() else None,
