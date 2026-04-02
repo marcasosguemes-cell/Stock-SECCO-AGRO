@@ -1520,16 +1520,35 @@ def pagina_ingreso():
             parts = [x for x in [presentacion_str, unidad_str, extra] if x]
             st.caption("📦 " + " | ".join(parts))
 
+    # ── Fecha de vencimiento: selectbox reactivo FUERA del form ──
+    from zoneinfo import ZoneInfo
+    _now_arg = datetime.now(ZoneInfo("America/Argentina/Buenos_Aires")).replace(tzinfo=None)
+    st.caption(f"🕐 Fecha y hora del registro: **{_now_arg.strftime('%d/%m/%Y  %H:%M')}** (se guarda automáticamente)")
+
+    col_venc_sel, col_venc_fecha = st.columns([1, 2])
+    with col_venc_sel:
+        tiene_vencimiento_sel = st.selectbox(
+            "📅 ¿Tiene fecha de vencimiento?",
+            ["No", "Sí"],
+            key="ing_tiene_venc"
+        )
+    with col_venc_fecha:
+        fecha_vencimiento = None
+        if tiene_vencimiento_sel == "Sí":
+            fecha_vencimiento = st.date_input(
+                "Fecha de vencimiento",
+                value=date.today().replace(year=date.today().year + 1),
+                min_value=date.today(),
+                key="fecha_venc_ing"
+            )
+
     with st.form("form_ingreso", clear_on_submit=True):
         col3, col4, col5 = st.columns(3)
-        
+
         with col3:
             cantidad = st.number_input("📦 Cantidad *", min_value=0.001, step=0.5, format="%.3f")
-        
+
         with col4:
-            fecha = st.date_input("📅 Fecha *", value=date.today())
-        
-        with col5:
             prov_options = {p["nombre"]: p["id"] for p in proveedores}
             if prov_options:
                 prov_sel = st.selectbox("🏭 Proveedor", ["Sin proveedor"] + list(prov_options.keys()))
@@ -1537,27 +1556,16 @@ def pagina_ingreso():
             else:
                 proveedor_id = None
                 st.info("💡 No hay proveedores cargados")
-        
+
+        with col5:
+            tipo_ingreso = st.selectbox("📌 Tipo de Ingreso", ["Compra", "Devolución", "Traslado", "Otro"])
+
         col_mc1, col_mc2 = st.columns(2)
         with col_mc1:
             marca_ing = st.text_input("🏷️ Marca", placeholder="Ej: Bayer, YPF Agro, Dow...")
         with col_mc2:
             concentracion_ing = st.text_input("🧪 Concentración", placeholder="Ej: 48%, 500 g/L...")
 
-        col_venc1, col_venc2 = st.columns([1, 2])
-        with col_venc1:
-            tiene_vencimiento = st.checkbox("📅 Tiene fecha de vencimiento")
-        with col_venc2:
-            fecha_vencimiento = None
-            if tiene_vencimiento:
-                fecha_vencimiento = st.date_input(
-                    "Fecha de vencimiento",
-                    value=date.today().replace(year=date.today().year + 1),
-                    min_value=date.today(),
-                    key="fecha_venc_ing"
-                )
-
-        tipo_ingreso = st.selectbox("📌 Tipo de Ingreso", ["Compra", "Devolución", "Traslado", "Otro"])
         observaciones = st.text_area("📝 Observaciones", placeholder="N° factura, lote, detalles adicionales...")
 
         submitted = st.form_submit_button("✅ Registrar Ingreso", use_container_width=True)
@@ -1570,15 +1578,16 @@ def pagina_ingreso():
             try:
                 with st.spinner("Registrando ingreso..."):
                     obs_parts = [f"[{tipo_ingreso}]"]
-                    if fecha_vencimiento:
+                    if tiene_vencimiento_sel == "Sí" and fecha_vencimiento:
                         obs_parts.append(f"Vence: {fecha_vencimiento.strftime('%d/%m/%Y')}")
+                    else:
+                        obs_parts.append("No contiene fecha de Vec.")
                     if observaciones:
                         obs_parts.append(observaciones)
                     observaciones_full = " | ".join(obs_parts)
 
-                    from zoneinfo import ZoneInfo
                     now = datetime.now(ZoneInfo("America/Argentina/Buenos_Aires")).replace(tzinfo=None)
-                    fecha_con_hora = datetime.combine(fecha, now.time()).isoformat()
+                    fecha_con_hora = now.isoformat()
                     payload = {
                         "tipo": "ingreso",
                         "producto_id": producto_id,
@@ -1591,7 +1600,7 @@ def pagina_ingreso():
                         "marca": marca_ing.strip() if marca_ing and marca_ing.strip() else None,
                         "concentracion": concentracion_ing.strip() if concentracion_ing and concentracion_ing.strip() else None,
                     }
-                    if fecha_vencimiento:
+                    if tiene_vencimiento_sel == "Sí" and fecha_vencimiento:
                         payload["fecha_vencimiento"] = fecha_vencimiento.isoformat()
 
                     try:
@@ -1605,7 +1614,7 @@ def pagina_ingreso():
 
                     st.success(
                         "✅ Ingreso registrado exitosamente!"
-                        + (f" — Vencimiento: {fecha_vencimiento.strftime('%d/%m/%Y')}" if fecha_vencimiento else "")
+                        + (f" — Vencimiento: {fecha_vencimiento.strftime('%d/%m/%Y')}" if (tiene_vencimiento_sel == "Sí" and fecha_vencimiento) else " — Sin fecha de vencimiento")
                     )
                     st.balloons()
                     st.rerun()
@@ -1690,46 +1699,49 @@ def pagina_egreso():
             else:
                 st.caption("📊 Stock disponible: 0")
 
+    from zoneinfo import ZoneInfo
+    _now_arg_egr = datetime.now(ZoneInfo("America/Argentina/Buenos_Aires")).replace(tzinfo=None)
+    st.caption(f"🕐 Fecha y hora del registro: **{_now_arg_egr.strftime('%d/%m/%Y  %H:%M')}** (se guarda automáticamente)")
+
     with st.form("form_egreso", clear_on_submit=True):
         col3, col4, col5 = st.columns(3)
-        
+
         with col3:
             cantidad = st.number_input("📦 Cantidad *", min_value=0.001, step=0.5, format="%.3f")
-        
+
         with col4:
-            fecha = st.date_input("📅 Fecha *", value=date.today())
-        
-        with col5:
             tipo_egreso = st.selectbox("📌 Tipo de Egreso", ["Uso", "Venta", "Traslado", "Merma", "Otro"])
-        
+
+        with col5:
+            pass  # columna reservada para equilibrio visual
+
         col_mc1e, col_mc2e = st.columns(2)
         with col_mc1e:
             marca_egr_form = st.text_input("🏷️ Marca", placeholder="Ej: Bayer, YPF Agro, Dow...")
         with col_mc2e:
             concentracion_egr_form = st.text_input("🧪 Concentración", placeholder="Ej: 48%, 500 g/L...")
-        
+
         observaciones = st.text_area("📝 Observaciones", placeholder="Motivo del egreso, destino, responsable, etc.")
-        
+
         submitted = st.form_submit_button("✅ Registrar Egreso", use_container_width=True)
-        
+
         if submitted:
             if cantidad <= 0:
                 st.error("❌ La cantidad debe ser mayor a 0")
                 return
-            
+
             stock_actual_df = get_stock_por_producto(establecimiento_id)
             if not stock_actual_df.empty:
                 prod_stock = stock_actual_df[stock_actual_df["producto_id"] == producto_id]
                 if not prod_stock.empty and prod_stock.iloc[0]["stock"] < cantidad:
                     st.error(f"❌ Stock insuficiente. Disponible: {prod_stock.iloc[0]['stock']:.2f} {prod_stock.iloc[0]['unidad']}")
                     return
-            
+
             try:
                 with st.spinner("Registrando egreso..."):
                     observaciones_full = f"[{tipo_egreso}] {observaciones}" if observaciones else f"[{tipo_egreso}]"
-                    from zoneinfo import ZoneInfo
                     now = datetime.now(ZoneInfo("America/Argentina/Buenos_Aires")).replace(tzinfo=None)
-                    fecha_con_hora = datetime.combine(fecha, now.time()).isoformat()
+                    fecha_con_hora = now.isoformat()
                     payload = {
                         "tipo": "egreso",
                         "producto_id": producto_id,
