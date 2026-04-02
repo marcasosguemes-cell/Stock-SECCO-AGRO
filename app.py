@@ -1237,15 +1237,25 @@ def pagina_dashboard():
     
     with col_f2:
         tipo_filtro = st.selectbox("📌 Tipo de Movimiento", ["Todos", "ingreso", "egreso"])
-    
+
     with col_f3:
         categorias = get_categorias()
         cat_options = {c["nombre"]: c["id"] for c in categorias}
         cat_options["Todas"] = None
         cat_seleccionada = st.selectbox("📁 Categoría", list(cat_options.keys()))
         cat_id = cat_options[cat_seleccionada] if cat_seleccionada != "Todas" else None
-        
-        productos = get_productos(cat_id)
+
+        # Subcategoría agroquímicos
+        es_agro_dash = cat_seleccionada and ("agroquimico" in cat_seleccionada.lower() or "agroquímico" in cat_seleccionada.lower())
+        subcategoria_dash = None
+        if es_agro_dash:
+            subcategoria_dash = st.selectbox(
+                "🌿 Tipo Agroquímico",
+                ["Todos", "Herbicidas", "Insecticidas", "Coadyuvantes"],
+                key="dash_subcategoria"
+            )
+
+        productos = get_productos(cat_id, subcategoria_dash if (es_agro_dash and subcategoria_dash != "Todos") else None)
         prod_options = {p["nombre"]: p["id"] for p in productos}
         prod_options["Todos"] = None
         prod_seleccionado = st.selectbox("🏷️ Producto", list(prod_options.keys()))
@@ -1262,6 +1272,11 @@ def pagina_dashboard():
         producto_id=prod_id,
         categoria_id=cat_id
     )
+
+    # Filtrar por subcategoría en el DataFrame si corresponde
+    if movimientos and es_agro_dash and subcategoria_dash and subcategoria_dash != "Todos":
+        ids_subcat = {p["id"] for p in get_productos(cat_id, subcategoria_dash)}
+        movimientos = [m for m in movimientos if m.get("producto_id") in ids_subcat]
     
     col1, col2, col3, col4 = st.columns(4)
     
@@ -1798,7 +1813,17 @@ def pagina_historial():
         cat_options["Todas"] = None
         cat_seleccionada = st.selectbox("Categoría", list(cat_options.keys()))
         cat_id = cat_options[cat_seleccionada] if cat_seleccionada != "Todas" else None
-    
+
+    # Subcategoría agroquímicos (fila extra si corresponde)
+    es_agro_hist = cat_seleccionada and ("agroquimico" in cat_seleccionada.lower() or "agroquímico" in cat_seleccionada.lower())
+    subcategoria_hist = None
+    if es_agro_hist:
+        subcategoria_hist = st.selectbox(
+            "🌿 Tipo de Agroquímico",
+            ["Todos", "Herbicidas", "Insecticidas", "Coadyuvantes"],
+            key="hist_subcategoria"
+        )
+
     movimientos = get_movimientos_con_filtros(
         establecimiento_id=estab_filter(),
         fecha_desde=fecha_desde,
@@ -1806,6 +1831,11 @@ def pagina_historial():
         tipo=tipo_filtro if tipo_filtro != "Todos" else None,
         categoria_id=cat_id
     )
+
+    # Filtrar por subcategoría en el DataFrame si corresponde
+    if movimientos and es_agro_hist and subcategoria_hist and subcategoria_hist != "Todos":
+        ids_subcat = {p["id"] for p in get_productos(cat_id, subcategoria_hist)}
+        movimientos = [m for m in movimientos if m.get("producto_id") in ids_subcat]
     
     if not movimientos:
         st.info("💡 Sin movimientos en el período seleccionado.")
