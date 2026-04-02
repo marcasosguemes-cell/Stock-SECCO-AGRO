@@ -1529,16 +1529,23 @@ def pagina_ingreso():
     with col_venc_sel:
         tiene_vencimiento_sel = st.selectbox(
             "📅 ¿Tiene fecha de vencimiento?",
-            ["No", "Sí"],
+            ["No", "Sí — Vigente", "Sí — Vencido"],
             key="ing_tiene_venc"
         )
     with col_venc_fecha:
         fecha_vencimiento = None
-        if tiene_vencimiento_sel == "Sí":
+        if tiene_vencimiento_sel == "Sí — Vigente":
             fecha_vencimiento = st.date_input(
                 "Fecha de vencimiento",
                 value=date.today().replace(year=date.today().year + 1),
                 min_value=date.today(),
+                key="fecha_venc_ing"
+            )
+        elif tiene_vencimiento_sel == "Sí — Vencido":
+            fecha_vencimiento = st.date_input(
+                "Fecha de vencimiento (pasada)",
+                value=date.today().replace(year=date.today().year - 1),
+                max_value=date.today(),
                 key="fecha_venc_ing"
             )
 
@@ -1578,8 +1585,10 @@ def pagina_ingreso():
             try:
                 with st.spinner("Registrando ingreso..."):
                     obs_parts = [f"[{tipo_ingreso}]"]
-                    if tiene_vencimiento_sel == "Sí" and fecha_vencimiento:
+                    if tiene_vencimiento_sel == "Sí — Vigente" and fecha_vencimiento:
                         obs_parts.append(f"Vence: {fecha_vencimiento.strftime('%d/%m/%Y')}")
+                    elif tiene_vencimiento_sel == "Sí — Vencido" and fecha_vencimiento:
+                        obs_parts.append(f"⚠️ VENCIDO: {fecha_vencimiento.strftime('%d/%m/%Y')}")
                     else:
                         obs_parts.append("No contiene fecha de Vec.")
                     if observaciones:
@@ -1600,7 +1609,7 @@ def pagina_ingreso():
                         "marca": marca_ing.strip() if marca_ing and marca_ing.strip() else None,
                         "concentracion": concentracion_ing.strip() if concentracion_ing and concentracion_ing.strip() else None,
                     }
-                    if tiene_vencimiento_sel == "Sí" and fecha_vencimiento:
+                    if tiene_vencimiento_sel in ("Sí — Vigente", "Sí — Vencido") and fecha_vencimiento:
                         payload["fecha_vencimiento"] = fecha_vencimiento.isoformat()
 
                     try:
@@ -1612,9 +1621,10 @@ def pagina_ingreso():
                         else:
                             raise e_inner
 
+                    tiene_venc = tiene_vencimiento_sel in ("Sí — Vigente", "Sí — Vencido") and fecha_vencimiento
                     st.success(
                         "✅ Ingreso registrado exitosamente!"
-                        + (f" — Vencimiento: {fecha_vencimiento.strftime('%d/%m/%Y')}" if (tiene_vencimiento_sel == "Sí" and fecha_vencimiento) else " — Sin fecha de vencimiento")
+                        + (f" — Vencimiento: {fecha_vencimiento.strftime('%d/%m/%Y')}" if tiene_venc else " — Sin fecha de vencimiento")
                     )
                     st.balloons()
                     st.rerun()
