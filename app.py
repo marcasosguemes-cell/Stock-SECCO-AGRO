@@ -41,6 +41,18 @@ st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:wght@300;400;500;600;700&display=swap');
 
+    /* ── Barra superior de Streamlit: ocultar ─────────────── */
+    [data-testid="stHeader"],
+    header[data-testid="stHeader"],
+    .stAppHeader {
+        display: none !important;
+        height: 0 !important;
+        min-height: 0 !important;
+        padding: 0 !important;
+        border: none !important;
+        background: none !important;
+    }
+
     .stApp {
         background-image: url('https://raw.githubusercontent.com/marcasosguemes-cell/Stock-SECCO-AGRO/main/Fondo.PNG') !important;
         background-size: cover !important;
@@ -54,7 +66,7 @@ st.markdown("""
         content: '';
         position: fixed;
         top: 0; left: 0; right: 0; bottom: 0;
-        background: linear-gradient(135deg, rgba(15, 15, 18, 0.97) 0%, rgba(10, 10, 12, 0.98) 100%);
+        background: linear-gradient(135deg, rgba(8, 8, 11, 0.96) 0%, rgba(5, 5, 8, 0.97) 100%);
         z-index: -1;
         pointer-events: none;
     }
@@ -1207,36 +1219,26 @@ def get_stock_por_establecimiento():
 # ══════════════════════════════════════════════════════════════
 
 def pagina_dashboard():
-    # ── CSS exclusivo del Dashboard: fondo oscuro sólido ──────
+    # ── CSS exclusivo del Dashboard ────────────────────────────
     st.markdown("""
     <style>
-        /* Fondo oscuro solo en el Dashboard */
+        /* Fondo más oscuro solo en el Dashboard */
         .stApp {
             background-image: none !important;
-            background: linear-gradient(160deg, #0f0f16 0%, #0b0b12 60%, #08080e 100%) !important;
+            background: linear-gradient(160deg, #0d0d14 0%, #09090f 60%, #06060b 100%) !important;
         }
         .stApp::before { background: none !important; }
 
-        /* Panel de filtros del dashboard */
+        /* Panel de filtros */
         .dash-filtros {
-            background: rgba(30, 30, 40, 0.95) !important;
+            background: rgba(22, 22, 32, 0.98) !important;
             border: 1px solid rgba(212, 160, 23, 0.35) !important;
             border-radius: 18px !important;
             padding: 1.2rem 1.5rem !important;
             margin-bottom: 1.5rem !important;
         }
 
-        /* Contenedor de cada gráfico */
-        .dash-chart-box {
-            background: #1c1c28 !important;
-            border: 1px solid rgba(212, 160, 23, 0.28) !important;
-            border-radius: 18px !important;
-            padding: 1rem 1.2rem 0.6rem 1.2rem !important;
-            margin-bottom: 1.4rem !important;
-            box-shadow: 0 4px 22px rgba(0,0,0,0.45) !important;
-        }
-
-        /* Título de sección del dashboard */
+        /* Título de sección */
         .dash-section-title {
             font-family: 'DM Sans', sans-serif !important;
             font-size: 0.78rem !important;
@@ -1244,12 +1246,17 @@ def pagina_dashboard():
             color: #d4a017 !important;
             text-transform: uppercase !important;
             letter-spacing: 0.13em !important;
-            margin: 0 0 0.6rem 0 !important;
+            margin: 0 0 0.8rem 0 !important;
         }
 
-        /* Gráficos Plotly con fondo sólido */
-        [data-testid="stPlotlyChart"] > div {
-            background: transparent !important;
+        /* Contenedor de cada gráfico */
+        .dash-chart-box {
+            background: #14141e !important;
+            border: 1px solid rgba(212, 160, 23, 0.28) !important;
+            border-radius: 18px !important;
+            padding: 1rem 1.2rem 0.4rem 1.2rem !important;
+            margin-bottom: 1.4rem !important;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.5) !important;
         }
     </style>
     """, unsafe_allow_html=True)
@@ -1273,10 +1280,10 @@ def pagina_dashboard():
             <span style="color:#f0f0f5;font-weight:600;"> {estab_activo}</span>
         </div>
         """, unsafe_allow_html=True)
-    
+
     st.markdown('<div class="dash-filtros">', unsafe_allow_html=True)
     st.markdown('<div class="dash-section-title">🔍 Filtros dinámicos</div>', unsafe_allow_html=True)
-    
+
     col_f1, col_f2, col_f3, col_f4 = st.columns(4)
     
     with col_f1:
@@ -1313,7 +1320,7 @@ def pagina_dashboard():
         stock_min = st.number_input("⚠️ Stock mínimo (alerta)", min_value=0, value=50, step=10)
 
     st.markdown('</div>', unsafe_allow_html=True)  # cierra dash-filtros
-    
+
     movimientos = get_movimientos_con_filtros(
         establecimiento_id=estab_filter(),
         fecha_desde=fecha_desde,
@@ -1454,22 +1461,14 @@ def pagina_dashboard():
         fig_evolucion.update_layout(
             height=420,
             hovermode="x unified",
-            plot_bgcolor="#1c1c28",
-            paper_bgcolor="#1c1c28",
+            plot_bgcolor="#14141e",
+            paper_bgcolor="#14141e",
             font=dict(color="#e8e8ec", size=13, family="DM Sans"),
             title=dict(font=dict(size=16, color="#f0f0f5"), x=0.01),
-            xaxis=dict(
-                gridcolor="rgba(255,255,255,0.07)",
-                linecolor="rgba(255,255,255,0.15)",
-                tickfont=dict(size=12, color="#c8c8d8"),
-                title_font=dict(size=13, color="#d4a017"),
-            ),
-            yaxis=dict(
-                gridcolor="rgba(255,255,255,0.07)",
-                linecolor="rgba(255,255,255,0.15)",
-                tickfont=dict(size=12, color="#c8c8d8"),
-                title_font=dict(size=13, color="#d4a017"),
-            ),
+            xaxis=dict(gridcolor="rgba(255,255,255,0.07)", linecolor="rgba(255,255,255,0.12)",
+                       tickfont=dict(size=12, color="#c8c8d8"), title_font=dict(size=13, color="#d4a017")),
+            yaxis=dict(gridcolor="rgba(255,255,255,0.07)", linecolor="rgba(255,255,255,0.12)",
+                       tickfont=dict(size=12, color="#c8c8d8"), title_font=dict(size=13, color="#d4a017")),
             margin=dict(l=10, r=10, t=50, b=10),
         )
         st.markdown('<div class="dash-chart-box">', unsafe_allow_html=True)
@@ -1521,15 +1520,11 @@ def pagina_dashboard():
                 )
                 fig_torta.update_layout(
                     height=460,
-                    paper_bgcolor="#1c1c28",
+                    paper_bgcolor="#14141e",
                     font=dict(color="#e8e8ec", size=13, family="DM Sans"),
                     title=dict(font=dict(size=16, color="#f0f0f5"), x=0.01),
-                    legend=dict(
-                        font=dict(size=13, color="#e8e8ec"),
-                        bgcolor="rgba(28,28,40,0.9)",
-                        bordercolor="rgba(212,160,23,0.3)",
-                        borderwidth=1,
-                    ),
+                    legend=dict(font=dict(size=13, color="#e8e8ec"),
+                                bgcolor="rgba(20,20,30,0.95)", bordercolor="rgba(212,160,23,0.3)", borderwidth=1),
                     margin=dict(l=10, r=10, t=50, b=10),
                 )
                 st.markdown('<div class="dash-chart-box">', unsafe_allow_html=True)
@@ -1542,42 +1537,25 @@ def pagina_dashboard():
                 titulo_barras = f"📊 Stock — {prod_seleccionado}" if prod_id else "📊 Top 10 Productos con Mayor Stock"
                 top_n = stock_filtrado if prod_id else stock_filtrado.sort_values("stock", ascending=False).head(10)
                 fig_barras = px.bar(
-                    top_n,
-                    x="producto",
-                    y="stock",
-                    title=titulo_barras,
+                    top_n, x="producto", y="stock", title=titulo_barras,
                     labels={"producto": "Producto", "stock": "Stock (unidades)"},
-                    template="plotly_dark",
-                    color="stock",
-                    color_continuous_scale="Oranges",
-                    text="stock"
+                    template="plotly_dark", color="stock",
+                    color_continuous_scale="Oranges", text="stock"
                 )
                 fig_barras.update_traces(
-                    texttemplate="%{text:,.0f}",
-                    textposition="outside",
+                    texttemplate="%{text:,.0f}", textposition="outside",
                     textfont=dict(size=12, color="#e8e8ec"),
-                    marker_line_color="rgba(212,160,23,0.4)",
-                    marker_line_width=1,
+                    marker_line_color="rgba(212,160,23,0.4)", marker_line_width=1,
                 )
                 fig_barras.update_layout(
-                    height=480,
-                    xaxis_tickangle=-40,
-                    plot_bgcolor="#1c1c28",
-                    paper_bgcolor="#1c1c28",
+                    height=480, xaxis_tickangle=-40,
+                    plot_bgcolor="#14141e", paper_bgcolor="#14141e",
                     font=dict(color="#e8e8ec", size=13, family="DM Sans"),
                     title=dict(font=dict(size=16, color="#f0f0f5"), x=0.01),
-                    xaxis=dict(
-                        gridcolor="rgba(255,255,255,0.05)",
-                        linecolor="rgba(255,255,255,0.15)",
-                        tickfont=dict(size=11, color="#c8c8d8"),
-                        title_font=dict(size=13, color="#d4a017"),
-                    ),
-                    yaxis=dict(
-                        gridcolor="rgba(255,255,255,0.07)",
-                        linecolor="rgba(255,255,255,0.15)",
-                        tickfont=dict(size=12, color="#c8c8d8"),
-                        title_font=dict(size=13, color="#d4a017"),
-                    ),
+                    xaxis=dict(gridcolor="rgba(255,255,255,0.05)", linecolor="rgba(255,255,255,0.12)",
+                               tickfont=dict(size=11, color="#c8c8d8"), title_font=dict(size=13, color="#d4a017")),
+                    yaxis=dict(gridcolor="rgba(255,255,255,0.07)", linecolor="rgba(255,255,255,0.12)",
+                               tickfont=dict(size=12, color="#c8c8d8"), title_font=dict(size=13, color="#d4a017")),
                     coloraxis_showscale=False,
                     margin=dict(l=10, r=10, t=55, b=10),
                 )
@@ -1629,47 +1607,30 @@ def pagina_dashboard():
         df_mov["mes"] = df_mov["fecha"].dt.to_period("M").astype(str)
         movimientos_mensuales = df_mov.groupby(["mes", "tipo"])["cantidad"].sum().reset_index()
         fig_mensual = px.bar(
-            movimientos_mensuales,
-            x="mes", y="cantidad", color="tipo",
+            movimientos_mensuales, x="mes", y="cantidad", color="tipo",
             title="📅 Movimientos Mensuales por Tipo",
             labels={"mes": "Mes", "cantidad": "Cantidad (unidades)", "tipo": "Tipo"},
-            template="plotly_dark",
-            barmode="group",
+            template="plotly_dark", barmode="group",
             color_discrete_map={"ingreso": "#d4a017", "egreso": "#e67e22"},
             text="cantidad"
         )
         fig_mensual.update_traces(
-            texttemplate="%{text:,.0f}",
-            textposition="outside",
+            texttemplate="%{text:,.0f}", textposition="outside",
             textfont=dict(size=11, color="#e8e8ec"),
-            marker_line_color="rgba(255,255,255,0.1)",
-            marker_line_width=1,
+            marker_line_color="rgba(255,255,255,0.08)", marker_line_width=1,
         )
         fig_mensual.update_layout(
             height=460,
-            plot_bgcolor="#1c1c28",
-            paper_bgcolor="#1c1c28",
+            plot_bgcolor="#14141e", paper_bgcolor="#14141e",
             font=dict(color="#e8e8ec", size=13, family="DM Sans"),
             title=dict(font=dict(size=16, color="#f0f0f5"), x=0.01),
-            xaxis=dict(
-                gridcolor="rgba(255,255,255,0.05)",
-                linecolor="rgba(255,255,255,0.15)",
-                tickfont=dict(size=12, color="#c8c8d8"),
-                title_font=dict(size=13, color="#d4a017"),
-            ),
-            yaxis=dict(
-                gridcolor="rgba(255,255,255,0.07)",
-                linecolor="rgba(255,255,255,0.15)",
-                tickfont=dict(size=12, color="#c8c8d8"),
-                title_font=dict(size=13, color="#d4a017"),
-            ),
-            legend=dict(
-                font=dict(size=13, color="#e8e8ec"),
-                bgcolor="rgba(28,28,40,0.9)",
-                bordercolor="rgba(212,160,23,0.3)",
-                borderwidth=1,
-                title_font=dict(size=12, color="#d4a017"),
-            ),
+            xaxis=dict(gridcolor="rgba(255,255,255,0.05)", linecolor="rgba(255,255,255,0.12)",
+                       tickfont=dict(size=12, color="#c8c8d8"), title_font=dict(size=13, color="#d4a017")),
+            yaxis=dict(gridcolor="rgba(255,255,255,0.07)", linecolor="rgba(255,255,255,0.12)",
+                       tickfont=dict(size=12, color="#c8c8d8"), title_font=dict(size=13, color="#d4a017")),
+            legend=dict(font=dict(size=13, color="#e8e8ec"),
+                        bgcolor="rgba(20,20,30,0.95)", bordercolor="rgba(212,160,23,0.3)", borderwidth=1,
+                        title_font=dict(size=12, color="#d4a017")),
             margin=dict(l=10, r=10, t=55, b=10),
         )
         st.markdown('<div class="dash-chart-box">', unsafe_allow_html=True)
