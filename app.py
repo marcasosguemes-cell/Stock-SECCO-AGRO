@@ -2184,16 +2184,18 @@ def pagina_productos():
     cat_options = {c["nombre"]: c["id"] for c in categorias}
     
     with st.expander("➕ Agregar nuevo producto", expanded=False):
+        # ── Selectores reactivos FUERA del form ───────────────────
+        cat_sel = st.selectbox("Categoría", list(cat_options.keys()), key="nuevo_prod_cat")
+        es_agro_nuevo = "agroquimico" in cat_sel.lower() or "agroquímico" in cat_sel.lower()
+        subcategoria_nuevo = None
+        if es_agro_nuevo:
+            subcategoria_nuevo = st.selectbox(
+                "🌿 Tipo de Agroquímico *",
+                ["Herbicidas", "Insecticidas", "Coadyuvantes"],
+                key="nuevo_prod_subcategoria"
+            )
+
         with st.form("nuevo_producto"):
-            cat_sel = st.selectbox("Categoría", list(cat_options.keys()))
-            es_agro_nuevo = "agroquimico" in cat_sel.lower() or "agroquímico" in cat_sel.lower()
-            subcategoria_nuevo = None
-            if es_agro_nuevo:
-                subcategoria_nuevo = st.selectbox(
-                    "🌿 Tipo de Agroquímico *",
-                    ["Herbicidas", "Insecticidas", "Coadyuvantes"],
-                    key="nuevo_prod_subcategoria"
-                )
             nombre = st.text_input("Nombre del producto")
             col_p1, col_p2 = st.columns(2)
             with col_p1:
