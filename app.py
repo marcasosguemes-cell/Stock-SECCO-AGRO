@@ -1,9 +1,9 @@
 """
-SISTEMA DE CONTROL DE STOCK AGR?COLA
+SISTEMA DE CONTROL DE STOCK AGRÍCOLA
 App principal Streamlit — La Sonia / San Guillermo / Camba Pora
-Versi?n con gr?ficos interactivos y filtros din?micos
-Estructura mejorada: Admin con visi?n global + usuarios por establecimiento
-CON CAMBIO DE CONTRASE?A OBLIGATORIO EN CADA INGRESO HASTA QUE SE CAMBIE
+Versión con gráficos interactivos y filtros dinámicos
+Estructura mejorada: Admin con visión global + usuarios por establecimiento
+CON CAMBIO DE CONTRASEÑA OBLIGATORIO EN CADA INGRESO HASTA QUE SE CAMBIE
 CON OBLIGATORIEDAD DE SUBIR REMITO EN PDF PARA USUARIOS NO ADMIN
 """
 
@@ -17,9 +17,9 @@ from io import BytesIO
 import uuid
 import base64
 
-# ── Configuraci?n de p?gina ────────────────────────────────────
+# ── Configuración de página ────────────────────────────────────
 st.set_page_config(
-    page_title="Stock Agr?cola - SECCO AGRO",
+    page_title="Stock Agrícola - SECCO AGRO",
     page_icon="🌾",
     layout="wide",
     initial_sidebar_state="expanded",
@@ -57,7 +57,7 @@ st.markdown("""
     /* Fondo base oscuro por si la imagen no carga */
     html, body { background: #0e0e14 !important; }
 
-    /* stApp: fondo de color base, sin imagen aqu? */
+    /* stApp: fondo de color base, sin imagen aquí */
     .stApp {
         background: #0e0e14 !important;
         font-family: 'DM Sans', sans-serif !important;
@@ -65,7 +65,7 @@ st.markdown("""
         isolation: isolate !important;
     }
 
-    /* Capa 1 (m?s abajo): imagen en escala de grises y oscurecida */
+    /* Capa 1 (más abajo): imagen en escala de grises y oscurecida */
     .stApp::after {
         content: '' !important;
         position: fixed !important;
@@ -80,7 +80,7 @@ st.markdown("""
         pointer-events: none !important;
     }
 
-    /* Capa 2: overlay semitransparente para m?s contraste */
+    /* Capa 2: overlay semitransparente para más contraste */
     .stApp::before {
         content: '' !important;
         position: fixed !important;
@@ -737,7 +737,7 @@ st.markdown("""
         margin-top: 0 !important;
     }
     
-    /* Estilo para el bot?n de visualizaci?n de PDF */
+    /* Estilo para el botón de visualización de PDF */
     .pdf-miniatura {
         background: rgba(212, 160, 23, 0.15);
         border-radius: 8px;
@@ -758,7 +758,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 
-# ── JS: Reemplazar texto del bot?n colapsar sidebar ──────────
+# ── JS: Reemplazar texto del botón colapsar sidebar ──────────
 import streamlit.components.v1 as components
 components.html("""
 <script>
@@ -802,7 +802,7 @@ components.html("""
 
 
 # ══════════════════════════════════════════════════════════════
-# FUNCIONES DE AUTENTICACI?N
+# FUNCIONES DE AUTENTICACIÓN
 # ══════════════════════════════════════════════════════════════
 
 def check_auth():
@@ -829,7 +829,7 @@ def logout():
                 del st.session_state[key]
         st.rerun()
     except Exception as e:
-        st.error(f"Error al cerrar sesi?n: {e}")
+        st.error(f"Error al cerrar sesión: {e}")
 
 
 def verificar_perfil():
@@ -863,13 +863,13 @@ def verificar_perfil():
 def subir_remito_pdf(archivo_pdf, movimiento_id, usuario_id, establecimiento_id):
     """
     Sube un archivo PDF a Supabase Storage y guarda la referencia en la tabla movimientos.
-    Retorna la URL p?blica o None si falla.
+    Retorna la URL pública o None si falla.
     """
     if archivo_pdf is None:
         return None
     
     try:
-        # Generar nombre ?nico para el archivo
+        # Generar nombre único para el archivo
         extension = "pdf"
         nombre_archivo = f"remito_{movimiento_id}_{uuid.uuid4().hex[:8]}.{extension}"
         carpeta = f"remitos/{establecimiento_id}/{usuario_id}"
@@ -885,7 +885,7 @@ def subir_remito_pdf(archivo_pdf, movimiento_id, usuario_id, establecimiento_id)
             file_options={"content-type": "application/pdf"}
         )
         
-        # Obtener URL p?blica
+        # Obtener URL pública
         url_publica = supabase.storage.from_(SUPABASE_STORAGE_BUCKET).get_public_url(ruta_completa)
         
         # Actualizar el registro del movimiento con la URL del remito
@@ -927,7 +927,7 @@ def login():
                 <img src="https://raw.githubusercontent.com/marcasosguemes-cell/Stock-SECCO-AGRO/main/Logo.png" class="title-logo" alt="Logo">
             </div>
             <div class="title-bubble-login">
-                <h1 class="main-title-with-logo">Stock Agr?cola</h1>
+                <h1 class="main-title-with-logo">Stock Agrícola</h1>
                 <p class="login-subtitle">La Sonia · San Guillermo · Camba Pora</p>
             </div>
         </div>
@@ -936,7 +936,7 @@ def login():
         with st.form("login_form"):
             st.markdown("### Bienvenido")
             email = st.text_input("Email", placeholder="usuario@ejemplo.com")
-            password = st.text_input("Contrase?a", type="password", placeholder="••••••••")
+            password = st.text_input("Contraseña", type="password", placeholder="••••••••")
             submitted = st.form_submit_button("🚀 Ingresar", use_container_width=True)
             
             if submitted:
@@ -955,63 +955,63 @@ def login():
                             st.session_state["establecimiento_nombre"] = perfil.data[0].get("establecimiento_nombre")
                             st.session_state["password_changed"] = perfil.data[0].get("password_changed", False)
                             st.session_state["pagina"] = "Dashboard"
-                            # Limpiar bandera temporal de sesi?n anterior
+                            # Limpiar bandera temporal de sesión anterior
                             st.session_state.pop("skip_password_check", None)
                             st.success("✅ Login exitoso!")
                             st.rerun()
                         else:
-                            st.error("❌ No se encontr? tu perfil.")
+                            st.error("❌ No se encontró tu perfil.")
                 except Exception as e:
                     st.error(f"❌ Error: {e}")
 
 
 # ══════════════════════════════════════════════════════════════
-# FUNCI?N PARA MOSTRAR CAMBIO DE CONTRASE?A - CORREGIDA
+# FUNCIÓN PARA MOSTRAR CAMBIO DE CONTRASEÑA - CORREGIDA
 # ══════════════════════════════════════════════════════════════
 
 def mostrar_cambio_password():
     st.markdown("""
     <div class="password-warning">
-        <h3>🔐 Cambio de Contrase?a Obligatorio</h3>
-        <p>Por razones de seguridad, debes cambiar tu contrase?a.</p>
-        <p><strong>Importante:</strong> Esta contrase?a temporal caducar? pronto. Por favor, establ?cela ahora.</p>
-        <p>Si eliges "M?s Tarde", el sistema te recordar? en cada ingreso hasta que la cambies.</p>
+        <h3>🔐 Cambio de Contraseña Obligatorio</h3>
+        <p>Por razones de seguridad, debes cambiar tu contraseña.</p>
+        <p><strong>Importante:</strong> Esta contraseña temporal caducará pronto. Por favor, establézcala ahora.</p>
+        <p>Si eliges "Más Tarde", el sistema te recordará en cada ingreso hasta que la cambies.</p>
     </div>
     """, unsafe_allow_html=True)
     
     with st.form("cambiar_password_form_main"):
-        nueva_password = st.text_input("Nueva Contrase?a", type="password", placeholder="M?nimo 6 caracteres")
-        confirmar_password = st.text_input("Confirmar Contrase?a", type="password", placeholder="Repite tu nueva contrase?a")
+        nueva_password = st.text_input("Nueva Contraseña", type="password", placeholder="Mínimo 6 caracteres")
+        confirmar_password = st.text_input("Confirmar Contraseña", type="password", placeholder="Repite tu nueva contraseña")
         
         col1, col2 = st.columns(2)
         with col1:
-            cambiar_btn = st.form_submit_button("✅ Cambiar Contrase?a", use_container_width=True)
+            cambiar_btn = st.form_submit_button("✅ Cambiar Contraseña", use_container_width=True)
         with col2:
-            mas_tarde_btn = st.form_submit_button("⏰ M?s Tarde", use_container_width=True)
+            mas_tarde_btn = st.form_submit_button("⏰ Más Tarde", use_container_width=True)
         
         if cambiar_btn:
             if not nueva_password:
-                st.error("❌ Por favor ingresa una nueva contrase?a")
+                st.error("❌ Por favor ingresa una nueva contraseña")
             elif len(nueva_password) < 6:
-                st.error("❌ La contrase?a debe tener al menos 6 caracteres")
+                st.error("❌ La contraseña debe tener al menos 6 caracteres")
             elif nueva_password != confirmar_password:
-                st.error("❌ Las contrase?as no coinciden")
+                st.error("❌ Las contraseñas no coinciden")
             else:
                 try:
-                    with st.spinner("Actualizando contrase?a..."):
+                    with st.spinner("Actualizando contraseña..."):
                         supabase.auth.update_user({"password": nueva_password})
                         supabase.table("usuarios").update({"password_changed": True}).eq("id", st.session_state["user_id"]).execute()
                         st.session_state["password_changed"] = True
                         # Limpiar bandera temporal
                         st.session_state.pop("skip_password_check", None)
-                        st.success("✅ Contrase?a actualizada correctamente!")
+                        st.success("✅ Contraseña actualizada correctamente!")
                         st.balloons()
                         st.rerun()
                 except Exception as e:
-                    st.error(f"❌ Error al actualizar contrase?a: {e}")
+                    st.error(f"❌ Error al actualizar contraseña: {e}")
         
         if mas_tarde_btn:
-            # Establecer bandera temporal para esta sesi?n
+            # Establecer bandera temporal para esta sesión
             st.session_state["skip_password_check"] = True
             st.rerun()
 
@@ -1027,7 +1027,7 @@ def sidebar():
             <div class="sidebar-logo-oval">
                 <img src="https://raw.githubusercontent.com/marcasosguemes-cell/Stock-SECCO-AGRO/main/Logo.png" class="sidebar-logo" alt="Logo">
             </div>
-            <h1>Stock Agr?cola</h1>
+            <h1>Stock Agrícola</h1>
         </div>
         """, unsafe_allow_html=True)
         
@@ -1054,7 +1054,7 @@ def sidebar():
             if not mi_estab_id or not mi_estab_nombre:
                 st.error("⚠️ No tienes un establecimiento asignado. Contacta al administrador.")
                 st.markdown("---")
-                if st.button("🚪 Cerrar sesi?n"):
+                if st.button("🚪 Cerrar sesión"):
                     logout()
                 return
             
@@ -1106,11 +1106,11 @@ def sidebar():
         """, unsafe_allow_html=True)
         
         st.markdown("---")
-        st.markdown("### 📌 MEN?")
+        st.markdown("### 📌 MENÚ")
         
         # Verificar si es usuario NO admin para mostrar aviso de remito obligatorio
         if rol != "admin":
-            st.info("📎 **Importante:** Al registrar ingresos o egresos deber?s adjuntar el remito en formato PDF.")
+            st.info("📎 **Importante:** Al registrar ingresos o egresos deberás adjuntar el remito en formato PDF.")
 
         if es_consolidado and rol == "admin":
             paginas_menu = [
@@ -1143,9 +1143,9 @@ def sidebar():
                 ("📈", "Reportes"),
             ]
         else:
-            st.error("⚠️ Configuraci?n incompleta. Contacta al administrador.")
+            st.error("⚠️ Configuración incompleta. Contacta al administrador.")
             st.markdown("---")
-            if st.button("🚪 Cerrar sesi?n"):
+            if st.button("🚪 Cerrar sesión"):
                 logout()
             return
 
@@ -1159,7 +1159,7 @@ def sidebar():
                 st.session_state["pagina"] = nombre
         
         st.markdown("---")
-        if st.button("🚪 Cerrar sesi?n"):
+        if st.button("🚪 Cerrar sesión"):
             logout()
 
 
@@ -1236,7 +1236,7 @@ def get_stock_por_producto(establecimiento_id=None):
     
     productos = get_productos()
     nombre_map = {p["id"]: p["nombre"] for p in productos}
-    categoria_map = {p["id"]: p.get("categorias", {}).get("nombre", "Sin categor?a") if p.get("categorias") else "Sin categor?a" for p in productos}
+    categoria_map = {p["id"]: p.get("categorias", {}).get("nombre", "Sin categoría") if p.get("categorias") else "Sin categoría" for p in productos}
     presentacion_map = {p["id"]: p.get("presentacion", "") for p in productos}
     unidad_map = {p["id"]: p.get("unidad_medida", "unidad") for p in productos}
     
@@ -1250,7 +1250,7 @@ def get_stock_por_producto(establecimiento_id=None):
             result.append({
                 "producto_id": prod_id,
                 "producto": nombre_map.get(prod_id, "Desconocido"),
-                "categoria": categoria_map.get(prod_id, "Sin categor?a"),
+                "categoria": categoria_map.get(prod_id, "Sin categoría"),
                 "presentacion": presentacion_map.get(prod_id, ""),
                 "unidad": unidad_map.get(prod_id, "unidad"),
                 "stock": cantidad
@@ -1310,7 +1310,7 @@ def get_stock_por_establecimiento():
     df["producto_presentacion"] = df["productos"].apply(lambda x: x.get("presentacion", "") if isinstance(x, dict) else "")
     df["producto_unidad"] = df["productos"].apply(lambda x: x.get("unidad_medida", "unidad") if isinstance(x, dict) else "unidad")
     df["categoria_nombre"] = df["productos"].apply(
-        lambda x: x.get("categorias", {}).get("nombre", "Sin categor?a") if isinstance(x, dict) and x.get("categorias") else "Sin categor?a"
+        lambda x: x.get("categorias", {}).get("nombre", "Sin categoría") if isinstance(x, dict) and x.get("categorias") else "Sin categoría"
     )
     df["establecimiento_nombre"] = df["establecimientos"].apply(lambda x: x.get("nombre", "") if isinstance(x, dict) else "")
 
@@ -1323,11 +1323,11 @@ def get_stock_por_establecimiento():
 
 
 # ══════════════════════════════════════════════════════════════
-# DASHBOARD CON GR?FICOS INTERACTIVOS Y FILTROS DIN?MICOS
+# DASHBOARD CON GRÁFICOS INTERACTIVOS Y FILTROS DINÁMICOS
 # ══════════════════════════════════════════════════════════════
 
 def pagina_dashboard():
-    # CSS del Dashboard: solo estilos de paneles y gr?ficos, NO toca el fondo
+    # CSS del Dashboard: solo estilos de paneles y gráficos, NO toca el fondo
     st.markdown("""
     <style>
         .dash-filtros {
@@ -1363,7 +1363,7 @@ def pagina_dashboard():
     <div>
         <div class="title-bubble">
             <h1>📊 Dashboard de Stock</h1>
-            <p>📋 An?lisis interactivo del inventario agr?cola</p>
+            <p>📋 Análisis interactivo del inventario agrícola</p>
         </div>
     </div>
     """, unsafe_allow_html=True)
@@ -1378,7 +1378,7 @@ def pagina_dashboard():
         """, unsafe_allow_html=True)
 
     st.markdown('<div class="dash-filtros">', unsafe_allow_html=True)
-    st.markdown('<div class="dash-section-title">🔍 Filtros din?micos</div>', unsafe_allow_html=True)
+    st.markdown('<div class="dash-section-title">🔍 Filtros dinámicos</div>', unsafe_allow_html=True)
 
     col_f1, col_f2, col_f3, col_f4 = st.columns(4)
 
@@ -1393,14 +1393,14 @@ def pagina_dashboard():
         categorias = get_categorias()
         cat_options = {c["nombre"]: c["id"] for c in categorias}
         cat_options["Todas"] = None
-        cat_seleccionada = st.selectbox("📁 Categor?a", list(cat_options.keys()))
+        cat_seleccionada = st.selectbox("📁 Categoría", list(cat_options.keys()))
         cat_id = cat_options[cat_seleccionada] if cat_seleccionada != "Todas" else None
 
-        es_agro_dash = cat_seleccionada and ("agroquimico" in cat_seleccionada.lower() or "agroqu?mico" in cat_seleccionada.lower())
+        es_agro_dash = cat_seleccionada and ("agroquimico" in cat_seleccionada.lower() or "agroquímico" in cat_seleccionada.lower())
         subcategoria_dash = None
         if es_agro_dash:
             subcategoria_dash = st.selectbox(
-                "🌿 Tipo Agroqu?mico",
+                "🌿 Tipo Agroquímico",
                 ["Todos", "Herbicidas", "Insecticidas", "Coadyuvantes"],
                 key="dash_subcategoria"
             )
@@ -1412,7 +1412,7 @@ def pagina_dashboard():
         prod_id = prod_options[prod_seleccionado] if prod_seleccionado != "Todos" else None
     
     with col_f4:
-        stock_min = st.number_input("⚠️ Stock m?nimo (alerta)", min_value=0, value=50, step=10)
+        stock_min = st.number_input("⚠️ Stock mínimo (alerta)", min_value=0, value=50, step=10)
 
     st.markdown('</div>', unsafe_allow_html=True)  # cierra dash-filtros
 
@@ -1425,7 +1425,7 @@ def pagina_dashboard():
         categoria_id=cat_id
     )
 
-    # Filtrar por subcategor?a en el DataFrame si corresponde
+    # Filtrar por subcategoría en el DataFrame si corresponde
     if movimientos and es_agro_dash and subcategoria_dash and subcategoria_dash != "Todos":
         ids_subcat = {p["id"] for p in get_productos(cat_id, subcategoria_dash)}
         movimientos = [m for m in movimientos if m.get("producto_id") in ids_subcat]
@@ -1464,7 +1464,7 @@ def pagina_dashboard():
             <div class="metric-card">
                 <div class="metric-label">📦 STOCK TOTAL</div>
                 <div class="metric-value">{stock_total:,.0f}</div>
-                <div class="{trend_class}">{trend_icon} {abs(tendencia_ingresos):.1f}% vs per?odo anterior</div>
+                <div class="{trend_class}">{trend_icon} {abs(tendencia_ingresos):.1f}% vs período anterior</div>
                 <div style="font-size:0.7rem; color:#a8a8b0;">unidades en inventario</div>
             </div>
             """, unsafe_allow_html=True)
@@ -1492,7 +1492,7 @@ def pagina_dashboard():
             <div class="metric-card">
                 <div class="metric-label">🔄 MOVIMIENTOS</div>
                 <div class="metric-value">{total_movimientos}</div>
-                <div style="font-size:0.7rem; color:#a8a8b0;">operaciones en el per?odo</div>
+                <div style="font-size:0.7rem; color:#a8a8b0;">operaciones en el período</div>
             </div>
             """, unsafe_allow_html=True)
     else:
@@ -1519,18 +1519,18 @@ def pagina_dashboard():
             lambda x: x.get("categorias", {}).get("nombre", "") if isinstance(x, dict) else ""
         )
 
-        # T?tulo din?mico seg?n filtros activos
+        # Título dinámico según filtros activos
         filtro_desc = []
         if prod_seleccionado != "Todos":
             filtro_desc.append(f"Producto: **{prod_seleccionado}**")
         elif cat_seleccionada != "Todas":
-            filtro_desc.append(f"Categor?a: **{cat_seleccionada}**")
+            filtro_desc.append(f"Categoría: **{cat_seleccionada}**")
             if es_agro_dash and subcategoria_dash and subcategoria_dash != "Todos":
                 filtro_desc.append(f"Tipo: **{subcategoria_dash}**")
         if filtro_desc:
             st.markdown(f"🔎 Mostrando datos para — {' | '.join(filtro_desc)}")
 
-        # ── Evoluci?n del stock ──────────────────────────────────
+        # ── Evolución del stock ──────────────────────────────────
         df_mov["stock_diario"] = df_mov.apply(
             lambda x: x["cantidad"] if x["tipo"] == "ingreso" else -x["cantidad"], axis=1
         )
@@ -1538,7 +1538,7 @@ def pagina_dashboard():
         df_daily.columns = ["fecha", "movimiento_diario"]
         df_daily["stock_acumulado"] = df_daily["movimiento_diario"].cumsum()
 
-        titulo_evol = f"📈 Evoluci?n del Stock — {prod_seleccionado}" if prod_seleccionado != "Todos" else "📈 Evoluci?n del Stock en el Tiempo"
+        titulo_evol = f"📈 Evolución del Stock — {prod_seleccionado}" if prod_seleccionado != "Todos" else "📈 Evolución del Stock en el Tiempo"
         fig_evolucion = px.line(
             df_daily, x="fecha", y="stock_acumulado", title=titulo_evol,
             labels={"fecha": "Fecha", "stock_acumulado": "Stock (unidades)"},
@@ -1564,10 +1564,10 @@ def pagina_dashboard():
         st.plotly_chart(fig_evolucion, use_container_width=True)
         st.markdown('</div>', unsafe_allow_html=True)
 
-        # ── Torta: distribuci?n por categor?a (o por producto si hay filtro) ──
+        # ── Torta: distribución por categoría (o por producto si hay filtro) ──
         stock_productos = get_stock_por_producto(estab_filter())
         if not stock_productos.empty:
-            # Aplicar mismo filtro de producto/categor?a/subcategor?a al stock
+            # Aplicar mismo filtro de producto/categoría/subcategoría al stock
             stock_filtrado = stock_productos.copy()
             if prod_id:
                 stock_filtrado = stock_filtrado[stock_filtrado["producto_id"] == prod_id]
@@ -1578,7 +1578,7 @@ def pagina_dashboard():
                     stock_filtrado = stock_filtrado[stock_filtrado["producto_id"].isin(ids_sub)]
 
             if not stock_filtrado.empty:
-                # Si hay un producto espec?fico: torta por establecimiento; si no: por categor?a
+                # Si hay un producto específico: torta por establecimiento; si no: por categoría
                 if prod_id:
                     if "establecimiento" in stock_filtrado.columns:
                         pie_data = stock_filtrado.groupby("establecimiento")["stock"].sum().reset_index()
@@ -1591,7 +1591,7 @@ def pagina_dashboard():
                 else:
                     pie_data = stock_filtrado.groupby("categoria")["stock"].sum().reset_index()
                     pie_names = "categoria"
-                    pie_title = "🥧 Distribuci?n de Stock por Categor?a"
+                    pie_title = "🥧 Distribución de Stock por Categoría"
 
                 fig_torta = px.pie(
                     pie_data, values="stock", names=pie_names, title=pie_title,
@@ -1649,7 +1649,7 @@ def pagina_dashboard():
             st.markdown("### 📋 Detalle de Stock Actual")
             stock_display = stock_filtrado.copy()
             stock_display["alerta"] = stock_display["stock"].apply(
-                lambda x: "🔴 Cr?tico" if x < stock_min else ("⚠️ Bajo" if x < stock_min * 2 else "✅ Normal")
+                lambda x: "🔴 Crítico" if x < stock_min else ("⚠️ Bajo" if x < stock_min * 2 else "✅ Normal")
             )
             cols_disp = [c for c in ["producto", "categoria", "presentacion", "stock", "unidad", "alerta"] if c in stock_display.columns]
             st.dataframe(stock_display[cols_disp], use_container_width=True, height=400)
@@ -1720,7 +1720,7 @@ def pagina_dashboard():
         st.markdown('</div>', unsafe_allow_html=True)
 
     else:
-        st.info("💡 Sin datos en el per?odo seleccionado. Ajust? los filtros o registr? movimientos.")
+        st.info("💡 Sin datos en el período seleccionado. Ajustá los filtros o registrá movimientos.")
     
     st.markdown('</div>', unsafe_allow_html=True)
 
@@ -1751,7 +1751,7 @@ def pagina_ingreso():
         return
     
     if not categorias:
-        st.warning("⚠️ No hay categor?as cargadas.")
+        st.warning("⚠️ No hay categorías cargadas.")
         return
 
     if es_admin:
@@ -1767,15 +1767,15 @@ def pagina_ingreso():
     col1, col2 = st.columns(2)
     with col1:
         cat_options = {c["nombre"]: c["id"] for c in categorias}
-        cat_sel = st.selectbox("📁 Categor?a *", list(cat_options.keys()), key="ing_cat")
+        cat_sel = st.selectbox("📁 Categoría *", list(cat_options.keys()), key="ing_cat")
         cat_id = cat_options[cat_sel]
 
-    # ── Subcategor?a Agroqu?micos ──────────────────────────────
-    es_agroquimico_ing = "agroquimico" in cat_sel.lower() or "agroqu?mico" in cat_sel.lower()
+    # ── Subcategoría Agroquímicos ──────────────────────────────
+    es_agroquimico_ing = "agroquimico" in cat_sel.lower() or "agroquímico" in cat_sel.lower()
     subcategoria_ing = None
     if es_agroquimico_ing:
         subcategoria_ing = st.selectbox(
-            "🌿 Tipo de Agroqu?mico *",
+            "🌿 Tipo de Agroquímico *",
             ["Herbicidas", "Insecticidas", "Coadyuvantes"],
             key="ing_subcategoria"
         )
@@ -1784,9 +1784,9 @@ def pagina_ingreso():
         productos = get_productos(cat_id, subcategoria_ing if es_agroquimico_ing else None)
         if not productos:
             if es_agroquimico_ing:
-                st.warning(f"⚠️ No hay productos cargados como '{subcategoria_ing}' en esta categor?a.")
+                st.warning(f"⚠️ No hay productos cargados como '{subcategoria_ing}' en esta categoría.")
             else:
-                st.warning("⚠️ No hay productos en esta categor?a.")
+                st.warning("⚠️ No hay productos en esta categoría.")
             return
         prod_options = {p["nombre"]: p["id"] for p in productos}
         prod_sel = st.selectbox("🏷️ Producto *", list(prod_options.keys()), key="ing_prod")
@@ -1797,7 +1797,7 @@ def pagina_ingreso():
             def _safe(v, default=''): return str(v).strip() if v and str(v).strip() not in ('None', 'none', '') else default
             marca_str = _safe(prod_info.get('marca'))
             conc_str = _safe(prod_info.get('concentracion'))
-            presentacion_str = _safe(prod_info.get('presentacion'), 'Sin presentaci?n')
+            presentacion_str = _safe(prod_info.get('presentacion'), 'Sin presentación')
             unidad_str = _safe(prod_info.get('unidad_medida'), 'unidad')
             extra = " | ".join(x for x in [marca_str, conc_str] if x)
             parts = [x for x in [presentacion_str, unidad_str, extra] if x]
@@ -1806,25 +1806,25 @@ def pagina_ingreso():
     # ── Fecha de vencimiento: selectbox reactivo FUERA del form ──
     from zoneinfo import ZoneInfo
     _now_arg = datetime.now(ZoneInfo("America/Argentina/Buenos_Aires")).replace(tzinfo=None)
-    st.caption(f"🕐 Fecha y hora del registro: **{_now_arg.strftime('%d/%m/%Y  %H:%M')}** (se guarda autom?ticamente)")
+    st.caption(f"🕐 Fecha y hora del registro: **{_now_arg.strftime('%d/%m/%Y  %H:%M')}** (se guarda automáticamente)")
 
     col_venc_sel, col_venc_fecha = st.columns([1, 2])
     with col_venc_sel:
         tiene_vencimiento_sel = st.selectbox(
-            "📅 ?Tiene fecha de vencimiento?",
-            ["No", "S? — Vigente", "S? — Vencido"],
+            "📅 ¿Tiene fecha de vencimiento?",
+            ["No", "Sí — Vigente", "Sí — Vencido"],
             key="ing_tiene_venc"
         )
     with col_venc_fecha:
         fecha_vencimiento = None
-        if tiene_vencimiento_sel == "S? — Vigente":
+        if tiene_vencimiento_sel == "Sí — Vigente":
             fecha_vencimiento = st.date_input(
                 "Fecha de vencimiento",
                 value=date.today().replace(year=date.today().year + 1),
                 min_value=date.today(),
                 key="fecha_venc_ing"
             )
-        elif tiene_vencimiento_sel == "S? — Vencido":
+        elif tiene_vencimiento_sel == "Sí — Vencido":
             fecha_vencimiento = st.date_input(
                 "Fecha de vencimiento (pasada)",
                 value=date.today().replace(year=date.today().year - 1),
@@ -1861,13 +1861,13 @@ def pagina_ingreso():
                 st.info("💡 No hay proveedores cargados")
 
         with col5:
-            tipo_ingreso = st.selectbox("📌 Tipo de Ingreso", ["Compra", "Devoluci?n", "Traslado", "Otro"])
+            tipo_ingreso = st.selectbox("📌 Tipo de Ingreso", ["Compra", "Devolución", "Traslado", "Otro"])
 
         col_mc1, col_mc2 = st.columns(2)
         with col_mc1:
             marca_ing = st.text_input("🏷️ Marca", placeholder="Ej: Bayer, YPF Agro, Dow...")
         with col_mc2:
-            concentracion_ing = st.text_input("🧪 Concentraci?n", placeholder="Ej: 48%, 500 g/L...")
+            concentracion_ing = st.text_input("🧪 Concentración", placeholder="Ej: 48%, 500 g/L...")
 
         observaciones = st.text_area("📝 Observaciones", placeholder="N° factura, lote, detalles adicionales...")
 
@@ -1886,9 +1886,9 @@ def pagina_ingreso():
             try:
                 with st.spinner("Registrando ingreso..."):
                     obs_parts = [f"[{tipo_ingreso}]"]
-                    if tiene_vencimiento_sel == "S? — Vigente" and fecha_vencimiento:
+                    if tiene_vencimiento_sel == "Sí — Vigente" and fecha_vencimiento:
                         obs_parts.append(f"Vence: {fecha_vencimiento.strftime('%d/%m/%Y')}")
-                    elif tiene_vencimiento_sel == "S? — Vencido" and fecha_vencimiento:
+                    elif tiene_vencimiento_sel == "Sí — Vencido" and fecha_vencimiento:
                         obs_parts.append(f"⚠️ VENCIDO: {fecha_vencimiento.strftime('%d/%m/%Y')}")
                     else:
                         obs_parts.append("No contiene fecha de Vec.")
@@ -1912,7 +1912,7 @@ def pagina_ingreso():
                         "marca": marca_ing.strip() if marca_ing and marca_ing.strip() else None,
                         "concentracion": concentracion_ing.strip() if concentracion_ing and concentracion_ing.strip() else None,
                     }
-                    if tiene_vencimiento_sel in ("S? — Vigente", "S? — Vencido") and fecha_vencimiento:
+                    if tiene_vencimiento_sel in ("Sí — Vigente", "Sí — Vencido") and fecha_vencimiento:
                         payload["fecha_vencimiento"] = fecha_vencimiento.isoformat()
 
                     try:
@@ -1924,14 +1924,14 @@ def pagina_ingreso():
                         else:
                             raise e_inner
                     
-                    # Obtener el ID del movimiento reci?n creado
+                    # Obtener el ID del movimiento recién creado
                     movimiento_id = resultado.data[0]["id"] if resultado.data else None
                     
                     # Subir el remito si existe
                     if movimiento_id and archivo_remito is not None:
                         subir_remito_pdf(archivo_remito, movimiento_id, st.session_state.get("user_id"), establecimiento_id)
 
-                    tiene_venc = tiene_vencimiento_sel in ("S? — Vigente", "S? — Vencido") and fecha_vencimiento
+                    tiene_venc = tiene_vencimiento_sel in ("Sí — Vigente", "Sí — Vencido") and fecha_vencimiento
                     st.success(
                         "✅ Ingreso registrado exitosamente!"
                         + (f" — Vencimiento: {fecha_vencimiento.strftime('%d/%m/%Y')}" if tiene_venc else " — Sin fecha de vencimiento")
@@ -1980,15 +1980,15 @@ def pagina_egreso():
     col1, col2 = st.columns(2)
     with col1:
         cat_options = {c["nombre"]: c["id"] for c in categorias}
-        cat_sel = st.selectbox("📁 Categor?a *", list(cat_options.keys()), key="egr_cat")
+        cat_sel = st.selectbox("📁 Categoría *", list(cat_options.keys()), key="egr_cat")
         cat_id = cat_options[cat_sel]
 
-    # ── Subcategor?a Agroqu?micos ──────────────────────────────
-    es_agroquimico_egr = "agroquimico" in cat_sel.lower() or "agroqu?mico" in cat_sel.lower()
+    # ── Subcategoría Agroquímicos ──────────────────────────────
+    es_agroquimico_egr = "agroquimico" in cat_sel.lower() or "agroquímico" in cat_sel.lower()
     subcategoria_egr = None
     if es_agroquimico_egr:
         subcategoria_egr = st.selectbox(
-            "🌿 Tipo de Agroqu?mico *",
+            "🌿 Tipo de Agroquímico *",
             ["Herbicidas", "Insecticidas", "Coadyuvantes"],
             key="egr_subcategoria"
         )
@@ -1997,9 +1997,9 @@ def pagina_egreso():
         productos = get_productos(cat_id, subcategoria_egr if es_agroquimico_egr else None)
         if not productos:
             if es_agroquimico_egr:
-                st.warning(f"⚠️ No hay productos cargados como '{subcategoria_egr}' en esta categor?a.")
+                st.warning(f"⚠️ No hay productos cargados como '{subcategoria_egr}' en esta categoría.")
             else:
-                st.warning("⚠️ No hay productos en esta categor?a.")
+                st.warning("⚠️ No hay productos en esta categoría.")
             return
         prod_options = {p["nombre"]: p["id"] for p in productos}
         prod_sel = st.selectbox("🏷️ Producto *", list(prod_options.keys()), key="egr_prod")
@@ -2025,7 +2025,7 @@ def pagina_egreso():
 
     from zoneinfo import ZoneInfo
     _now_arg_egr = datetime.now(ZoneInfo("America/Argentina/Buenos_Aires")).replace(tzinfo=None)
-    st.caption(f"🕐 Fecha y hora del registro: **{_now_arg_egr.strftime('%d/%m/%Y  %H:%M')}** (se guarda autom?ticamente)")
+    st.caption(f"🕐 Fecha y hora del registro: **{_now_arg_egr.strftime('%d/%m/%Y  %H:%M')}** (se guarda automáticamente)")
 
     # ── Campo para subir remito (obligatorio para no admin) ──
     if not es_admin:
@@ -2056,7 +2056,7 @@ def pagina_egreso():
         with col_mc1e:
             marca_egr_form = st.text_input("🏷️ Marca", placeholder="Ej: Bayer, YPF Agro, Dow...")
         with col_mc2e:
-            concentracion_egr_form = st.text_input("🧪 Concentraci?n", placeholder="Ej: 48%, 500 g/L...")
+            concentracion_egr_form = st.text_input("🧪 Concentración", placeholder="Ej: 48%, 500 g/L...")
 
         observaciones = st.text_area("📝 Observaciones", placeholder="Motivo del egreso, destino, responsable, etc.")
 
@@ -2097,7 +2097,7 @@ def pagina_egreso():
                     }
                     resultado = supabase.table("movimientos").insert(payload).execute()
                     
-                    # Obtener el ID del movimiento reci?n creado
+                    # Obtener el ID del movimiento recién creado
                     movimiento_id = resultado.data[0]["id"] if resultado.data else None
                     
                     # Subir el remito si existe
@@ -2111,7 +2111,7 @@ def pagina_egreso():
 
 
 # ══════════════════════════════════════════════════════════════
-# HISTORIAL - VERSI?N CORREGIDA CON VISUALIZACI?N DE REMITOS
+# HISTORIAL - VERSIÓN CORREGIDA CON VISUALIZACIÓN DE REMITOS
 # ══════════════════════════════════════════════════════════════
 
 def pagina_historial():
@@ -2136,15 +2136,15 @@ def pagina_historial():
         categorias = get_categorias()
         cat_options = {c["nombre"]: c["id"] for c in categorias}
         cat_options["Todas"] = None
-        cat_seleccionada = st.selectbox("Categor?a", list(cat_options.keys()))
+        cat_seleccionada = st.selectbox("Categoría", list(cat_options.keys()))
         cat_id = cat_options[cat_seleccionada] if cat_seleccionada != "Todas" else None
 
-    # Subcategor?a agroqu?micos (fila extra si corresponde)
-    es_agro_hist = cat_seleccionada and ("agroquimico" in cat_seleccionada.lower() or "agroqu?mico" in cat_seleccionada.lower())
+    # Subcategoría agroquímicos (fila extra si corresponde)
+    es_agro_hist = cat_seleccionada and ("agroquimico" in cat_seleccionada.lower() or "agroquímico" in cat_seleccionada.lower())
     subcategoria_hist = None
     if es_agro_hist:
         subcategoria_hist = st.selectbox(
-            "🌿 Tipo de Agroqu?mico",
+            "🌿 Tipo de Agroquímico",
             ["Todos", "Herbicidas", "Insecticidas", "Coadyuvantes"],
             key="hist_subcategoria"
         )
@@ -2157,13 +2157,13 @@ def pagina_historial():
         categoria_id=cat_id
     )
 
-    # Filtrar por subcategor?a en el DataFrame si corresponde
+    # Filtrar por subcategoría en el DataFrame si corresponde
     if movimientos and es_agro_hist and subcategoria_hist and subcategoria_hist != "Todos":
         ids_subcat = {p["id"] for p in get_productos(cat_id, subcategoria_hist)}
         movimientos = [m for m in movimientos if m.get("producto_id") in ids_subcat]
     
     if not movimientos:
-        st.info("💡 Sin movimientos en el per?odo seleccionado.")
+        st.info("💡 Sin movimientos en el período seleccionado.")
         return
     
     df = pd.DataFrame(movimientos)
@@ -2200,7 +2200,7 @@ def pagina_historial():
     st.markdown(f"### 📊 Resultados: **{len(df)}** movimientos encontrados")
 
     display_df = df[["fecha_solo", "hora_solo", "tipo", "establecimiento", "categoria", "producto_nombre", "producto_marca", "producto_concentracion", "producto_presentacion", "cantidad", "producto_unidad", "vencimiento", "remito_link", "observaciones"]].copy()
-    display_df.columns = ["Fecha", "Hora", "Tipo", "Establecimiento", "Categor?a", "Producto", "Marca", "Concentraci?n", "Presentaci?n", "Cantidad", "Unidad", "Vencimiento", "Remito", "Observaciones"]
+    display_df.columns = ["Fecha", "Hora", "Tipo", "Establecimiento", "Categoría", "Producto", "Marca", "Concentración", "Presentación", "Cantidad", "Unidad", "Vencimiento", "Remito", "Observaciones"]
 
     # Mostrar dataframe con el link de remito renderizado como HTML
     st.write(
@@ -2209,7 +2209,7 @@ def pagina_historial():
     )
     
     # Alternativa usando st.dataframe con columna de texto plano (sin renderizado HTML)
-    # Para mejor experiencia, mostramos tambi?n la URL como texto plano
+    # Para mejor experiencia, mostramos también la URL como texto plano
     display_df_plain = display_df.copy()
     display_df_plain["Remito"] = display_df_plain["Remito"].apply(
         lambda x: "Ver PDF" if "Ver Remito" in str(x) else x
@@ -2223,11 +2223,11 @@ def pagina_historial():
             "Hora":          st.column_config.TextColumn("Hora",         width="small"),
             "Tipo":          st.column_config.TextColumn("Tipo",         width="small"),
             "Establecimiento": st.column_config.TextColumn("Estab.",     width="small"),
-            "Categor?a":     st.column_config.TextColumn("Categor?a",    width="medium"),
+            "Categoría":     st.column_config.TextColumn("Categoría",    width="medium"),
             "Producto":      st.column_config.TextColumn("Producto",     width="medium"),
             "Marca":         st.column_config.TextColumn("Marca",        width="medium"),
-            "Concentraci?n": st.column_config.TextColumn("Conc.",        width="small"),
-            "Presentaci?n":  st.column_config.TextColumn("Presentaci?n", width="small"),
+            "Concentración": st.column_config.TextColumn("Conc.",        width="small"),
+            "Presentación":  st.column_config.TextColumn("Presentación", width="small"),
             "Cantidad":      st.column_config.NumberColumn("Cantidad",   width="small"),
             "Unidad":        st.column_config.TextColumn("Unidad",       width="small"),
             "Vencimiento":   st.column_config.TextColumn("Vencimiento",  width="small"),
@@ -2256,7 +2256,7 @@ def pagina_historial():
         key="dl_hist"
     )
 
-    # ── Secci?n Admin: Editar y Eliminar ──────────────────────────
+    # ── Sección Admin: Editar y Eliminar ──────────────────────────
     if st.session_state.get("rol") == "admin":
 
         # Construir opciones con ID del movimiento (compartido entre editar y eliminar)
@@ -2267,18 +2267,18 @@ def pagina_historial():
         )
         opciones_mov = {row["etiqueta"]: row["id"] for _, row in df_ids.iterrows()}
 
-        # ── EDITAR REGISTRO (ACTUALIZACI?N DIRECTA - SIN DUPLICAR) ────────────────────────────────────────
+        # ── EDITAR REGISTRO (ACTUALIZACIÓN DIRECTA - SIN DUPLICAR) ────────────────────────────────────────
         st.markdown("---")
         st.markdown("### ✏️ Editar registro (Admin)")
-        st.info("ℹ️ Se actualizar? el registro existente con los cambios realizados.")
+        st.info("ℹ️ Se actualizará el registro existente con los cambios realizados.")
 
         mov_a_editar_label = st.selectbox(
             "Seleccionar movimiento a editar",
-            ["— Seleccion? un registro —"] + list(opciones_mov.keys()),
+            ["— Seleccioná un registro —"] + list(opciones_mov.keys()),
             key="sel_editar_mov"
         )
 
-        if mov_a_editar_label != "— Seleccion? un registro —":
+        if mov_a_editar_label != "— Seleccioná un registro —":
             mov_edit_id = opciones_mov[mov_a_editar_label]
             mov_orig = df_ids[df_ids["id"] == mov_edit_id].iloc[0]
 
@@ -2324,25 +2324,25 @@ def pagina_historial():
             nueva_obs = st.text_area(
                 "📝 Observaciones corregidas",
                 value=mov_full.get("observaciones", "") or "",
-                placeholder="Pod?s modificar las observaciones del registro...",
+                placeholder="Podés modificar las observaciones del registro...",
                 key="ed_obs"
             )
             motivo_edicion = st.text_input(
-                "📋 Motivo de la correcci?n *",
+                "📋 Motivo de la corrección *",
                 placeholder="Ej: Error en cantidad, fecha de vencimiento incorrecta, etc.",
                 key="ed_motivo"
             )
 
-            if st.button("💾 Guardar correcci?n", use_container_width=True, key="btn_guardar_correccion"):
+            if st.button("💾 Guardar corrección", use_container_width=True, key="btn_guardar_correccion"):
                 if not motivo_edicion.strip():
-                    st.error("❌ El motivo de la correcci?n es obligatorio.")
+                    st.error("❌ El motivo de la corrección es obligatorio.")
                 else:
                     try:
                         from zoneinfo import ZoneInfo
                         now_arg = datetime.now(ZoneInfo("America/Argentina/Buenos_Aires")).replace(tzinfo=None)
                         fecha_nueva_con_hora = datetime.combine(nueva_fecha, nueva_hora).isoformat()
 
-                        # Construir las nuevas observaciones con el motivo de correcci?n
+                        # Construir las nuevas observaciones con el motivo de corrección
                         obs_original = mov_full.get("observaciones", "") or ""
                         nuevas_obs = f"{nueva_obs.strip()} | [CORREGIDO {now_arg.strftime('%d/%m/%Y %H:%M')} — {motivo_edicion.strip()}]"
                         if obs_original and not nuevas_obs.strip().startswith(obs_original):
@@ -2373,22 +2373,22 @@ def pagina_historial():
         # ── ELIMINAR REGISTRO ──────────────────────────────────────
         st.markdown("---")
         st.markdown("### 🗑️ Eliminar registro (Admin)")
-        st.warning("⚠️ Al eliminar un registro se guardar? un log de auditor?a con tu usuario, fecha y hora.")
+        st.warning("⚠️ Al eliminar un registro se guardará un log de auditoría con tu usuario, fecha y hora.")
 
-        mov_a_eliminar_label = st.selectbox("Seleccionar movimiento a eliminar", ["— Seleccion? un registro —"] + list(opciones_mov.keys()), key="sel_eliminar_mov")
-        motivo_eliminacion = st.text_input("📝 Motivo de la eliminaci?n *", placeholder="Ej: Error de carga, duplicado, etc.", key="motivo_eliminacion")
+        mov_a_eliminar_label = st.selectbox("Seleccionar movimiento a eliminar", ["— Seleccioná un registro —"] + list(opciones_mov.keys()), key="sel_eliminar_mov")
+        motivo_eliminacion = st.text_input("📝 Motivo de la eliminación *", placeholder="Ej: Error de carga, duplicado, etc.", key="motivo_eliminacion")
 
         col_del1, col_del2 = st.columns([1, 3])
         with col_del1:
-            confirmar_delete = st.checkbox("✅ Confirmar eliminaci?n", key="confirmar_del")
+            confirmar_delete = st.checkbox("✅ Confirmar eliminación", key="confirmar_del")
         with col_del2:
             if st.button("🗑️ Eliminar registro", key="btn_eliminar_mov"):
-                if mov_a_eliminar_label == "— Seleccion? un registro —":
-                    st.error("❌ Seleccion? un registro a eliminar.")
+                if mov_a_eliminar_label == "— Seleccioná un registro —":
+                    st.error("❌ Seleccioná un registro a eliminar.")
                 elif not motivo_eliminacion.strip():
-                    st.error("❌ El motivo de eliminaci?n es obligatorio.")
+                    st.error("❌ El motivo de eliminación es obligatorio.")
                 elif not confirmar_delete:
-                    st.error("❌ Marc? la casilla de confirmaci?n antes de eliminar.")
+                    st.error("❌ Marcá la casilla de confirmación antes de eliminar.")
                 else:
                     mov_id = opciones_mov[mov_a_eliminar_label]
                     try:
@@ -2406,7 +2406,7 @@ def pagina_historial():
                         except Exception:
                             pass
                         supabase.table("movimientos").delete().eq("id", mov_id).execute()
-                        st.success(f"✅ Registro eliminado y auditor?a guardada.")
+                        st.success(f"✅ Registro eliminado y auditoría guardada.")
                         st.rerun()
                     except Exception as e:
                         st.error(f"❌ Error al eliminar: {e}")
@@ -2432,7 +2432,7 @@ def pagina_alertas():
     <div>
         <div class="title-bubble">
             <h1>⚠️ Alertas de Stock</h1>
-            <p>📋 Monitoreo de stock bajo y productos cr?ticos</p>
+            <p>📋 Monitoreo de stock bajo y productos críticos</p>
         </div>
     </div>
     """, unsafe_allow_html=True)
@@ -2441,7 +2441,7 @@ def pagina_alertas():
     with col_u1:
         umbral_bajo = st.number_input("⚠️ Umbral de stock bajo (unidades)", min_value=0, value=100, step=10)
     with col_u2:
-        umbral_critico = st.number_input("🔴 Umbral de stock cr?tico (unidades)", min_value=0, value=50, step=10)
+        umbral_critico = st.number_input("🔴 Umbral de stock crítico (unidades)", min_value=0, value=50, step=10)
     
     stock_productos = get_stock_por_producto(estab_filter())
     
@@ -2466,7 +2466,7 @@ def pagina_alertas():
     with col2:
         st.markdown(f"""
         <div class="metric-card">
-            <div class="metric-label">🔴 STOCK CR?TICO</div>
+            <div class="metric-label">🔴 STOCK CRÍTICO</div>
             <div class="metric-value">{len(stock_critico)}</div>
             <div style="font-size:0.7rem;">productos con menos de {umbral_critico} unidades</div>
         </div>
@@ -2475,22 +2475,22 @@ def pagina_alertas():
     if not stock_bajo.empty:
         st.markdown("---")
         st.markdown("### 📋 Productos con Stock Bajo")
-        stock_bajo["alerta"] = stock_bajo["stock"].apply(lambda x: "🔴 Cr?tico" if x < umbral_critico else "⚠️ Bajo")
+        stock_bajo["alerta"] = stock_bajo["stock"].apply(lambda x: "🔴 Crítico" if x < umbral_critico else "⚠️ Bajo")
         st.dataframe(stock_bajo[["producto", "categoria", "presentacion", "stock", "unidad", "alerta"]], use_container_width=True)
     else:
         st.success("✅ Todos los productos tienen stock suficiente.")
 
 
 # ══════════════════════════════════════════════════════════════
-# REPORTES
+# REPORTES - CORREGIDO
 # ══════════════════════════════════════════════════════════════
 
 def pagina_reportes():
     st.markdown("""
     <div>
         <div class="title-bubble">
-            <h1>📈 Reportes y Estad?sticas</h1>
-            <p>📋 An?lisis detallado de movimientos y tendencias</p>
+            <h1>📈 Reportes y Estadísticas</h1>
+            <p>📋 Análisis detallado de movimientos y tendencias</p>
         </div>
     </div>
     """, unsafe_allow_html=True)
@@ -2504,46 +2504,46 @@ def pagina_reportes():
     df = pd.DataFrame(movimientos)
     df["fecha"] = pd.to_datetime(df["fecha"])
     df["mes"] = df["fecha"].dt.to_period("M").astype(str)
-    df["a?o"] = df["fecha"].dt.year
+    df["año"] = df["fecha"].dt.year
     df["producto_nombre"] = df["productos"].apply(lambda x: x.get("nombre", "") if isinstance(x, dict) else "")
     
-    a?os = sorted(df["a?o"].unique())
-    a?o_seleccionado = st.selectbox("📅 Seleccionar a?o", a?os, index=len(a?os)-1)
+    años = sorted(df["año"].unique())
+    año_seleccionado = st.selectbox("📅 Seleccionar año", años, index=len(años)-1)
     
-    df_a?o = df[df["a?o"] == a?o_seleccionado]
+    df_año = df[df["año"] == año_seleccionado]
     
     col_r1, col_r2, col_r3 = st.columns(3)
     with col_r1:
-        total_ingresos = df_a?o[df_a?o["tipo"] == "ingreso"]["cantidad"].sum() if "ingreso" in df_a?o["tipo"].values else 0
+        total_ingresos = df_año[df_año["tipo"] == "ingreso"]["cantidad"].sum() if "ingreso" in df_año["tipo"].values else 0
         st.metric("📥 Total Ingresos", f"{total_ingresos:,.0f}")
     with col_r2:
-        total_egresos = df_a?o[df_a?o["tipo"] == "egreso"]["cantidad"].sum() if "egreso" in df_a?o["tipo"].values else 0
+        total_egresos = df_año[df_año["tipo"] == "egreso"]["cantidad"].sum() if "egreso" in df_año["tipo"].values else 0
         st.metric("📤 Total Egresos", f"{total_egresos:,.0f}")
     with col_r3:
-        total_movimientos = len(df_a?o)
+        total_movimientos = len(df_año)
         st.metric("🔄 Total Movimientos", total_movimientos)
     
-    st.markdown(f"### 📊 Resumen Mensual {a?o_seleccionado}")
+    st.markdown(f"### 📊 Resumen Mensual {año_seleccionado}")
     
-    resumen = df_a?o.groupby(["mes", "tipo"])["cantidad"].sum().reset_index()
+    resumen = df_año.groupby(["mes", "tipo"])["cantidad"].sum().reset_index()
     st.dataframe(resumen, use_container_width=True)
     
     st.markdown("### 📈 Tendencia de Movimientos")
-    chart_data = df_a?o.groupby(["mes", "tipo"])["cantidad"].sum().unstack()
+    chart_data = df_año.groupby(["mes", "tipo"])["cantidad"].sum().unstack()
     st.bar_chart(chart_data)
     
-    st.markdown("### 🏆 Top 10 Productos m?s movidos")
-    top_movidos = df_a?o.groupby("producto_nombre")["cantidad"].sum().sort_values(ascending=False).head(10).reset_index()
+    st.markdown("### 🏆 Top 10 Productos más movidos")
+    top_movidos = df_año.groupby("producto_nombre")["cantidad"].sum().sort_values(ascending=False).head(10).reset_index()
     top_movidos.columns = ["Producto", "Cantidad total movida"]
     st.dataframe(top_movidos, use_container_width=True)
     
     buffer = BytesIO()
     with pd.ExcelWriter(buffer, engine="openpyxl") as writer:
-        df_a?o.to_excel(writer, index=False, sheet_name=f"Reporte_{a?o_seleccionado}")
+        df_año.to_excel(writer, index=False, sheet_name=f"Reporte_{año_seleccionado}")
     st.download_button(
         "📥 Exportar reporte completo",
         data=buffer.getvalue(),
-        file_name=f"reporte_stock_{a?o_seleccionado}.xlsx",
+        file_name=f"reporte_stock_{año_seleccionado}.xlsx",
         mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
     )
 
@@ -2556,8 +2556,8 @@ def pagina_proveedores():
     st.markdown("""
     <div>
         <div class="title-bubble">
-            <h1>🏭 Gesti?n de Proveedores</h1>
-            <p>📋 Administra los proveedores de insumos agr?colas</p>
+            <h1>🏭 Gestión de Proveedores</h1>
+            <p>📋 Administra los proveedores de insumos agrícolas</p>
         </div>
     </div>
     """, unsafe_allow_html=True)
@@ -2567,7 +2567,7 @@ def pagina_proveedores():
     with st.expander("➕ Agregar nuevo proveedor", expanded=False):
         with st.form("nuevo_proveedor"):
             nombre = st.text_input("Nombre del proveedor")
-            contacto = st.text_input("Contacto (tel?fono/email)", placeholder="Opcional")
+            contacto = st.text_input("Contacto (teléfono/email)", placeholder="Opcional")
             if st.form_submit_button("Guardar"):
                 if nombre:
                     supabase.table("proveedores").insert({
@@ -2590,8 +2590,8 @@ def pagina_productos():
     st.markdown("""
     <div>
         <div class="title-bubble">
-            <h1>📦 Cat?logo de Productos</h1>
-            <p>📋 Administra el cat?logo de productos agr?colas</p>
+            <h1>📦 Catálogo de Productos</h1>
+            <p>📋 Administra el catálogo de productos agrícolas</p>
         </div>
     </div>
     """, unsafe_allow_html=True)
@@ -2601,12 +2601,12 @@ def pagina_productos():
     
     with st.expander("➕ Agregar nuevo producto", expanded=False):
         # ── Selectores reactivos FUERA del form ───────────────────
-        cat_sel = st.selectbox("Categor?a", list(cat_options.keys()), key="nuevo_prod_cat")
-        es_agro_nuevo = "agroquimico" in cat_sel.lower() or "agroqu?mico" in cat_sel.lower()
+        cat_sel = st.selectbox("Categoría", list(cat_options.keys()), key="nuevo_prod_cat")
+        es_agro_nuevo = "agroquimico" in cat_sel.lower() or "agroquímico" in cat_sel.lower()
         subcategoria_nuevo = None
         if es_agro_nuevo:
             subcategoria_nuevo = st.selectbox(
-                "🌿 Tipo de Agroqu?mico *",
+                "🌿 Tipo de Agroquímico *",
                 ["Herbicidas", "Insecticidas", "Coadyuvantes"],
                 key="nuevo_prod_subcategoria"
             )
@@ -2616,13 +2616,13 @@ def pagina_productos():
             col_p1, col_p2 = st.columns(2)
             with col_p1:
                 marca = st.text_input("🏷️ Marca", placeholder="Ej: Bayer, YPF Agro, etc.")
-                presentacion = st.text_input("Presentaci?n", placeholder="Ej: Bid?n 20L, Bolsa 50kg, etc.")
+                presentacion = st.text_input("Presentación", placeholder="Ej: Bidón 20L, Bolsa 50kg, etc.")
             with col_p2:
-                concentracion = st.text_input("🧪 Concentraci?n", placeholder="Ej: 48%, 500 g/L, etc.")
+                concentracion = st.text_input("🧪 Concentración", placeholder="Ej: 48%, 500 g/L, etc.")
                 unidad_medida = st.selectbox("Unidad de medida", ["litros", "kg", "unidades", "bolsas", "bidones", "otros"])
             if st.form_submit_button("Guardar"):
                 if nombre:
-                    # Verificar si ya existe un producto con el mismo nombre (sin distinci?n de may?sculas)
+                    # Verificar si ya existe un producto con el mismo nombre (sin distinción de mayúsculas)
                     existentes = supabase.table("productos").select("id, nombre, presentacion, activo") \
                         .ilike("nombre", nombre.strip()).execute().data
                     duplicado = next(
@@ -2641,7 +2641,7 @@ def pagina_productos():
                         }
                         st.rerun()
                     else:
-                        # No hay duplicado o el admin confirm? continuar
+                        # No hay duplicado o el admin confirmó continuar
                         st.session_state.pop("confirmar_duplicado", None)
                         st.session_state.pop("prod_duplicado_info", None)
                         supabase.table("productos").insert({
@@ -2657,21 +2657,21 @@ def pagina_productos():
                         st.success(f"✅ Producto '{nombre}' agregado")
                         st.rerun()
                 else:
-                    st.warning("⚠️ El nombre del producto no puede estar vac?o.")
+                    st.warning("⚠️ El nombre del producto no puede estar vacío.")
 
-        # Aviso de duplicado FUERA del form (para poder mostrar el bot?n de confirmar)
+        # Aviso de duplicado FUERA del form (para poder mostrar el botón de confirmar)
         if st.session_state.get("confirmar_duplicado"):
             info = st.session_state.get("prod_duplicado_info", {})
             st.warning(
                 f"⚠️ **Producto ya se encuentra en el sistema**\n\n"
                 f"El producto **\"{info.get('nombre')}\"** "
-                f"({'con presentaci?n: ' + info.get('presentacion') if info.get('presentacion') else 'sin presentaci?n especificada'}) "
-                f"ya existe y est? **{info.get('estado', 'registrado')}**.\n\n"
-                f"?Dese?s agregarlo de todas formas?"
+                f"({'con presentación: ' + info.get('presentacion') if info.get('presentacion') else 'sin presentación especificada'}) "
+                f"ya existe y está **{info.get('estado', 'registrado')}**.\n\n"
+                f"¿Deseás agregarlo de todas formas?"
             )
             col_c1, col_c2 = st.columns([1, 3])
             with col_c1:
-                if st.button("✅ S?, agregar igual", key="btn_confirmar_dup"):
+                if st.button("✅ Sí, agregar igual", key="btn_confirmar_dup"):
                     d = info
                     supabase.table("productos").insert({
                         "categoria_id": cat_options[d["cat_sel"]],
@@ -2704,14 +2704,14 @@ def pagina_productos():
 
         with st.expander("✏️ Editar producto existente", expanded=False):
             prod_opciones = {
-                f"{row['nombre']} — {row['categoria']} ({row.get('presentacion') or 'sin presentaci?n'})": row["id"]
+                f"{row['nombre']} — {row['categoria']} ({row.get('presentacion') or 'sin presentación'})": row["id"]
                 for _, row in df.iterrows()
             }
             prod_sel_label = st.selectbox("Seleccionar producto a editar", list(prod_opciones.keys()), key="edit_prod_sel")
             prod_sel_id = prod_opciones[prod_sel_label]
             prod_data = df[df["id"] == prod_sel_id].iloc[0]
 
-            # Buscar el ?ltimo ingreso de este producto para mostrar/editar su fecha de vencimiento
+            # Buscar el último ingreso de este producto para mostrar/editar su fecha de vencimiento
             ultimo_ingreso = None
             fecha_venc_actual = None
             try:
@@ -2729,31 +2729,31 @@ def pagina_productos():
                 if fecha_venc_actual:
                     dias_restantes = (fecha_venc_actual - date.today()).days
                     if dias_restantes < 0:
-                        estado_venc = f"🔴 Vencido hace {abs(dias_restantes)} d?as"
+                        estado_venc = f"🔴 Vencido hace {abs(dias_restantes)} días"
                     elif dias_restantes <= 30:
-                        estado_venc = f"🟠 Vence en {dias_restantes} d?as"
+                        estado_venc = f"🟠 Vence en {dias_restantes} días"
                     else:
-                        estado_venc = f"🟢 Vence en {dias_restantes} d?as"
-                    st.info(f"📦 ?ltimo ingreso: **{fecha_ing_str}** | 📅 Vencimiento actual: **{fecha_venc_actual.strftime('%d/%m/%Y')}** — {estado_venc}")
+                        estado_venc = f"🟢 Vence en {dias_restantes} días"
+                    st.info(f"📦 Último ingreso: **{fecha_ing_str}** | 📅 Vencimiento actual: **{fecha_venc_actual.strftime('%d/%m/%Y')}** — {estado_venc}")
                 else:
-                    st.info(f"📦 ?ltimo ingreso: **{fecha_ing_str}** | 📅 Sin fecha de vencimiento registrada")
+                    st.info(f"📦 Último ingreso: **{fecha_ing_str}** | 📅 Sin fecha de vencimiento registrada")
             else:
                 st.caption("ℹ️ Este producto no tiene ingresos registrados.")
 
             with st.form("editar_producto"):
                 cat_sel_edit = st.selectbox(
-                    "Categor?a",
+                    "Categoría",
                     list(cat_options.keys()),
                     index=list(cat_options.keys()).index(prod_data["categoria"]) if prod_data["categoria"] in cat_options else 0
                 )
-                es_agro_edit = "agroquimico" in cat_sel_edit.lower() or "agroqu?mico" in cat_sel_edit.lower()
+                es_agro_edit = "agroquimico" in cat_sel_edit.lower() or "agroquímico" in cat_sel_edit.lower()
                 subcategoria_edit = None
                 if es_agro_edit:
                     subcats = ["Herbicidas", "Insecticidas", "Coadyuvantes"]
                     subcat_actual = prod_data.get("subcategoria") or "Herbicidas"
                     subcat_idx = subcats.index(subcat_actual) if subcat_actual in subcats else 0
                     subcategoria_edit = st.selectbox(
-                        "🌿 Tipo de Agroqu?mico *",
+                        "🌿 Tipo de Agroquímico *",
                         subcats,
                         index=subcat_idx,
                         key="edit_subcategoria"
@@ -2762,9 +2762,9 @@ def pagina_productos():
                 col_e1, col_e2 = st.columns(2)
                 with col_e1:
                     marca_edit = st.text_input("🏷️ Marca", value=prod_data.get("marca") or "")
-                    presentacion_edit = st.text_input("Presentaci?n", value=prod_data.get("presentacion") or "")
+                    presentacion_edit = st.text_input("Presentación", value=prod_data.get("presentacion") or "")
                 with col_e2:
-                    concentracion_edit = st.text_input("🧪 Concentraci?n", value=prod_data.get("concentracion") or "")
+                    concentracion_edit = st.text_input("🧪 Concentración", value=prod_data.get("concentracion") or "")
                     unidades = ["litros", "kg", "unidades", "bolsas", "bidones", "otros"]
                     unidad_actual = prod_data.get("unidad_medida") or "unidades"
                     unidad_edit = st.selectbox(
@@ -2780,7 +2780,7 @@ def pagina_productos():
                     actualizar_venc = st.checkbox(
                         "📅 Actualizar fecha de vencimiento",
                         value=False,
-                        help="Modifica la fecha de vencimiento del ?ltimo ingreso de este producto"
+                        help="Modifica la fecha de vencimiento del último ingreso de este producto"
                     )
                 with col_venc_e2:
                     nueva_fecha_venc = None
@@ -2810,7 +2810,7 @@ def pagina_productos():
                             "activo": activo_edit
                         }).eq("id", prod_sel_id).execute()
 
-                        # Actualizar fecha_vencimiento del ?ltimo ingreso si se indic?
+                        # Actualizar fecha_vencimiento del último ingreso si se indicó
                         if actualizar_venc and nueva_fecha_venc and ultimo_ingreso:
                             supabase.table("movimientos").update({
                                 "fecha_vencimiento": nueva_fecha_venc.isoformat()
@@ -2820,7 +2820,7 @@ def pagina_productos():
                             st.success(f"✅ Producto '{nombre_edit}' actualizado correctamente")
                         st.rerun()
                     else:
-                        st.warning("⚠️ El nombre del producto no puede estar vac?o.")
+                        st.warning("⚠️ El nombre del producto no puede estar vacío.")
 
                 if eliminar:
                     supabase.table("productos").update({"activo": False}).eq("id", prod_sel_id).execute()
@@ -2830,9 +2830,9 @@ def pagina_productos():
         display_cols = ["categoria", "nombre", "subcategoria", "marca", "concentracion", "presentacion", "unidad_medida", "activo"]
         df["subcategoria"] = df.get("subcategoria", pd.Series([""] * len(df)))
         df_display = df[[c for c in display_cols if c in df.columns]].copy()
-        col_names = {"categoria": "Categor?a", "nombre": "Producto", "subcategoria": "Subcategor?a",
-                     "marca": "Marca", "concentracion": "Concentraci?n",
-                     "presentacion": "Presentaci?n", "unidad_medida": "Unidad", "activo": "Activo"}
+        col_names = {"categoria": "Categoría", "nombre": "Producto", "subcategoria": "Subcategoría",
+                     "marca": "Marca", "concentracion": "Concentración",
+                     "presentacion": "Presentación", "unidad_medida": "Unidad", "activo": "Activo"}
         df_display.columns = [col_names.get(c, c) for c in df_display.columns]
         st.dataframe(df_display, use_container_width=True)
     else:
@@ -2843,13 +2843,13 @@ def pagina_usuarios():
     st.markdown("""
     <div>
         <div class="title-bubble">
-            <h1>👥 Gesti?n de Usuarios</h1>
+            <h1>👥 Gestión de Usuarios</h1>
             <p>📋 Administra los usuarios del sistema</p>
         </div>
     </div>
     """, unsafe_allow_html=True)
     
-    st.info("📝 Para crear nuevos usuarios, us? el panel de Supabase Authentication y luego complet? sus datos en la tabla `usuarios`.")
+    st.info("📝 Para crear nuevos usuarios, usá el panel de Supabase Authentication y luego completá sus datos en la tabla `usuarios`.")
     
     try:
         usuarios = supabase.table("usuarios").select("*").execute().data
@@ -2888,7 +2888,7 @@ def pagina_usuarios():
 
 
 # ══════════════════════════════════════════════════════════════
-# VISTA CONSOLIDADO — Estad?sticas consolidadas de todos los establecimientos
+# VISTA CONSOLIDADO — Estadísticas consolidadas de todos los establecimientos
 # ══════════════════════════════════════════════════════════════
 
 def pagina_consolidado():
@@ -2898,7 +2898,7 @@ def pagina_consolidado():
     <div>
         <div class="title-bubble">
             <h1>🌐 Vista Consolidada</h1>
-            <p>📋 Estad?sticas consolidadas de todos los establecimientos</p>
+            <p>📋 Estadísticas consolidadas de todos los establecimientos</p>
         </div>
     </div>
     """, unsafe_allow_html=True)
@@ -2906,7 +2906,7 @@ def pagina_consolidado():
     stock_df = get_stock_por_establecimiento()
 
     if stock_df.empty:
-        st.info("💡 Sin datos para mostrar. Registr? movimientos en los establecimientos.")
+        st.info("💡 Sin datos para mostrar. Registrá movimientos en los establecimientos.")
         st.markdown('</div>', unsafe_allow_html=True)
         return
 
@@ -2942,9 +2942,9 @@ def pagina_consolidado():
     with col4:
         st.markdown(f"""
         <div class="metric-card">
-            <div class="metric-label">🔴 CR?TICOS</div>
+            <div class="metric-label">🔴 CRÍTICOS</div>
             <div class="metric-value">{stock_critico}</div>
-            <div style="font-size:0.7rem; color:#a8a8b0;">?tems con stock bajo 50 unidades</div>
+            <div style="font-size:0.7rem; color:#a8a8b0;">ítems con stock bajo 50 unidades</div>
         </div>""", unsafe_allow_html=True)
 
     st.markdown("---")
@@ -2991,7 +2991,7 @@ def pagina_consolidado():
                 stock_cat,
                 values="stock",
                 names="categoria",
-                title="🥧 Distribuci?n Global por Categor?a",
+                title="🥧 Distribución Global por Categoría",
                 template="plotly_dark",
                 color_discrete_sequence=px.colors.sequential.Oranges_r
             )
@@ -3040,7 +3040,7 @@ def pagina_consolidado():
                 criticos_e = (df_e["stock"] < 50).sum()
                 st.markdown(f"""
                 <div class="metric-card">
-                    <div class="metric-label">🔴 CR?TICOS</div>
+                    <div class="metric-label">🔴 CRÍTICOS</div>
                     <div class="metric-value">{criticos_e}</div>
                     <div style="font-size:0.7rem; color:#a8a8b0;">stock bajo 50</div>
                 </div>""", unsafe_allow_html=True)
@@ -3082,7 +3082,7 @@ def main():
     if not verificar_perfil():
         return
 
-    # Verificar si el usuario necesita cambiar la contrase?a
+    # Verificar si el usuario necesita cambiar la contraseña
     # Solo si NO es admin Y password_changed es False Y no hay bandera temporal
     if (st.session_state.get("rol") != "admin" and 
         not st.session_state.get("password_changed", False) and
@@ -3130,8 +3130,8 @@ def main():
         }
         pagina_funcion = rutas_operador.get(pagina, pagina_dashboard)
     else:
-        st.error("⚠️ Configuraci?n de usuario incompleta. Contacta al administrador.")
-        if st.button("Cerrar sesi?n"):
+        st.error("⚠️ Configuración de usuario incompleta. Contacta al administrador.")
+        if st.button("Cerrar sesión"):
             logout()
         return
 
@@ -3141,7 +3141,7 @@ def main():
                                          st.session_state.get("establecimiento_nombre", "Consolidado"))
     st.markdown(f"""
     <div class="footer">
-        <p>🌾 Sistema de Control de Stock Agr?cola</p>
+        <p>🌾 Sistema de Control de Stock Agrícola</p>
         <p>La Sonia · San Guillermo · Camba Pora &nbsp;|&nbsp; 📍 {estab_nombre}</p>
     </div>
     """, unsafe_allow_html=True)
