@@ -1505,6 +1505,16 @@ def pagina_ingreso():
             parts = [x for x in [presentacion_str, unidad_str, extra] if x]
             st.caption("📦 " + " | ".join(parts))
 
+    # ── Subclasificación Agroquímicos (fuera del form para reactividad) ──
+    es_agroquimico_ing = "agroquimico" in cat_sel.lower() or "agroquímico" in cat_sel.lower()
+    subcategoria_agro_ing = None
+    if es_agroquimico_ing:
+        subcategoria_agro_ing = st.selectbox(
+            "🌿 Subclasificación Agroquímico *",
+            ["Herbicidas", "Insecticidas", "Coadyuvantes"],
+            key="subcategoria_agro_ing"
+        )
+
     with st.form("form_ingreso", clear_on_submit=True):
         col3, col4, col5 = st.columns(3)
         
@@ -1555,6 +1565,8 @@ def pagina_ingreso():
             try:
                 with st.spinner("Registrando ingreso..."):
                     obs_parts = [f"[{tipo_ingreso}]"]
+                    if es_agroquimico_ing and subcategoria_agro_ing:
+                        obs_parts.append(f"[{subcategoria_agro_ing}]")
                     if fecha_vencimiento:
                         obs_parts.append(f"Vence: {fecha_vencimiento.strftime('%d/%m/%Y')}")
                     if observaciones:
@@ -1662,6 +1674,16 @@ def pagina_egreso():
             else:
                 st.caption("📊 Stock disponible: 0")
 
+    # ── Subclasificación Agroquímicos (fuera del form para reactividad) ──
+    es_agroquimico_egr = "agroquimico" in cat_sel.lower() or "agroquímico" in cat_sel.lower()
+    subcategoria_agro_egr = None
+    if es_agroquimico_egr:
+        subcategoria_agro_egr = st.selectbox(
+            "🌿 Subclasificación Agroquímico *",
+            ["Herbicidas", "Insecticidas", "Coadyuvantes"],
+            key="subcategoria_agro_egr"
+        )
+
     with st.form("form_egreso", clear_on_submit=True):
         col3, col4, col5 = st.columns(3)
         
@@ -1698,7 +1720,12 @@ def pagina_egreso():
             
             try:
                 with st.spinner("Registrando egreso..."):
-                    observaciones_full = f"[{tipo_egreso}] {observaciones}" if observaciones else f"[{tipo_egreso}]"
+                    if es_agroquimico_egr and subcategoria_agro_egr:
+                        observaciones_full = f"[{tipo_egreso}] [{subcategoria_agro_egr}]"
+                        if observaciones:
+                            observaciones_full += f" {observaciones}"
+                    else:
+                        observaciones_full = f"[{tipo_egreso}] {observaciones}" if observaciones else f"[{tipo_egreso}]"
                     from zoneinfo import ZoneInfo
                     now = datetime.now(ZoneInfo("America/Argentina/Buenos_Aires")).replace(tzinfo=None)
                     fecha_con_hora = datetime.combine(fecha, now.time()).isoformat()
