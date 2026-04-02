@@ -1358,18 +1358,41 @@ def pagina_dashboard():
     if movimientos:
         df_mov = pd.DataFrame(movimientos)
         df_mov["fecha"] = pd.to_datetime(df_mov["fecha"])
-        
-        df_mov["stock_diario"] = df_mov.apply(lambda x: x["cantidad"] if x["tipo"] == "ingreso" else -x["cantidad"], axis=1)
+
+        # Enriquecer con nombre de producto
+        df_mov["producto_nombre"] = df_mov["productos"].apply(
+            lambda x: x.get("nombre", "") if isinstance(x, dict) else ""
+        )
+        df_mov["categoria_nombre"] = df_mov["productos"].apply(
+            lambda x: x.get("categorias", {}).get("nombre", "") if isinstance(x, dict) else ""
+        )
+
+        # Título dinámico según filtros activos
+        filtro_desc = []
+        if prod_seleccionado != "Todos":
+            filtro_desc.append(f"Producto: **{prod_seleccionado}**")
+        elif cat_seleccionada != "Todas":
+            filtro_desc.append(f"Categoría: **{cat_seleccionada}**")
+            if es_agro_dash and subcategoria_dash and subcategoria_dash != "Todos":
+                filtro_desc.append(f"Tipo: **{subcategoria_dash}**")
+        if filtro_desc:
+            st.markdown(f"🔎 Mostrando datos para — {' | '.join(filtro_desc)}")
+
+        # ── Evolución del stock ──────────────────────────────────
+        df_mov["stock_diario"] = df_mov.apply(
+            lambda x: x["cantidad"] if x["tipo"] == "ingreso" else -x["cantidad"], axis=1
+        )
         df_daily = df_mov.groupby(df_mov["fecha"].dt.date)["stock_diario"].sum().reset_index()
         df_daily.columns = ["fecha", "movimiento_diario"]
         df_daily["stock_acumulado"] = df_daily["movimiento_diario"].cumsum()
-        
+
+        titulo_evol = f"📈 Evolución del Stock — {prod_seleccionado}" if prod_seleccionado != "Todos" else "📈 Evolución del Stock en el Tiempo"
         fig_evolucion = px.line(
-            df_daily, 
-            x="fecha", 
+            df_daily,
+            x="fecha",
             y="stock_acumulado",
-            title="📈 Evolución del Stock en el Tiempo",
-            labels={"fecha": "Fecha", "stock_acumulado": "Stock Total (unidades)"},
+            title=titulo_evol,
+            labels={"fecha": "Fecha", "stock_acumulado": "Stock (unidades)"},
             template="plotly_dark",
             line_shape="spline"
         )
@@ -1382,64 +1405,117 @@ def pagina_dashboard():
             font=dict(color="#e8e8ec")
         )
         st.plotly_chart(fig_evolucion, use_container_width=True)
-        
-        stock_por_categoria = get_stock_por_producto(estab_filter())
-        if not stock_por_categoria.empty:
-            stock_cat = stock_por_categoria.groupby("categoria")["stock"].sum().reset_index()
-            
-            fig_torta = px.pie(
-                stock_cat,
-                values="stock",
-                names="categoria",
-                title="🥧 Distribución de Stock por Categoría",
-                template="plotly_dark",
-                color_discrete_sequence=px.colors.sequential.Oranges_r
-            )
-            fig_torta.update_traces(textposition="inside", textinfo="percent+label")
-            fig_torta.update_layout(
-                height=450,
-                paper_bgcolor="rgba(0,0,0,0)",
-                font=dict(color="#e8e8ec")
-            )
-            st.plotly_chart(fig_torta, use_container_width=True)
-        
-        st.markdown("---")
+
+        # ── Torta: distribución por categoría (o por producto si hay filtro) ──
         stock_productos = get_stock_por_producto(estab_filter())
         if not stock_productos.empty:
-            top_productos = stock_productos.head(10)
-            
-            fig_barras = px.bar(
-                top_productos,
-                x="producto",
-                y="stock",
-                title="📊 Top 10 Productos con Mayor Stock",
-                labels={"producto": "Producto", "stock": "Stock (unidades)"},
-                template="plotly_dark",
-                color="stock",
-                color_continuous_scale="Oranges"
-            )
-            fig_barras.update_layout(
-                height=450,
-                xaxis_tickangle=-45,
-                plot_bgcolor="rgba(30,30,35,0.8)",
-                paper_bgcolor="rgba(0,0,0,0)",
-                font=dict(color="#e8e8ec")
-            )
-            st.plotly_chart(fig_barras, use_container_width=True)
-            
+            # Aplicar mismo filtro de producto/categoría/subcategoría al stock
+            stock_filtrado = stock_productos.copy()
+            if prod_id:
+                stock_filtrado = stock_filtrado[stock_filtrado["producto_id"] == prod_id]
+            elif cat_id:
+                stock_filtrado = stock_filtrado[stock_filtrado["categoria_id"] == cat_id] if "categoria_id" in stock_filtrado.columns else stock_filtrado[stock_filtrado["categoria"] == cat_seleccionada]
+                if es_agro_dash and subcategoria_dash and subcategoria_dash != "Todos":
+                    ids_sub = {p["id"] for p in get_productos(cat_id, subcategoria_dash)}
+                    stock_filtrado = stock_filtrado[stock_filtrado["producto_id"].isin(ids_sub)]
+
+            if not stock_filtrado.empty:
+                # Si hay un producto específico: torta por establecimiento; si no: por categoría
+                if prod_id:
+                    if "establecimiento" in stock_filtrado.columns:
+                        pie_data = stock_filtrado.groupby("establecimiento")["stock"].sum().reset_index()
+                        pie_names = "establecimiento"
+                        pie_title = f"🥧 Stock de {prod_seleccionado} por Establecimiento"
+                    else:
+                        pie_data = stock_filtrado
+                        pie_names = "producto"
+                        pie_title = f"🥧 Stock — {prod_seleccionado}"
+                else:
+                    pie_data = stock_filtrado.groupby("categoria")["stock"].sum().reset_index()
+                    pie_names = "categoria"
+                    pie_title = "🥧 Distribución de Stock por Categoría"
+
+                fig_torta = px.pie(
+                    pie_data,
+                    values="stock",
+                    names=pie_names,
+                    title=pie_title,
+                    template="plotly_dark",
+                    color_discrete_sequence=px.colors.sequential.Oranges_r
+                )
+                fig_torta.update_traces(textposition="inside", textinfo="percent+label")
+                fig_torta.update_layout(height=450, paper_bgcolor="rgba(0,0,0,0)", font=dict(color="#e8e8ec"))
+                st.plotly_chart(fig_torta, use_container_width=True)
+
+            # ── Barras: Top productos ────────────────────────────────
+            st.markdown("---")
+            if not stock_filtrado.empty:
+                titulo_barras = f"📊 Stock — {prod_seleccionado}" if prod_id else "📊 Top 10 Productos con Mayor Stock"
+                top_n = stock_filtrado if prod_id else stock_filtrado.sort_values("stock", ascending=False).head(10)
+                fig_barras = px.bar(
+                    top_n,
+                    x="producto",
+                    y="stock",
+                    title=titulo_barras,
+                    labels={"producto": "Producto", "stock": "Stock (unidades)"},
+                    template="plotly_dark",
+                    color="stock",
+                    color_continuous_scale="Oranges"
+                )
+                fig_barras.update_layout(
+                    height=450, xaxis_tickangle=-45,
+                    plot_bgcolor="rgba(30,30,35,0.8)",
+                    paper_bgcolor="rgba(0,0,0,0)",
+                    font=dict(color="#e8e8ec")
+                )
+                st.plotly_chart(fig_barras, use_container_width=True)
+
+            # ── Tabla de stock actual ────────────────────────────────
             st.markdown("### 📋 Detalle de Stock Actual")
-            stock_display = stock_productos.copy()
-            stock_display["alerta"] = stock_display["stock"].apply(lambda x: "🔴 Crítico" if x < stock_min else ("⚠️ Bajo" if x < stock_min * 2 else "✅ Normal"))
-            st.dataframe(stock_display[["producto", "categoria", "presentacion", "stock", "unidad", "alerta"]], use_container_width=True, height=400)
-        
+            stock_display = stock_filtrado.copy()
+            stock_display["alerta"] = stock_display["stock"].apply(
+                lambda x: "🔴 Crítico" if x < stock_min else ("⚠️ Bajo" if x < stock_min * 2 else "✅ Normal")
+            )
+            cols_disp = [c for c in ["producto", "categoria", "presentacion", "stock", "unidad", "alerta"] if c in stock_display.columns]
+            st.dataframe(stock_display[cols_disp], use_container_width=True, height=400)
+
+            # ── Exportar stock a Excel ───────────────────────────────
+            st.markdown("#### 📥 Exportar Stock")
+            col_exp1, col_exp2 = st.columns(2)
+            with col_exp1:
+                buf_stock = BytesIO()
+                with pd.ExcelWriter(buf_stock, engine="openpyxl") as writer:
+                    stock_display[cols_disp].to_excel(writer, index=False, sheet_name="Stock_Actual")
+                label_stock = f"📥 Exportar stock — {prod_seleccionado}" if prod_id else "📥 Exportar stock actual"
+                st.download_button(
+                    label_stock,
+                    data=buf_stock.getvalue(),
+                    file_name=f"stock_{prod_seleccionado.replace(' ','_') if prod_id else 'general'}_{date.today()}.xlsx",
+                    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                    key="dl_stock"
+                )
+            with col_exp2:
+                buf_mov = BytesIO()
+                df_export = df_mov.copy()
+                df_export["fecha"] = df_export["fecha"].dt.strftime("%d/%m/%Y %H:%M")
+                cols_mov = [c for c in ["fecha", "tipo", "producto_nombre", "categoria_nombre", "cantidad", "observaciones"] if c in df_export.columns]
+                with pd.ExcelWriter(buf_mov, engine="openpyxl") as writer:
+                    df_export[cols_mov].to_excel(writer, index=False, sheet_name="Movimientos")
+                label_mov = f"📥 Exportar movimientos — {prod_seleccionado}" if prod_id else "📥 Exportar movimientos"
+                st.download_button(
+                    label_mov,
+                    data=buf_mov.getvalue(),
+                    file_name=f"movimientos_{prod_seleccionado.replace(' ','_') if prod_id else 'general'}_{date.today()}.xlsx",
+                    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                    key="dl_mov"
+                )
+
+        # ── Movimientos mensuales ────────────────────────────────
         df_mov["mes"] = df_mov["fecha"].dt.to_period("M").astype(str)
         movimientos_mensuales = df_mov.groupby(["mes", "tipo"])["cantidad"].sum().reset_index()
-        
         fig_mensual = px.bar(
             movimientos_mensuales,
-            x="mes",
-            y="cantidad",
-            color="tipo",
+            x="mes", y="cantidad", color="tipo",
             title="📅 Movimientos Mensuales por Tipo",
             labels={"mes": "Mes", "cantidad": "Cantidad (unidades)", "tipo": "Tipo"},
             template="plotly_dark",
@@ -1453,7 +1529,7 @@ def pagina_dashboard():
             font=dict(color="#e8e8ec")
         )
         st.plotly_chart(fig_mensual, use_container_width=True)
-        
+
     else:
         st.info("💡 Sin datos en el período seleccionado. Ajustá los filtros o registrá movimientos.")
     
@@ -1891,7 +1967,23 @@ def pagina_historial():
             "Observaciones": st.column_config.TextColumn("Observaciones",width="large"),
         }
     )
-    
+
+    # ── Exportar Historial a Excel ────────────────────────────
+    st.markdown("#### 📥 Exportar Historial")
+    buf_hist = BytesIO()
+    with pd.ExcelWriter(buf_hist, engine="openpyxl") as writer:
+        display_df.to_excel(writer, index=False, sheet_name="Historial_Movimientos")
+    filtro_nombre = cat_seleccionada if cat_seleccionada != "Todas" else "general"
+    if es_agro_hist and subcategoria_hist and subcategoria_hist != "Todos":
+        filtro_nombre = f"{filtro_nombre}_{subcategoria_hist}"
+    st.download_button(
+        f"📥 Exportar {len(display_df)} movimientos a Excel",
+        data=buf_hist.getvalue(),
+        file_name=f"historial_{filtro_nombre}_{fecha_desde}_{fecha_hasta}.xlsx",
+        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        key="dl_hist"
+    )
+
     # ── Sección Admin: Editar y Eliminar ──────────────────────────
     if st.session_state.get("rol") == "admin":
 
