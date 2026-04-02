@@ -42,21 +42,8 @@ st.markdown("""
     @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:wght@300;400;500;600;700&display=swap');
 
     .stApp {
-        background-image: url('https://raw.githubusercontent.com/marcasosguemes-cell/Stock-SECCO-AGRO/main/Fondo.PNG') !important;
-        background-size: cover !important;
-        background-position: center !important;
-        background-attachment: fixed !important;
-        background-repeat: no-repeat !important;
+        background: linear-gradient(160deg, #12121a 0%, #0d0d14 60%, #0a0a10 100%) !important;
         font-family: 'DM Sans', sans-serif !important;
-    }
-
-    .stApp::before {
-        content: '';
-        position: fixed;
-        top: 0; left: 0; right: 0; bottom: 0;
-        background: linear-gradient(135deg, rgba(15, 15, 18, 0.97) 0%, rgba(10, 10, 12, 0.98) 100%);
-        z-index: -1;
-        pointer-events: none;
     }
 
     [data-testid="stSidebarCollapsedControl"] {
@@ -549,7 +536,7 @@ st.markdown("""
     label {
         color: #f0f0f5 !important;
         font-weight: 600 !important;
-        text-shadow: 0 1px 4px rgba(0,0,0,0.9), 0 0px 8px rgba(0,0,0,0.8) !important;
+        text-shadow: none !important;
     }
 
     .stMarkdown p, .stMarkdown h1, .stMarkdown h2, .stMarkdown h3,
@@ -558,25 +545,25 @@ st.markdown("""
     [data-testid="stMarkdownContainer"] h2,
     [data-testid="stMarkdownContainer"] h3 {
         color: #f0f0f5 !important;
-        text-shadow: 0 1px 6px rgba(0,0,0,0.95), 0 0 12px rgba(0,0,0,0.8) !important;
+        text-shadow: none !important;
     }
 
     [data-testid="stWidgetLabel"] > div,
     [data-testid="stWidgetLabel"] p {
         color: #f0f0f5 !important;
         font-weight: 600 !important;
-        text-shadow: 0 1px 6px rgba(0,0,0,0.95) !important;
-        background: rgba(10,10,12,0.55) !important;
+        text-shadow: none !important;
+        background: transparent !important;
         border-radius: 4px !important;
         padding: 0 4px !important;
         display: inline-block !important;
     }
 
     .stDataFrame {
-        background: rgba(35, 35, 42, 0.7);
-        border-radius: 16px;
-        overflow: hidden;
-        box-shadow: 0 2px 12px rgba(0,0,0,0.2);
+        background: #1e1e28 !important;
+        border-radius: 16px !important;
+        overflow: hidden !important;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.3) !important;
     }
 
     .stDataFrame * {
@@ -695,6 +682,47 @@ st.markdown("""
     .password-warning h3 {
         color: #d4a017 !important;
         margin-top: 0 !important;
+    }
+
+    /* ── Gráficos Plotly con fondo sólido y borde ────────── */
+    [data-testid="stPlotlyChart"] {
+        background: #1a1a24 !important;
+        border-radius: 18px !important;
+        border: 1px solid rgba(212, 160, 23, 0.25) !important;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.35) !important;
+        padding: 0.5rem !important;
+        margin-bottom: 1.2rem !important;
+        overflow: hidden !important;
+    }
+
+    [data-testid="stPlotlyChart"] > div {
+        background: #1a1a24 !important;
+        border-radius: 14px !important;
+    }
+
+    /* ── Fondo de la zona de contenido principal ─────────── */
+    [data-testid="stAppViewContainer"] > .main {
+        background: transparent !important;
+    }
+
+    .block-container {
+        background: rgba(18, 18, 26, 0.85) !important;
+        border-radius: 0 !important;
+        padding-top: 1.5rem !important;
+    }
+
+    /* ── Panel de filtros con fondo sólido ───────────────── */
+    [data-testid="stHorizontalBlock"] {
+        gap: 1rem !important;
+    }
+
+    /* ── Dataframe con fondo sólido ──────────────────────── */
+    .stDataFrame {
+        background: #1e1e28 !important;
+        border-radius: 16px !important;
+        border: 1px solid rgba(212, 160, 23, 0.2) !important;
+        overflow: hidden !important;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.3) !important;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -1400,8 +1428,8 @@ def pagina_dashboard():
         fig_evolucion.update_layout(
             height=400,
             hovermode="x unified",
-            plot_bgcolor="rgba(30,30,35,0.8)",
-            paper_bgcolor="rgba(0,0,0,0)",
+            plot_bgcolor="#22222e",
+            paper_bgcolor="#1a1a24",
             font=dict(color="#e8e8ec")
         )
         st.plotly_chart(fig_evolucion, use_container_width=True)
@@ -1444,7 +1472,7 @@ def pagina_dashboard():
                     color_discrete_sequence=px.colors.sequential.Oranges_r
                 )
                 fig_torta.update_traces(textposition="inside", textinfo="percent+label")
-                fig_torta.update_layout(height=450, paper_bgcolor="rgba(0,0,0,0)", font=dict(color="#e8e8ec"))
+                fig_torta.update_layout(height=450, paper_bgcolor="#1a1a24", font=dict(color="#e8e8ec"))
                 st.plotly_chart(fig_torta, use_container_width=True)
 
             # ── Barras: Top productos ────────────────────────────────
@@ -1464,8 +1492,8 @@ def pagina_dashboard():
                 )
                 fig_barras.update_layout(
                     height=450, xaxis_tickangle=-45,
-                    plot_bgcolor="rgba(30,30,35,0.8)",
-                    paper_bgcolor="rgba(0,0,0,0)",
+                    plot_bgcolor="#22222e",
+                    paper_bgcolor="#1a1a24",
                     font=dict(color="#e8e8ec")
                 )
                 st.plotly_chart(fig_barras, use_container_width=True)
@@ -1524,8 +1552,8 @@ def pagina_dashboard():
         )
         fig_mensual.update_layout(
             height=450,
-            plot_bgcolor="rgba(30,30,35,0.8)",
-            paper_bgcolor="rgba(0,0,0,0)",
+            plot_bgcolor="#22222e",
+            paper_bgcolor="#1a1a24",
             font=dict(color="#e8e8ec")
         )
         st.plotly_chart(fig_mensual, use_container_width=True)
@@ -2706,8 +2734,8 @@ def pagina_consolidado():
             )
             fig_estab.update_layout(
                 height=380,
-                plot_bgcolor="rgba(30,30,35,0.8)",
-                paper_bgcolor="rgba(0,0,0,0)",
+                plot_bgcolor="#22222e",
+                paper_bgcolor="#1a1a24",
                 font=dict(color="#e8e8ec"),
                 showlegend=False,
             )
@@ -2726,7 +2754,7 @@ def pagina_consolidado():
             fig_torta.update_traces(textposition="inside", textinfo="percent+label")
             fig_torta.update_layout(
                 height=420,
-                paper_bgcolor="rgba(0,0,0,0)",
+                paper_bgcolor="#1a1a24",
                 font=dict(color="#e8e8ec")
             )
             st.plotly_chart(fig_torta, use_container_width=True)
@@ -2789,8 +2817,8 @@ def pagina_consolidado():
                 fig_e.update_layout(
                     height=400,
                     xaxis_tickangle=-40,
-                    plot_bgcolor="rgba(30,30,35,0.8)",
-                    paper_bgcolor="rgba(0,0,0,0)",
+                    plot_bgcolor="#22222e",
+                    paper_bgcolor="#1a1a24",
                     font=dict(color="#e8e8ec"),
                 )
                 st.plotly_chart(fig_e, use_container_width=True)
