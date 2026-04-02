@@ -41,32 +41,43 @@ st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:wght@300;400;500;600;700&display=swap');
 
-    /* ── Barra superior de Streamlit: ocultar ─────────────── */
-    [data-testid="stHeader"],
-    header[data-testid="stHeader"],
-    .stAppHeader {
+    /* ── Barra superior blanca de Streamlit: ocultar ─────── */
+    [data-testid="stHeader"], header[data-testid="stHeader"], .stAppHeader {
         display: none !important;
         height: 0 !important;
         min-height: 0 !important;
         padding: 0 !important;
-        border: none !important;
         background: none !important;
     }
 
+    /* Fondo base neutro */
     .stApp {
-        background-image: url('https://raw.githubusercontent.com/marcasosguemes-cell/Stock-SECCO-AGRO/main/Fondo.PNG') !important;
-        background-size: cover !important;
-        background-position: center !important;
-        background-attachment: fixed !important;
-        background-repeat: no-repeat !important;
+        background: #111114 !important;
         font-family: 'DM Sans', sans-serif !important;
+        position: relative !important;
     }
 
+    /* Imagen en escala de grises como capa de fondo */
+    .stApp::after {
+        content: '';
+        position: fixed;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background-image: url('https://raw.githubusercontent.com/marcasosguemes-cell/Stock-SECCO-AGRO/main/Fondo.PNG');
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        filter: grayscale(100%) brightness(0.38);
+        -webkit-filter: grayscale(100%) brightness(0.38);
+        z-index: -2;
+        pointer-events: none;
+    }
+
+    /* Overlay oscuro encima para mejorar contraste del contenido */
     .stApp::before {
         content: '';
         position: fixed;
         top: 0; left: 0; right: 0; bottom: 0;
-        background: linear-gradient(135deg, rgba(8, 8, 11, 0.96) 0%, rgba(5, 5, 8, 0.97) 100%);
+        background: rgba(8, 8, 12, 0.55);
         z-index: -1;
         pointer-events: none;
     }
@@ -1219,26 +1230,17 @@ def get_stock_por_establecimiento():
 # ══════════════════════════════════════════════════════════════
 
 def pagina_dashboard():
-    # ── CSS exclusivo del Dashboard ────────────────────────────
+    # ── CSS del Dashboard: NO toca el fondo, solo estilos de gráficos ──
     st.markdown("""
     <style>
-        /* Fondo más oscuro solo en el Dashboard */
-        .stApp {
-            background-image: none !important;
-            background: linear-gradient(160deg, #0d0d14 0%, #09090f 60%, #06060b 100%) !important;
-        }
-        .stApp::before { background: none !important; }
-
-        /* Panel de filtros */
         .dash-filtros {
-            background: rgba(22, 22, 32, 0.98) !important;
+            background: rgba(15, 15, 20, 0.82) !important;
             border: 1px solid rgba(212, 160, 23, 0.35) !important;
             border-radius: 18px !important;
             padding: 1.2rem 1.5rem !important;
             margin-bottom: 1.5rem !important;
+            backdrop-filter: blur(6px) !important;
         }
-
-        /* Título de sección */
         .dash-section-title {
             font-family: 'DM Sans', sans-serif !important;
             font-size: 0.78rem !important;
@@ -1248,15 +1250,14 @@ def pagina_dashboard():
             letter-spacing: 0.13em !important;
             margin: 0 0 0.8rem 0 !important;
         }
-
-        /* Contenedor de cada gráfico */
         .dash-chart-box {
-            background: #14141e !important;
+            background: rgba(12, 12, 18, 0.88) !important;
             border: 1px solid rgba(212, 160, 23, 0.28) !important;
             border-radius: 18px !important;
             padding: 1rem 1.2rem 0.4rem 1.2rem !important;
             margin-bottom: 1.4rem !important;
             box-shadow: 0 4px 24px rgba(0,0,0,0.5) !important;
+            backdrop-filter: blur(4px) !important;
         }
     </style>
     """, unsafe_allow_html=True)
@@ -1445,24 +1446,18 @@ def pagina_dashboard():
 
         titulo_evol = f"📈 Evolución del Stock — {prod_seleccionado}" if prod_seleccionado != "Todos" else "📈 Evolución del Stock en el Tiempo"
         fig_evolucion = px.line(
-            df_daily,
-            x="fecha",
-            y="stock_acumulado",
-            title=titulo_evol,
+            df_daily, x="fecha", y="stock_acumulado", title=titulo_evol,
             labels={"fecha": "Fecha", "stock_acumulado": "Stock (unidades)"},
-            template="plotly_dark",
-            line_shape="spline"
+            template="plotly_dark", line_shape="spline"
         )
         fig_evolucion.update_traces(
             line=dict(color="#d4a017", width=3),
-            fill="tozeroy",
-            fillcolor="rgba(212,160,23,0.08)"
+            fill="tozeroy", fillcolor="rgba(212,160,23,0.09)"
         )
         fig_evolucion.update_layout(
-            height=420,
-            hovermode="x unified",
-            plot_bgcolor="#14141e",
-            paper_bgcolor="#14141e",
+            height=420, hovermode="x unified",
+            plot_bgcolor="rgba(10,10,16,0.85)",
+            paper_bgcolor="rgba(10,10,16,0.85)",
             font=dict(color="#e8e8ec", size=13, family="DM Sans"),
             title=dict(font=dict(size=16, color="#f0f0f5"), x=0.01),
             xaxis=dict(gridcolor="rgba(255,255,255,0.07)", linecolor="rgba(255,255,255,0.12)",
@@ -1505,26 +1500,20 @@ def pagina_dashboard():
                     pie_title = "🥧 Distribución de Stock por Categoría"
 
                 fig_torta = px.pie(
-                    pie_data,
-                    values="stock",
-                    names=pie_names,
-                    title=pie_title,
-                    template="plotly_dark",
-                    color_discrete_sequence=px.colors.sequential.Oranges_r
+                    pie_data, values="stock", names=pie_names, title=pie_title,
+                    template="plotly_dark", color_discrete_sequence=px.colors.sequential.Oranges_r
                 )
                 fig_torta.update_traces(
-                    textposition="inside",
-                    textinfo="percent+label",
-                    textfont=dict(size=13, color="#ffffff"),
-                    insidetextorientation="radial"
+                    textposition="inside", textinfo="percent+label",
+                    textfont=dict(size=13, color="#ffffff"), insidetextorientation="radial"
                 )
                 fig_torta.update_layout(
                     height=460,
-                    paper_bgcolor="#14141e",
+                    paper_bgcolor="rgba(10,10,16,0.85)",
                     font=dict(color="#e8e8ec", size=13, family="DM Sans"),
                     title=dict(font=dict(size=16, color="#f0f0f5"), x=0.01),
                     legend=dict(font=dict(size=13, color="#e8e8ec"),
-                                bgcolor="rgba(20,20,30,0.95)", bordercolor="rgba(212,160,23,0.3)", borderwidth=1),
+                                bgcolor="rgba(12,12,18,0.9)", bordercolor="rgba(212,160,23,0.3)", borderwidth=1),
                     margin=dict(l=10, r=10, t=50, b=10),
                 )
                 st.markdown('<div class="dash-chart-box">', unsafe_allow_html=True)
@@ -1549,7 +1538,8 @@ def pagina_dashboard():
                 )
                 fig_barras.update_layout(
                     height=480, xaxis_tickangle=-40,
-                    plot_bgcolor="#14141e", paper_bgcolor="#14141e",
+                    plot_bgcolor="rgba(10,10,16,0.85)",
+                    paper_bgcolor="rgba(10,10,16,0.85)",
                     font=dict(color="#e8e8ec", size=13, family="DM Sans"),
                     title=dict(font=dict(size=16, color="#f0f0f5"), x=0.01),
                     xaxis=dict(gridcolor="rgba(255,255,255,0.05)", linecolor="rgba(255,255,255,0.12)",
@@ -1621,7 +1611,8 @@ def pagina_dashboard():
         )
         fig_mensual.update_layout(
             height=460,
-            plot_bgcolor="#14141e", paper_bgcolor="#14141e",
+            plot_bgcolor="rgba(10,10,16,0.85)",
+            paper_bgcolor="rgba(10,10,16,0.85)",
             font=dict(color="#e8e8ec", size=13, family="DM Sans"),
             title=dict(font=dict(size=16, color="#f0f0f5"), x=0.01),
             xaxis=dict(gridcolor="rgba(255,255,255,0.05)", linecolor="rgba(255,255,255,0.12)",
@@ -1629,7 +1620,7 @@ def pagina_dashboard():
             yaxis=dict(gridcolor="rgba(255,255,255,0.07)", linecolor="rgba(255,255,255,0.12)",
                        tickfont=dict(size=12, color="#c8c8d8"), title_font=dict(size=13, color="#d4a017")),
             legend=dict(font=dict(size=13, color="#e8e8ec"),
-                        bgcolor="rgba(20,20,30,0.95)", bordercolor="rgba(212,160,23,0.3)", borderwidth=1,
+                        bgcolor="rgba(12,12,18,0.9)", bordercolor="rgba(212,160,23,0.3)", borderwidth=1,
                         title_font=dict(size=12, color="#d4a017")),
             margin=dict(l=10, r=10, t=55, b=10),
         )
