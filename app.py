@@ -42,8 +42,21 @@ st.markdown("""
     @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:wght@300;400;500;600;700&display=swap');
 
     .stApp {
-        background: linear-gradient(160deg, #12121a 0%, #0d0d14 60%, #0a0a10 100%) !important;
+        background-image: url('https://raw.githubusercontent.com/marcasosguemes-cell/Stock-SECCO-AGRO/main/Fondo.PNG') !important;
+        background-size: cover !important;
+        background-position: center !important;
+        background-attachment: fixed !important;
+        background-repeat: no-repeat !important;
         font-family: 'DM Sans', sans-serif !important;
+    }
+
+    .stApp::before {
+        content: '';
+        position: fixed;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: linear-gradient(135deg, rgba(15, 15, 18, 0.97) 0%, rgba(10, 10, 12, 0.98) 100%);
+        z-index: -1;
+        pointer-events: none;
     }
 
     [data-testid="stSidebarCollapsedControl"] {
@@ -536,7 +549,7 @@ st.markdown("""
     label {
         color: #f0f0f5 !important;
         font-weight: 600 !important;
-        text-shadow: none !important;
+        text-shadow: 0 1px 4px rgba(0,0,0,0.9), 0 0px 8px rgba(0,0,0,0.8) !important;
     }
 
     .stMarkdown p, .stMarkdown h1, .stMarkdown h2, .stMarkdown h3,
@@ -545,25 +558,25 @@ st.markdown("""
     [data-testid="stMarkdownContainer"] h2,
     [data-testid="stMarkdownContainer"] h3 {
         color: #f0f0f5 !important;
-        text-shadow: none !important;
+        text-shadow: 0 1px 6px rgba(0,0,0,0.95), 0 0 12px rgba(0,0,0,0.8) !important;
     }
 
     [data-testid="stWidgetLabel"] > div,
     [data-testid="stWidgetLabel"] p {
         color: #f0f0f5 !important;
         font-weight: 600 !important;
-        text-shadow: none !important;
-        background: transparent !important;
+        text-shadow: 0 1px 6px rgba(0,0,0,0.95) !important;
+        background: rgba(10,10,12,0.55) !important;
         border-radius: 4px !important;
         padding: 0 4px !important;
         display: inline-block !important;
     }
 
     .stDataFrame {
-        background: #1e1e28 !important;
-        border-radius: 16px !important;
-        overflow: hidden !important;
-        box-shadow: 0 2px 12px rgba(0,0,0,0.3) !important;
+        background: rgba(35, 35, 42, 0.7);
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.2);
     }
 
     .stDataFrame * {
@@ -682,47 +695,6 @@ st.markdown("""
     .password-warning h3 {
         color: #d4a017 !important;
         margin-top: 0 !important;
-    }
-
-    /* ── Gráficos Plotly con fondo sólido y borde ────────── */
-    [data-testid="stPlotlyChart"] {
-        background: #1a1a24 !important;
-        border-radius: 18px !important;
-        border: 1px solid rgba(212, 160, 23, 0.25) !important;
-        box-shadow: 0 4px 20px rgba(0,0,0,0.35) !important;
-        padding: 0.5rem !important;
-        margin-bottom: 1.2rem !important;
-        overflow: hidden !important;
-    }
-
-    [data-testid="stPlotlyChart"] > div {
-        background: #1a1a24 !important;
-        border-radius: 14px !important;
-    }
-
-    /* ── Fondo de la zona de contenido principal ─────────── */
-    [data-testid="stAppViewContainer"] > .main {
-        background: transparent !important;
-    }
-
-    .block-container {
-        background: rgba(18, 18, 26, 0.85) !important;
-        border-radius: 0 !important;
-        padding-top: 1.5rem !important;
-    }
-
-    /* ── Panel de filtros con fondo sólido ───────────────── */
-    [data-testid="stHorizontalBlock"] {
-        gap: 1rem !important;
-    }
-
-    /* ── Dataframe con fondo sólido ──────────────────────── */
-    .stDataFrame {
-        background: #1e1e28 !important;
-        border-radius: 16px !important;
-        border: 1px solid rgba(212, 160, 23, 0.2) !important;
-        overflow: hidden !important;
-        box-shadow: 0 2px 12px rgba(0,0,0,0.3) !important;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -1235,6 +1207,53 @@ def get_stock_por_establecimiento():
 # ══════════════════════════════════════════════════════════════
 
 def pagina_dashboard():
+    # ── CSS exclusivo del Dashboard: fondo oscuro sólido ──────
+    st.markdown("""
+    <style>
+        /* Fondo oscuro solo en el Dashboard */
+        .stApp {
+            background-image: none !important;
+            background: linear-gradient(160deg, #0f0f16 0%, #0b0b12 60%, #08080e 100%) !important;
+        }
+        .stApp::before { background: none !important; }
+
+        /* Panel de filtros del dashboard */
+        .dash-filtros {
+            background: rgba(30, 30, 40, 0.95) !important;
+            border: 1px solid rgba(212, 160, 23, 0.35) !important;
+            border-radius: 18px !important;
+            padding: 1.2rem 1.5rem !important;
+            margin-bottom: 1.5rem !important;
+        }
+
+        /* Contenedor de cada gráfico */
+        .dash-chart-box {
+            background: #1c1c28 !important;
+            border: 1px solid rgba(212, 160, 23, 0.28) !important;
+            border-radius: 18px !important;
+            padding: 1rem 1.2rem 0.6rem 1.2rem !important;
+            margin-bottom: 1.4rem !important;
+            box-shadow: 0 4px 22px rgba(0,0,0,0.45) !important;
+        }
+
+        /* Título de sección del dashboard */
+        .dash-section-title {
+            font-family: 'DM Sans', sans-serif !important;
+            font-size: 0.78rem !important;
+            font-weight: 700 !important;
+            color: #d4a017 !important;
+            text-transform: uppercase !important;
+            letter-spacing: 0.13em !important;
+            margin: 0 0 0.6rem 0 !important;
+        }
+
+        /* Gráficos Plotly con fondo sólido */
+        [data-testid="stPlotlyChart"] > div {
+            background: transparent !important;
+        }
+    </style>
+    """, unsafe_allow_html=True)
+
     st.markdown('<div class="main-content">', unsafe_allow_html=True)
     
     st.markdown("""
@@ -1255,7 +1274,8 @@ def pagina_dashboard():
         </div>
         """, unsafe_allow_html=True)
     
-    st.markdown("### 🔍 FILTROS DINÁMICOS")
+    st.markdown('<div class="dash-filtros">', unsafe_allow_html=True)
+    st.markdown('<div class="dash-section-title">🔍 Filtros dinámicos</div>', unsafe_allow_html=True)
     
     col_f1, col_f2, col_f3, col_f4 = st.columns(4)
     
@@ -1291,6 +1311,8 @@ def pagina_dashboard():
     
     with col_f4:
         stock_min = st.number_input("⚠️ Stock mínimo (alerta)", min_value=0, value=50, step=10)
+
+    st.markdown('</div>', unsafe_allow_html=True)  # cierra dash-filtros
     
     movimientos = get_movimientos_con_filtros(
         establecimiento_id=estab_filter(),
@@ -1424,15 +1446,35 @@ def pagina_dashboard():
             template="plotly_dark",
             line_shape="spline"
         )
-        fig_evolucion.update_traces(line=dict(color="#d4a017", width=3))
-        fig_evolucion.update_layout(
-            height=400,
-            hovermode="x unified",
-            plot_bgcolor="#22222e",
-            paper_bgcolor="#1a1a24",
-            font=dict(color="#e8e8ec")
+        fig_evolucion.update_traces(
+            line=dict(color="#d4a017", width=3),
+            fill="tozeroy",
+            fillcolor="rgba(212,160,23,0.08)"
         )
+        fig_evolucion.update_layout(
+            height=420,
+            hovermode="x unified",
+            plot_bgcolor="#1c1c28",
+            paper_bgcolor="#1c1c28",
+            font=dict(color="#e8e8ec", size=13, family="DM Sans"),
+            title=dict(font=dict(size=16, color="#f0f0f5"), x=0.01),
+            xaxis=dict(
+                gridcolor="rgba(255,255,255,0.07)",
+                linecolor="rgba(255,255,255,0.15)",
+                tickfont=dict(size=12, color="#c8c8d8"),
+                title_font=dict(size=13, color="#d4a017"),
+            ),
+            yaxis=dict(
+                gridcolor="rgba(255,255,255,0.07)",
+                linecolor="rgba(255,255,255,0.15)",
+                tickfont=dict(size=12, color="#c8c8d8"),
+                title_font=dict(size=13, color="#d4a017"),
+            ),
+            margin=dict(l=10, r=10, t=50, b=10),
+        )
+        st.markdown('<div class="dash-chart-box">', unsafe_allow_html=True)
         st.plotly_chart(fig_evolucion, use_container_width=True)
+        st.markdown('</div>', unsafe_allow_html=True)
 
         # ── Torta: distribución por categoría (o por producto si hay filtro) ──
         stock_productos = get_stock_por_producto(estab_filter())
@@ -1471,9 +1513,28 @@ def pagina_dashboard():
                     template="plotly_dark",
                     color_discrete_sequence=px.colors.sequential.Oranges_r
                 )
-                fig_torta.update_traces(textposition="inside", textinfo="percent+label")
-                fig_torta.update_layout(height=450, paper_bgcolor="#1a1a24", font=dict(color="#e8e8ec"))
+                fig_torta.update_traces(
+                    textposition="inside",
+                    textinfo="percent+label",
+                    textfont=dict(size=13, color="#ffffff"),
+                    insidetextorientation="radial"
+                )
+                fig_torta.update_layout(
+                    height=460,
+                    paper_bgcolor="#1c1c28",
+                    font=dict(color="#e8e8ec", size=13, family="DM Sans"),
+                    title=dict(font=dict(size=16, color="#f0f0f5"), x=0.01),
+                    legend=dict(
+                        font=dict(size=13, color="#e8e8ec"),
+                        bgcolor="rgba(28,28,40,0.9)",
+                        bordercolor="rgba(212,160,23,0.3)",
+                        borderwidth=1,
+                    ),
+                    margin=dict(l=10, r=10, t=50, b=10),
+                )
+                st.markdown('<div class="dash-chart-box">', unsafe_allow_html=True)
                 st.plotly_chart(fig_torta, use_container_width=True)
+                st.markdown('</div>', unsafe_allow_html=True)
 
             # ── Barras: Top productos ────────────────────────────────
             st.markdown("---")
@@ -1488,15 +1549,41 @@ def pagina_dashboard():
                     labels={"producto": "Producto", "stock": "Stock (unidades)"},
                     template="plotly_dark",
                     color="stock",
-                    color_continuous_scale="Oranges"
+                    color_continuous_scale="Oranges",
+                    text="stock"
+                )
+                fig_barras.update_traces(
+                    texttemplate="%{text:,.0f}",
+                    textposition="outside",
+                    textfont=dict(size=12, color="#e8e8ec"),
+                    marker_line_color="rgba(212,160,23,0.4)",
+                    marker_line_width=1,
                 )
                 fig_barras.update_layout(
-                    height=450, xaxis_tickangle=-45,
-                    plot_bgcolor="#22222e",
-                    paper_bgcolor="#1a1a24",
-                    font=dict(color="#e8e8ec")
+                    height=480,
+                    xaxis_tickangle=-40,
+                    plot_bgcolor="#1c1c28",
+                    paper_bgcolor="#1c1c28",
+                    font=dict(color="#e8e8ec", size=13, family="DM Sans"),
+                    title=dict(font=dict(size=16, color="#f0f0f5"), x=0.01),
+                    xaxis=dict(
+                        gridcolor="rgba(255,255,255,0.05)",
+                        linecolor="rgba(255,255,255,0.15)",
+                        tickfont=dict(size=11, color="#c8c8d8"),
+                        title_font=dict(size=13, color="#d4a017"),
+                    ),
+                    yaxis=dict(
+                        gridcolor="rgba(255,255,255,0.07)",
+                        linecolor="rgba(255,255,255,0.15)",
+                        tickfont=dict(size=12, color="#c8c8d8"),
+                        title_font=dict(size=13, color="#d4a017"),
+                    ),
+                    coloraxis_showscale=False,
+                    margin=dict(l=10, r=10, t=55, b=10),
                 )
+                st.markdown('<div class="dash-chart-box">', unsafe_allow_html=True)
                 st.plotly_chart(fig_barras, use_container_width=True)
+                st.markdown('</div>', unsafe_allow_html=True)
 
             # ── Tabla de stock actual ────────────────────────────────
             st.markdown("### 📋 Detalle de Stock Actual")
@@ -1548,15 +1635,46 @@ def pagina_dashboard():
             labels={"mes": "Mes", "cantidad": "Cantidad (unidades)", "tipo": "Tipo"},
             template="plotly_dark",
             barmode="group",
-            color_discrete_map={"ingreso": "#d4a017", "egreso": "#e67e22"}
+            color_discrete_map={"ingreso": "#d4a017", "egreso": "#e67e22"},
+            text="cantidad"
+        )
+        fig_mensual.update_traces(
+            texttemplate="%{text:,.0f}",
+            textposition="outside",
+            textfont=dict(size=11, color="#e8e8ec"),
+            marker_line_color="rgba(255,255,255,0.1)",
+            marker_line_width=1,
         )
         fig_mensual.update_layout(
-            height=450,
-            plot_bgcolor="#22222e",
-            paper_bgcolor="#1a1a24",
-            font=dict(color="#e8e8ec")
+            height=460,
+            plot_bgcolor="#1c1c28",
+            paper_bgcolor="#1c1c28",
+            font=dict(color="#e8e8ec", size=13, family="DM Sans"),
+            title=dict(font=dict(size=16, color="#f0f0f5"), x=0.01),
+            xaxis=dict(
+                gridcolor="rgba(255,255,255,0.05)",
+                linecolor="rgba(255,255,255,0.15)",
+                tickfont=dict(size=12, color="#c8c8d8"),
+                title_font=dict(size=13, color="#d4a017"),
+            ),
+            yaxis=dict(
+                gridcolor="rgba(255,255,255,0.07)",
+                linecolor="rgba(255,255,255,0.15)",
+                tickfont=dict(size=12, color="#c8c8d8"),
+                title_font=dict(size=13, color="#d4a017"),
+            ),
+            legend=dict(
+                font=dict(size=13, color="#e8e8ec"),
+                bgcolor="rgba(28,28,40,0.9)",
+                bordercolor="rgba(212,160,23,0.3)",
+                borderwidth=1,
+                title_font=dict(size=12, color="#d4a017"),
+            ),
+            margin=dict(l=10, r=10, t=55, b=10),
         )
+        st.markdown('<div class="dash-chart-box">', unsafe_allow_html=True)
         st.plotly_chart(fig_mensual, use_container_width=True)
+        st.markdown('</div>', unsafe_allow_html=True)
 
     else:
         st.info("💡 Sin datos en el período seleccionado. Ajustá los filtros o registrá movimientos.")
@@ -2734,8 +2852,8 @@ def pagina_consolidado():
             )
             fig_estab.update_layout(
                 height=380,
-                plot_bgcolor="#22222e",
-                paper_bgcolor="#1a1a24",
+                plot_bgcolor="rgba(30,30,35,0.8)",
+                paper_bgcolor="rgba(0,0,0,0)",
                 font=dict(color="#e8e8ec"),
                 showlegend=False,
             )
@@ -2754,7 +2872,7 @@ def pagina_consolidado():
             fig_torta.update_traces(textposition="inside", textinfo="percent+label")
             fig_torta.update_layout(
                 height=420,
-                paper_bgcolor="#1a1a24",
+                paper_bgcolor="rgba(0,0,0,0)",
                 font=dict(color="#e8e8ec")
             )
             st.plotly_chart(fig_torta, use_container_width=True)
@@ -2817,8 +2935,8 @@ def pagina_consolidado():
                 fig_e.update_layout(
                     height=400,
                     xaxis_tickangle=-40,
-                    plot_bgcolor="#22222e",
-                    paper_bgcolor="#1a1a24",
+                    plot_bgcolor="rgba(30,30,35,0.8)",
+                    paper_bgcolor="rgba(0,0,0,0)",
                     font=dict(color="#e8e8ec"),
                 )
                 st.plotly_chart(fig_e, use_container_width=True)
