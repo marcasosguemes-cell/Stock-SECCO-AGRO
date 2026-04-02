@@ -1055,10 +1055,12 @@ def get_categorias():
     res = supabase.table("categorias").select("*").execute()
     return res.data
 
-def get_productos(categoria_id=None):
+def get_productos(categoria_id=None, subcategoria=None):
     q = supabase.table("productos").select("*,categorias(nombre)").eq("activo", True)
     if categoria_id:
         q = q.eq("categoria_id", categoria_id)
+    if subcategoria:
+        q = q.eq("subcategoria", subcategoria)
     return q.execute().data
 
 def get_proveedores():
@@ -1482,16 +1484,29 @@ def pagina_ingreso():
     col1, col2 = st.columns(2)
     with col1:
         cat_options = {c["nombre"]: c["id"] for c in categorias}
-        cat_sel = st.selectbox("📁 Categoría *", list(cat_options.keys()))
+        cat_sel = st.selectbox("📁 Categoría *", list(cat_options.keys()), key="ing_cat")
         cat_id = cat_options[cat_sel]
-    
+
+    # ── Subcategoría Agroquímicos ──────────────────────────────
+    es_agroquimico_ing = "agroquimico" in cat_sel.lower() or "agroquímico" in cat_sel.lower()
+    subcategoria_ing = None
+    if es_agroquimico_ing:
+        subcategoria_ing = st.selectbox(
+            "🌿 Tipo de Agroquímico *",
+            ["Herbicidas", "Insecticidas", "Coadyuvantes"],
+            key="ing_subcategoria"
+        )
+
     with col2:
-        productos = get_productos(cat_id)
+        productos = get_productos(cat_id, subcategoria_ing if es_agroquimico_ing else None)
         if not productos:
-            st.warning("⚠️ No hay productos en esta categoría.")
+            if es_agroquimico_ing:
+                st.warning(f"⚠️ No hay productos cargados como '{subcategoria_ing}' en esta categoría.")
+            else:
+                st.warning("⚠️ No hay productos en esta categoría.")
             return
         prod_options = {p["nombre"]: p["id"] for p in productos}
-        prod_sel = st.selectbox("🏷️ Producto *", list(prod_options.keys()))
+        prod_sel = st.selectbox("🏷️ Producto *", list(prod_options.keys()), key="ing_prod")
         producto_id = prod_options[prod_sel]
         
         prod_info = next((p for p in productos if p["id"] == producto_id), None)
@@ -1504,16 +1519,6 @@ def pagina_ingreso():
             extra = " | ".join(x for x in [marca_str, conc_str] if x)
             parts = [x for x in [presentacion_str, unidad_str, extra] if x]
             st.caption("📦 " + " | ".join(parts))
-
-    # ── Subclasificación Agroquímicos (fuera del form para reactividad) ──
-    es_agroquimico_ing = "agroquimico" in cat_sel.lower() or "agroquímico" in cat_sel.lower()
-    subcategoria_agro_ing = None
-    if es_agroquimico_ing:
-        subcategoria_agro_ing = st.selectbox(
-            "🌿 Subclasificación Agroquímico *",
-            ["Herbicidas", "Insecticidas", "Coadyuvantes"],
-            key="subcategoria_agro_ing"
-        )
 
     with st.form("form_ingreso", clear_on_submit=True):
         col3, col4, col5 = st.columns(3)
@@ -1565,8 +1570,6 @@ def pagina_ingreso():
             try:
                 with st.spinner("Registrando ingreso..."):
                     obs_parts = [f"[{tipo_ingreso}]"]
-                    if es_agroquimico_ing and subcategoria_agro_ing:
-                        obs_parts.append(f"[{subcategoria_agro_ing}]")
                     if fecha_vencimiento:
                         obs_parts.append(f"Vence: {fecha_vencimiento.strftime('%d/%m/%Y')}")
                     if observaciones:
@@ -1644,16 +1647,29 @@ def pagina_egreso():
     col1, col2 = st.columns(2)
     with col1:
         cat_options = {c["nombre"]: c["id"] for c in categorias}
-        cat_sel = st.selectbox("📁 Categoría *", list(cat_options.keys()))
+        cat_sel = st.selectbox("📁 Categoría *", list(cat_options.keys()), key="egr_cat")
         cat_id = cat_options[cat_sel]
-    
+
+    # ── Subcategoría Agroquímicos ──────────────────────────────
+    es_agroquimico_egr = "agroquimico" in cat_sel.lower() or "agroquímico" in cat_sel.lower()
+    subcategoria_egr = None
+    if es_agroquimico_egr:
+        subcategoria_egr = st.selectbox(
+            "🌿 Tipo de Agroquímico *",
+            ["Herbicidas", "Insecticidas", "Coadyuvantes"],
+            key="egr_subcategoria"
+        )
+
     with col2:
-        productos = get_productos(cat_id)
+        productos = get_productos(cat_id, subcategoria_egr if es_agroquimico_egr else None)
         if not productos:
-            st.warning("⚠️ No hay productos en esta categoría.")
+            if es_agroquimico_egr:
+                st.warning(f"⚠️ No hay productos cargados como '{subcategoria_egr}' en esta categoría.")
+            else:
+                st.warning("⚠️ No hay productos en esta categoría.")
             return
         prod_options = {p["nombre"]: p["id"] for p in productos}
-        prod_sel = st.selectbox("🏷️ Producto *", list(prod_options.keys()))
+        prod_sel = st.selectbox("🏷️ Producto *", list(prod_options.keys()), key="egr_prod")
         producto_id = prod_options[prod_sel]
         
         prod_info_egr = next((p for p in productos if p["id"] == producto_id), None)
@@ -1673,16 +1689,6 @@ def pagina_egreso():
                 st.caption(f"📊 Stock disponible: {stock_disponible:.2f} {prod_stock.iloc[0]['unidad']}")
             else:
                 st.caption("📊 Stock disponible: 0")
-
-    # ── Subclasificación Agroquímicos (fuera del form para reactividad) ──
-    es_agroquimico_egr = "agroquimico" in cat_sel.lower() or "agroquímico" in cat_sel.lower()
-    subcategoria_agro_egr = None
-    if es_agroquimico_egr:
-        subcategoria_agro_egr = st.selectbox(
-            "🌿 Subclasificación Agroquímico *",
-            ["Herbicidas", "Insecticidas", "Coadyuvantes"],
-            key="subcategoria_agro_egr"
-        )
 
     with st.form("form_egreso", clear_on_submit=True):
         col3, col4, col5 = st.columns(3)
@@ -1720,12 +1726,7 @@ def pagina_egreso():
             
             try:
                 with st.spinner("Registrando egreso..."):
-                    if es_agroquimico_egr and subcategoria_agro_egr:
-                        observaciones_full = f"[{tipo_egreso}] [{subcategoria_agro_egr}]"
-                        if observaciones:
-                            observaciones_full += f" {observaciones}"
-                    else:
-                        observaciones_full = f"[{tipo_egreso}] {observaciones}" if observaciones else f"[{tipo_egreso}]"
+                    observaciones_full = f"[{tipo_egreso}] {observaciones}" if observaciones else f"[{tipo_egreso}]"
                     from zoneinfo import ZoneInfo
                     now = datetime.now(ZoneInfo("America/Argentina/Buenos_Aires")).replace(tzinfo=None)
                     fecha_con_hora = datetime.combine(fecha, now.time()).isoformat()
@@ -2185,6 +2186,14 @@ def pagina_productos():
     with st.expander("➕ Agregar nuevo producto", expanded=False):
         with st.form("nuevo_producto"):
             cat_sel = st.selectbox("Categoría", list(cat_options.keys()))
+            es_agro_nuevo = "agroquimico" in cat_sel.lower() or "agroquímico" in cat_sel.lower()
+            subcategoria_nuevo = None
+            if es_agro_nuevo:
+                subcategoria_nuevo = st.selectbox(
+                    "🌿 Tipo de Agroquímico *",
+                    ["Herbicidas", "Insecticidas", "Coadyuvantes"],
+                    key="nuevo_prod_subcategoria"
+                )
             nombre = st.text_input("Nombre del producto")
             col_p1, col_p2 = st.columns(2)
             with col_p1:
@@ -2209,7 +2218,8 @@ def pagina_productos():
                         st.session_state["prod_duplicado_info"] = {
                             "nombre": nombre, "cat_sel": cat_sel, "marca": marca,
                             "presentacion": presentacion, "concentracion": concentracion,
-                            "unidad_medida": unidad_medida, "estado": estado
+                            "unidad_medida": unidad_medida, "estado": estado,
+                            "subcategoria": subcategoria_nuevo
                         }
                         st.rerun()
                     else:
@@ -2223,6 +2233,7 @@ def pagina_productos():
                             "concentracion": concentracion if concentracion else None,
                             "presentacion": presentacion if presentacion else None,
                             "unidad_medida": unidad_medida,
+                            "subcategoria": subcategoria_nuevo,
                             "activo": True
                         }).execute()
                         st.success(f"✅ Producto '{nombre}' agregado")
@@ -2251,6 +2262,7 @@ def pagina_productos():
                         "concentracion": d["concentracion"] if d["concentracion"] else None,
                         "presentacion": d["presentacion"] if d["presentacion"] else None,
                         "unidad_medida": d["unidad_medida"],
+                        "subcategoria": d.get("subcategoria"),
                         "activo": True
                     }).execute()
                     st.session_state.pop("confirmar_duplicado", None)
@@ -2316,6 +2328,18 @@ def pagina_productos():
                     list(cat_options.keys()),
                     index=list(cat_options.keys()).index(prod_data["categoria"]) if prod_data["categoria"] in cat_options else 0
                 )
+                es_agro_edit = "agroquimico" in cat_sel_edit.lower() or "agroquímico" in cat_sel_edit.lower()
+                subcategoria_edit = None
+                if es_agro_edit:
+                    subcats = ["Herbicidas", "Insecticidas", "Coadyuvantes"]
+                    subcat_actual = prod_data.get("subcategoria") or "Herbicidas"
+                    subcat_idx = subcats.index(subcat_actual) if subcat_actual in subcats else 0
+                    subcategoria_edit = st.selectbox(
+                        "🌿 Tipo de Agroquímico *",
+                        subcats,
+                        index=subcat_idx,
+                        key="edit_subcategoria"
+                    )
                 nombre_edit = st.text_input("Nombre del producto", value=prod_data["nombre"])
                 col_e1, col_e2 = st.columns(2)
                 with col_e1:
@@ -2364,6 +2388,7 @@ def pagina_productos():
                             "concentracion": concentracion_edit if concentracion_edit else None,
                             "presentacion": presentacion_edit if presentacion_edit else None,
                             "unidad_medida": unidad_edit,
+                            "subcategoria": subcategoria_edit,
                             "activo": activo_edit
                         }).eq("id", prod_sel_id).execute()
 
@@ -2384,9 +2409,13 @@ def pagina_productos():
                     st.warning(f"⚠️ Producto '{prod_data['nombre']}' desactivado.")
                     st.rerun()
 
-        display_cols = ["categoria", "nombre", "marca", "concentracion", "presentacion", "unidad_medida", "activo"]
-        df_display = df[display_cols].copy()
-        df_display.columns = ["Categoría", "Producto", "Marca", "Concentración", "Presentación", "Unidad", "Activo"]
+        display_cols = ["categoria", "nombre", "subcategoria", "marca", "concentracion", "presentacion", "unidad_medida", "activo"]
+        df["subcategoria"] = df.get("subcategoria", pd.Series([""] * len(df)))
+        df_display = df[[c for c in display_cols if c in df.columns]].copy()
+        col_names = {"categoria": "Categoría", "nombre": "Producto", "subcategoria": "Subcategoría",
+                     "marca": "Marca", "concentracion": "Concentración",
+                     "presentacion": "Presentación", "unidad_medida": "Unidad", "activo": "Activo"}
+        df_display.columns = [col_names.get(c, c) for c in df_display.columns]
         st.dataframe(df_display, use_container_width=True)
     else:
         st.info("💡 No hay productos cargados.")
