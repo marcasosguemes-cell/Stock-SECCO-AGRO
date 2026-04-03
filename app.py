@@ -375,6 +375,17 @@ st.markdown("""
         color: #f0f0f5 !important;
     }
 
+    /* ── Login: botón Ingresar con letras negras ── */
+    [data-testid="stForm"] .stButton > button,
+    [data-testid="stForm"] [data-testid="stFormSubmitButton"] > button,
+    [data-testid="stFormSubmitButton"] > button,
+    [data-testid="stFormSubmitButton"] > button > div,
+    [data-testid="stFormSubmitButton"] > button p,
+    [data-testid="stFormSubmitButton"] button * {
+        color: #000000 !important;
+        -webkit-text-fill-color: #000000 !important;
+    }
+
     /* ── Login: textos en blanco ── */
     [data-testid="stForm"] h3,
     [data-testid="stForm"] label,
