@@ -53,12 +53,15 @@ st.markdown("""
         background: none !important;
     }
 
-    /* ── Botón nativo sidebar: se mantiene el de Streamlit ── */
+    /* ── Botón nativo sidebar: OCULTO (reemplazado por botón propio) ── */
     [data-testid="collapsedControl"],
-    [data-testid="stSidebarCollapsedControl"] {
-        display: flex !important;
-        visibility: visible !important;
-        opacity: 1 !important;
+    [data-testid="stSidebarCollapsedControl"],
+    button[data-testid="collapsedControl"],
+    button[data-testid="stSidebarCollapsedControl"] {
+        display: none !important;
+        visibility: hidden !important;
+        opacity: 0 !important;
+        pointer-events: none !important;
     }
 
     html, body { background: #0e0e14 !important; }
@@ -1786,22 +1789,20 @@ def main():
         </style>"""
     st.markdown(sidebar_css, unsafe_allow_html=True)
 
-    # Botón flotante hamburguesa (siempre visible)
+    # Botón flotante hamburguesa (siempre visible, posición fija real)
     st.markdown("""
     <style>
-    div[data-testid="stVerticalBlock"] > div:first-child .menu-btn-container {
+    /* Contenedor del botón toggle: posición fija en el borde izquierdo */
+    div.stButton[data-testid="stButtontoggle_sidebar_wrap"] { display: none; }
+
+    button[kind="secondary"][data-testid="stBaseButton-secondary"]#btn-sidebar-toggle,
+    [data-testid="btn_toggle_sidebar"] button,
+    div[data-testid="stButton"]:has(button[key="btn_toggle_sidebar"]) button {
         position: fixed !important;
         top: 50vh !important;
-        left: 0 !important;
-        z-index: 999999 !important;
+        left: 0px !important;
         transform: translateY(-50%) !important;
-    }
-    .menu-btn-container .stButton button {
-        position: fixed !important;
-        top: 50vh !important;
-        left: 0 !important;
         z-index: 999999 !important;
-        transform: translateY(-50%) !important;
         background: rgba(212,160,23,0.95) !important;
         border: none !important;
         border-radius: 0 12px 12px 0 !important;
@@ -1809,25 +1810,36 @@ def main():
         min-width: 30px !important;
         height: 62px !important;
         padding: 0 !important;
-        font-size: 18px !important;
+        font-size: 20px !important;
+        line-height: 1 !important;
         color: #1a1a1f !important;
         box-shadow: 3px 0 16px rgba(0,0,0,0.5) !important;
         cursor: pointer !important;
+        transition: width 0.2s ease !important;
     }
-    .menu-btn-container .stButton button:hover {
+    [data-testid="btn_toggle_sidebar"] button:hover,
+    div[data-testid="stButton"]:has(button[key="btn_toggle_sidebar"]) button:hover {
         background: rgba(212,160,23,1.0) !important;
         width: 38px !important;
+    }
+    /* Ocultar el label de texto del botón para que no ocupe espacio en layout */
+    div[data-testid="stButton"]:has(button[key="btn_toggle_sidebar"]) {
+        position: fixed !important;
+        top: 50vh !important;
+        left: 0px !important;
+        transform: translateY(-50%) !important;
+        z-index: 999999 !important;
+        width: 30px !important;
+        height: 62px !important;
+        margin: 0 !important;
+        padding: 0 !important;
     }
     </style>
     """, unsafe_allow_html=True)
 
-    col_menu, col_contenido = st.columns([0.001, 0.999])
-    with col_menu:
-        st.markdown('<div class="menu-btn-container">', unsafe_allow_html=True)
-        if st.button("☰", key="btn_toggle_sidebar"):
-            st.session_state["sidebar_abierta"] = not st.session_state["sidebar_abierta"]
-            st.rerun()
-        st.markdown('</div>', unsafe_allow_html=True)
+    if st.button("☰", key="btn_toggle_sidebar"):
+        st.session_state["sidebar_abierta"] = not st.session_state["sidebar_abierta"]
+        st.rerun()
 
     sidebar()
 
