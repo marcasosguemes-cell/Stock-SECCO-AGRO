@@ -984,10 +984,31 @@ def pagina_dashboard():
     if stock_productos.empty:
         st.info("💡 Sin datos de stock. Registrá movimientos para ver el inventario.")
         return
-    
-    total_stock = stock_productos["stock"].sum()
-    total_productos = len(stock_productos)
-    stock_bajo = len(stock_productos[stock_productos["stock"] < 50])
+
+    # ── Filtros de categoría y producto ──
+    categorias_disponibles = sorted(stock_productos["categoria"].dropna().unique().tolist())
+    productos_disponibles  = sorted(stock_productos["producto"].dropna().unique().tolist())
+
+    col_f1, col_f2 = st.columns(2)
+    with col_f1:
+        cat_sel = st.selectbox("📁 Filtrar por Categoría", ["Todas"] + categorias_disponibles, key="dash_cat")
+    with col_f2:
+        if cat_sel != "Todas":
+            prods_filtrados = sorted(stock_productos[stock_productos["categoria"] == cat_sel]["producto"].unique().tolist())
+        else:
+            prods_filtrados = productos_disponibles
+        prod_sel = st.selectbox("📦 Filtrar por Producto", ["Todos"] + prods_filtrados, key="dash_prod")
+
+    # Aplicar filtros
+    df_filtrado = stock_productos.copy()
+    if cat_sel != "Todas":
+        df_filtrado = df_filtrado[df_filtrado["categoria"] == cat_sel]
+    if prod_sel != "Todos":
+        df_filtrado = df_filtrado[df_filtrado["producto"] == prod_sel]
+
+    total_stock = df_filtrado["stock"].sum()
+    total_productos = len(df_filtrado)
+    stock_bajo = len(df_filtrado[df_filtrado["stock"] < 50])
 
     # ── Burbujas métricas ──
     st.markdown(f"""
@@ -1028,7 +1049,7 @@ def pagina_dashboard():
                 text-shadow:0 1px 4px rgba(0,0,0,0.5);">📋 Stock Actual por Producto</div>
     """, unsafe_allow_html=True)
 
-    df_tabla = stock_productos[["producto", "categoria", "presentacion", "stock", "unidad"]].copy()
+    df_tabla = df_filtrado[["producto", "categoria", "presentacion", "stock", "unidad"]].copy()
     df_tabla = df_tabla.sort_values("stock", ascending=False)
 
     filas_html = ""
@@ -1361,35 +1382,55 @@ def pagina_historial():
     </div>
     """, unsafe_allow_html=True)
 
+    # ── Fila 1: Tipo + Fechas ──
     col_f1, col_f2, col_f3 = st.columns(3)
-    
     with col_f1:
-        tipo_filtro = st.selectbox("Tipo", ["Todos", "ingreso", "egreso"])
+        tipo_filtro = st.selectbox("🔄 Tipo", ["Todos", "ingreso", "egreso"], key="hist_tipo")
     with col_f2:
-        fecha_desde = st.date_input("Desde", value=date.today() - timedelta(days=30))
+        fecha_desde = st.date_input("📅 Desde", value=date.today() - timedelta(days=30), key="hist_desde")
     with col_f3:
-        fecha_hasta = st.date_input("Hasta", value=date.today())
+        fecha_hasta = st.date_input("📅 Hasta", value=date.today(), key="hist_hasta")
 
+    # Cargar todos los movimientos del período para derivar categorías/productos disponibles
     movimientos = get_movimientos_con_filtros(
         establecimiento_id=estab_filter(),
         fecha_desde=fecha_desde,
         fecha_hasta=fecha_hasta,
         tipo=tipo_filtro if tipo_filtro != "Todos" else None
     )
-    
+
     if not movimientos:
         st.info("💡 Sin movimientos en el período seleccionado.")
         return
-    
+
     df = pd.DataFrame(movimientos)
     if "fecha" in df.columns:
         df["fecha"] = pd.to_datetime(df["fecha"])
         df = df.sort_values("fecha", ascending=False)
-    
-    df["producto_nombre"] = df["productos"].apply(lambda x: x.get("nombre", "") if isinstance(x, dict) else "")
+
+    df["producto_nombre"]      = df["productos"].apply(lambda x: x.get("nombre", "") if isinstance(x, dict) else "")
+    df["categoria_nombre"]     = df["productos"].apply(lambda x: x.get("categorias", {}).get("nombre", "") if isinstance(x, dict) and x.get("categorias") else "")
     df["establecimiento_nombre"] = df["establecimientos"].apply(lambda x: x.get("nombre", "") if isinstance(x, dict) else "")
     df["fecha_str"] = df["fecha"].dt.strftime("%d/%m/%Y %H:%M")
-    
+
+    # ── Fila 2: Categoría + Producto ──
+    col_c1, col_c2 = st.columns(2)
+    with col_c1:
+        cats_disp = sorted([c for c in df["categoria_nombre"].dropna().unique() if c])
+        cat_sel = st.selectbox("📁 Categoría", ["Todas"] + cats_disp, key="hist_cat")
+    with col_c2:
+        if cat_sel != "Todas":
+            prods_disp = sorted(df[df["categoria_nombre"] == cat_sel]["producto_nombre"].dropna().unique().tolist())
+        else:
+            prods_disp = sorted([p for p in df["producto_nombre"].dropna().unique() if p])
+        prod_sel = st.selectbox("📦 Producto", ["Todos"] + prods_disp, key="hist_prod")
+
+    # Aplicar filtros de categoría y producto
+    if cat_sel != "Todas":
+        df = df[df["categoria_nombre"] == cat_sel]
+    if prod_sel != "Todos":
+        df = df[df["producto_nombre"] == prod_sel]
+
     # Generar link de remito
     df["remito_link"] = df.apply(
         lambda r: generar_link_pdf(r.get("remito_url")) if r.get("remito_url") else "—",
