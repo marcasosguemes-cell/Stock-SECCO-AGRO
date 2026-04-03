@@ -53,15 +53,17 @@ st.markdown("""
         background: none !important;
     }
 
-    /* ── Botón nativo sidebar: eliminado ── */
+    /* ── Botón nativo sidebar: eliminado, usamos botón propio ── */
     [data-testid="collapsedControl"],
-    [data-testid="stSidebarCollapsedControl"],
     button[data-testid="collapsedControl"],
+    [data-testid="stSidebarCollapsedControl"],
     button[data-testid="stSidebarCollapsedControl"] {
         display: none !important;
         visibility: hidden !important;
         opacity: 0 !important;
         pointer-events: none !important;
+        width: 0 !important;
+        height: 0 !important;
     }
 
     html, body { background: #0e0e14 !important; }
@@ -153,24 +155,35 @@ st.markdown("""
     }
 
     [data-testid="stSidebar"] .stButton button {
-        background: rgba(50, 50, 60, 0.8) !important;
-        border: 1px solid rgba(212, 160, 23, 0.5) !important;
-        width: 100%;
-        text-align: left;
-        padding: 0.7rem 1.1rem;
-        border-radius: 12px;
-        margin: 5px 0;
-        font-size: 0.9rem;
-        font-weight: 500;
-        transition: all 0.25s ease;
-        color: #000000 !important;
+        background: rgba(40, 40, 50, 0.75) !important;
+        border: 1px solid rgba(212, 160, 23, 0.3) !important;
+        width: 100% !important;
+        text-align: left !important;
+        padding: 0.65rem 1.1rem !important;
+        border-radius: 10px !important;
+        margin: 3px 0 !important;
+        font-size: 0.88rem !important;
+        font-weight: 500 !important;
+        transition: all 0.2s ease !important;
+        color: #d0d0d8 !important;
+        letter-spacing: 0.01em !important;
     }
 
     [data-testid="stSidebar"] .stButton button:hover {
-        background: #d4a017 !important;
-        border-color: #b87a0c !important;
-        transform: translateX(5px);
-        color: #1a1a1f !important;
+        background: rgba(212, 160, 23, 0.18) !important;
+        border-color: rgba(212, 160, 23, 0.65) !important;
+        transform: translateX(4px) !important;
+        color: #f0e8c8 !important;
+    }
+
+    /* Ítem activo del menú */
+    [data-testid="stSidebar"] .stButton button[data-active="true"],
+    [data-testid="stSidebar"] div[class*="nav-active"] button {
+        background: linear-gradient(90deg, rgba(212,160,23,0.35) 0%, rgba(212,160,23,0.12) 100%) !important;
+        border-color: rgba(212, 160, 23, 0.8) !important;
+        color: #f5e6b0 !important;
+        font-weight: 700 !important;
+        border-left: 3px solid #d4a017 !important;
     }
 
     .sidebar-header {
@@ -851,9 +864,22 @@ def sidebar():
             st.session_state["pagina"] = nombres_menu[0]
 
         for emoji, nombre in paginas_menu:
+            is_active = (nombre == pagina_actual)
+            if is_active:
+                st.markdown(f"""
+                <style>
+                div[data-testid="stSidebar"] div[data-testid="stButton"]:has(button[key="nav_{nombre}"]) button {{
+                    background: linear-gradient(90deg, rgba(212,160,23,0.35) 0%, rgba(212,160,23,0.1) 100%) !important;
+                    border-color: rgba(212, 160, 23, 0.85) !important;
+                    border-left: 3px solid #d4a017 !important;
+                    color: #f5e6b0 !important;
+                    font-weight: 700 !important;
+                }}
+                </style>""", unsafe_allow_html=True)
             if st.button(f"{emoji}  {nombre}", key=f"nav_{nombre}"):
                 st.session_state["pagina"] = nombre
-        
+                st.rerun()
+
         st.markdown("---")
         if st.button("🚪 Cerrar sesión"):
             logout()
@@ -1764,13 +1790,14 @@ def main():
         mostrar_cambio_password()
         return
 
-    # ── Botón hamburguesa para mostrar/ocultar sidebar ──
+    # ── Estado y CSS dinámico de la sidebar ──────────────────────
     if "sidebar_abierta" not in st.session_state:
         st.session_state["sidebar_abierta"] = True
 
-    # CSS dinámico según estado de la sidebar
-    if st.session_state["sidebar_abierta"]:
-        sidebar_css = """
+    sidebar_abierta = st.session_state.get("sidebar_abierta", True)
+
+    if sidebar_abierta:
+        st.markdown("""
         <style>
         [data-testid="stSidebar"] {
             display: block !important;
@@ -1779,63 +1806,71 @@ def main():
             min-width: 21rem !important;
             transform: none !important;
         }
-        </style>"""
+        /* Botón en el borde derecho de la sidebar */
+        div[data-testid="stButton"]:has(button[key="btn_toggle_sidebar"]) {
+            position: fixed !important;
+            top: 50vh !important;
+            left: 21rem !important;
+            transform: translateY(-50%) !important;
+            z-index: 999999 !important;
+            width: 18px !important;
+            height: 40px !important;
+            margin: 0 !important;
+            padding: 0 !important;
+        }
+        </style>""", unsafe_allow_html=True)
     else:
-        sidebar_css = """
+        st.markdown("""
         <style>
         [data-testid="stSidebar"] {
             display: none !important;
         }
+        /* Botón en el borde izquierdo de la pantalla */
         div[data-testid="stButton"]:has(button[key="btn_toggle_sidebar"]) {
-            left: 0rem !important;
+            position: fixed !important;
+            top: 50vh !important;
+            left: 0px !important;
+            transform: translateY(-50%) !important;
+            z-index: 999999 !important;
+            width: 18px !important;
+            height: 40px !important;
+            margin: 0 !important;
+            padding: 0 !important;
         }
-        div[data-testid="stButton"]:has(button[key="btn_toggle_sidebar"]) button {
-            border-radius: 0 8px 8px 0 !important;
-        }
-        </style>"""
-    st.markdown(sidebar_css, unsafe_allow_html=True)
+        </style>""", unsafe_allow_html=True)
 
-    # Botón toggle sidebar: fijo al borde derecho de la sidebar
+    # CSS del botón (estático, igual siempre)
     st.markdown("""
     <style>
-    /* Botón toggle: pegado al borde derecho de la sidebar, centrado verticalmente */
-    div[data-testid="stButton"]:has(button[key="btn_toggle_sidebar"]) {
-        position: fixed !important;
-        top: 50vh !important;
-        left: 21rem !important;
-        transform: translateY(-50%) !important;
-        z-index: 999999 !important;
-        width: 20px !important;
-        height: 44px !important;
-        margin: 0 !important;
-        padding: 0 !important;
-    }
     div[data-testid="stButton"]:has(button[key="btn_toggle_sidebar"]) button {
         position: static !important;
-        width: 20px !important;
-        min-width: 20px !important;
-        height: 44px !important;
+        width: 18px !important;
+        min-width: 18px !important;
+        height: 40px !important;
         padding: 0 !important;
-        background: rgba(180, 140, 40, 0.6) !important;
+        background: rgba(160, 124, 36, 0.55) !important;
         border: none !important;
-        border-radius: 0 8px 8px 0 !important;
-        font-size: 11px !important;
+        border-radius: 0 7px 7px 0 !important;
+        font-size: 10px !important;
         line-height: 1 !important;
-        color: #f0e8c8 !important;
-        box-shadow: 2px 0 8px rgba(0,0,0,0.35) !important;
+        color: #e8d8a0 !important;
+        box-shadow: 2px 0 8px rgba(0,0,0,0.3) !important;
         cursor: pointer !important;
-        transition: background 0.2s ease, width 0.2s ease !important;
+        transition: background 0.2s, width 0.2s !important;
     }
     div[data-testid="stButton"]:has(button[key="btn_toggle_sidebar"]) button:hover {
-        background: rgba(180, 140, 40, 0.85) !important;
-        width: 26px !important;
-        min-width: 26px !important;
+        background: rgba(160, 124, 36, 0.85) !important;
+        width: 24px !important;
+        min-width: 24px !important;
+        color: #fff8e0 !important;
     }
-    /* Cuando sidebar está cerrada, el botón queda pegado al borde izquierdo */
+    div[data-testid="stButton"]:has(button[key="btn_toggle_sidebar"]) button p {
+        font-size: 12px !important;
+        font-weight: bold !important;
+    }
     </style>
     """, unsafe_allow_html=True)
 
-    sidebar_abierta = st.session_state.get("sidebar_abierta", True)
     icono_btn = "‹" if sidebar_abierta else "›"
     if st.button(icono_btn, key="btn_toggle_sidebar"):
         st.session_state["sidebar_abierta"] = not sidebar_abierta
