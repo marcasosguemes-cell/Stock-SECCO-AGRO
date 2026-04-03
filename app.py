@@ -100,23 +100,25 @@ st.markdown("""
     }
 
     [data-testid="stAppViewContainer"],
-    [data-testid="stSidebar"],
     .stApp > div {
         position: relative !important;
         z-index: 1 !important;
         background: transparent !important;
     }
 
+    /* Sidebar base */
     [data-testid="stSidebar"] {
         background: linear-gradient(180deg, #1a1a1f 0%, #0f0f12 60%, #0a0a0c 100%) !important;
         border-right: 1px solid rgba(100, 100, 120, 0.3) !important;
         box-shadow: 4px 0 24px rgba(0,0,0,0.4) !important;
-        transition: transform 0.3s ease !important;
+        transition: transform 0.3s ease-in-out !important;
+        z-index: 999 !important;
     }
-
-    /* Sidebar cerrada */
+    
+    /* Sidebar cuando está cerrada */
     [data-testid="stSidebar"][aria-expanded="false"] {
         transform: translateX(-100%) !important;
+        margin-left: -21rem !important;
     }
 
     /* ── Selectbox: label blanco ── */
@@ -505,7 +507,7 @@ st.markdown("""
         height: 64px !important;
         margin: 0 !important;
         padding: 0 !important;
-        transition: left 0.3s ease !important;
+        transition: left 0.3s ease-in-out !important;
     }
     
     .st-key-btn_toggle_sidebar button {
@@ -539,6 +541,11 @@ st.markdown("""
         padding: 0 !important;
         line-height: 1 !important;
     }
+    
+    /* Ajuste del contenido principal cuando sidebar está cerrada */
+    .main-content {
+        transition: margin-left 0.3s ease-in-out !important;
+    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -565,7 +572,7 @@ def logout():
     try:
         supabase.auth.sign_out()
         keys_to_clear = ["session", "user_id", "perfil", "rol", "establecimiento_id", 
-                         "establecimiento_nombre", "pagina", "password_changed", "skip_password_check"]
+                         "establecimiento_nombre", "pagina", "password_changed", "skip_password_check", "sidebar_abierta"]
         for key in keys_to_clear:
             if key in st.session_state:
                 del st.session_state[key]
@@ -1182,7 +1189,7 @@ def pagina_dashboard():
             <td style="padding:9px 13px;color:#b0b0c0;font-size:0.84rem;">{row["presentacion"]}</td>
             <td style="padding:9px 13px;color:{stock_color};font-size:0.95rem;font-weight:800;text-align:right;">{stock_val:,.2f}</td>
             <td style="padding:9px 13px;color:#a0a0b0;font-size:0.82rem;">{row["unidad"]}</td>
-        </table>"""
+        </tr>"""
 
     tabla_html = f"""<!DOCTYPE html>
 <html><head><style>
@@ -1193,7 +1200,7 @@ def pagina_dashboard():
   th {{ padding:11px 13px; color:#1a1a1f; font-weight:700; font-size:0.8rem; text-transform:uppercase; letter-spacing:0.07em; white-space:nowrap; }}
   tbody tr {{ border-bottom:1px solid rgba(212,160,23,0.15); transition:background 0.2s; }}
 </style></head>
-<body><div class="wrap"><table>
+<body><div class="wrap"></table>
   <thead><tr>
     <th style="text-align:left;">📦 Producto</th>
     <th style="text-align:left;">📁 Categoría</th>
@@ -1202,7 +1209,7 @@ def pagina_dashboard():
     <th style="text-align:left;">Unidad</th>
   </tr></thead>
   <tbody>{filas_html}</tbody>
-</table></div></body></html>"""
+追赶</div></body></html>"""
 
     import streamlit.components.v1 as components
     altura = min(700, 100 + len(df_tabla) * 42)
@@ -1797,10 +1804,10 @@ def render_tabla_html(df, height=500):
     thead tr{{background:linear-gradient(135deg,#d4a017 0%,#b87a0c 100%);}}
     tbody tr{{transition:background 0.15s;}}
     </style></head><body>
-    <div class="wrap"><table>
+    <div class="wrap"><tr>
     <thead><tr>{headers}</tr></thead>
     <tbody>{filas_html}</tbody>
-    </table></div></body></html>"""
+   </table</div></body></html>"""
     altura = min(height, 80 + len(df) * 38)
     components.html(html, height=altura, scrolling=True)
 
@@ -1862,16 +1869,19 @@ def main():
         .st-key-btn_toggle_sidebar {
             left: 0px !important;
         }
+        /* Ocultar sidebar cuando está cerrado */
         [data-testid="stSidebar"] {
-            display: none !important;
+            transform: translateX(-100%) !important;
+            margin-left: -21rem !important;
+            visibility: hidden !important;
         }
         </style>
         """, unsafe_allow_html=True)
 
-    # Botón toggle (posicionado con CSS fijo)
+    # Botón toggle
     icono = "‹" if sidebar_abierta else "›"
     
-    # Crear un contenedor vacío para el botón flotante
+    # Contenedor para el botón flotante
     col_vacio1, col_boton, col_vacio2 = st.columns([0.02, 0.03, 0.95])
     with col_boton:
         if st.button(icono, key="btn_toggle_sidebar", help="Toggle Sidebar"):
