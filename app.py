@@ -53,7 +53,7 @@ st.markdown("""
         background: none !important;
     }
 
-    /* ── Botón nativo sidebar: OCULTO (reemplazado por botón propio) ── */
+    /* ── Botón nativo sidebar: eliminado ── */
     [data-testid="collapsedControl"],
     [data-testid="stSidebarCollapsedControl"],
     button[data-testid="collapsedControl"],
@@ -1786,59 +1786,59 @@ def main():
         [data-testid="stSidebar"] {
             display: none !important;
         }
+        div[data-testid="stButton"]:has(button[key="btn_toggle_sidebar"]) {
+            left: 0rem !important;
+        }
+        div[data-testid="stButton"]:has(button[key="btn_toggle_sidebar"]) button {
+            border-radius: 0 8px 8px 0 !important;
+        }
         </style>"""
     st.markdown(sidebar_css, unsafe_allow_html=True)
 
-    # Botón flotante hamburguesa (siempre visible, posición fija real)
+    # Botón toggle sidebar: fijo al borde derecho de la sidebar
     st.markdown("""
     <style>
-    /* Contenedor del botón toggle: posición fija en el borde izquierdo */
-    div.stButton[data-testid="stButtontoggle_sidebar_wrap"] { display: none; }
-
-    button[kind="secondary"][data-testid="stBaseButton-secondary"]#btn-sidebar-toggle,
-    [data-testid="btn_toggle_sidebar"] button,
-    div[data-testid="stButton"]:has(button[key="btn_toggle_sidebar"]) button {
-        position: fixed !important;
-        top: 50vh !important;
-        left: 0px !important;
-        transform: translateY(-50%) !important;
-        z-index: 999999 !important;
-        background: rgba(212,160,23,0.95) !important;
-        border: none !important;
-        border-radius: 0 12px 12px 0 !important;
-        width: 30px !important;
-        min-width: 30px !important;
-        height: 62px !important;
-        padding: 0 !important;
-        font-size: 20px !important;
-        line-height: 1 !important;
-        color: #1a1a1f !important;
-        box-shadow: 3px 0 16px rgba(0,0,0,0.5) !important;
-        cursor: pointer !important;
-        transition: width 0.2s ease !important;
-    }
-    [data-testid="btn_toggle_sidebar"] button:hover,
-    div[data-testid="stButton"]:has(button[key="btn_toggle_sidebar"]) button:hover {
-        background: rgba(212,160,23,1.0) !important;
-        width: 38px !important;
-    }
-    /* Ocultar el label de texto del botón para que no ocupe espacio en layout */
+    /* Botón toggle: pegado al borde derecho de la sidebar, centrado verticalmente */
     div[data-testid="stButton"]:has(button[key="btn_toggle_sidebar"]) {
         position: fixed !important;
         top: 50vh !important;
-        left: 0px !important;
+        left: 21rem !important;
         transform: translateY(-50%) !important;
         z-index: 999999 !important;
-        width: 30px !important;
-        height: 62px !important;
+        width: 20px !important;
+        height: 44px !important;
         margin: 0 !important;
         padding: 0 !important;
     }
+    div[data-testid="stButton"]:has(button[key="btn_toggle_sidebar"]) button {
+        position: static !important;
+        width: 20px !important;
+        min-width: 20px !important;
+        height: 44px !important;
+        padding: 0 !important;
+        background: rgba(180, 140, 40, 0.6) !important;
+        border: none !important;
+        border-radius: 0 8px 8px 0 !important;
+        font-size: 11px !important;
+        line-height: 1 !important;
+        color: #f0e8c8 !important;
+        box-shadow: 2px 0 8px rgba(0,0,0,0.35) !important;
+        cursor: pointer !important;
+        transition: background 0.2s ease, width 0.2s ease !important;
+    }
+    div[data-testid="stButton"]:has(button[key="btn_toggle_sidebar"]) button:hover {
+        background: rgba(180, 140, 40, 0.85) !important;
+        width: 26px !important;
+        min-width: 26px !important;
+    }
+    /* Cuando sidebar está cerrada, el botón queda pegado al borde izquierdo */
     </style>
     """, unsafe_allow_html=True)
 
-    if st.button("☰", key="btn_toggle_sidebar"):
-        st.session_state["sidebar_abierta"] = not st.session_state["sidebar_abierta"]
+    sidebar_abierta = st.session_state.get("sidebar_abierta", True)
+    icono_btn = "‹" if sidebar_abierta else "›"
+    if st.button(icono_btn, key="btn_toggle_sidebar"):
+        st.session_state["sidebar_abierta"] = not sidebar_abierta
         st.rerun()
 
     sidebar()
