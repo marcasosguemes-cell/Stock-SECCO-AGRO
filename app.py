@@ -25,65 +25,103 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-# ── Botón flotante propio para abrir/cerrar sidebar ────────────
-st.markdown("""
+# ── Botón flotante para abrir/cerrar sidebar ───────────────────
+import streamlit.components.v1 as _components
+_components.html("""
+<!DOCTYPE html>
+<html>
+<head>
 <style>
-#custom-sidebar-btn {
-    position: fixed !important;
-    top: 50% !important;
-    left: 0px !important;
-    transform: translateY(-50%) !important;
-    z-index: 2147483647 !important;
-    width: 28px !important;
-    height: 60px !important;
-    background: rgba(212,160,23,0.95) !important;
-    border: none !important;
-    border-radius: 0 12px 12px 0 !important;
-    cursor: pointer !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    box-shadow: 3px 0 16px rgba(0,0,0,0.5) !important;
-    font-size: 16px !important;
-    color: #1a1a1f !important;
-    transition: width 0.2s ease !important;
-}
-#custom-sidebar-btn:hover { width: 36px !important; }
+  body { margin:0; padding:0; background:transparent; overflow:hidden; }
+  #sb-toggle {
+    position: fixed;
+    top: 50vh;
+    left: 0;
+    transform: translateY(-50%);
+    z-index: 2147483647;
+    width: 30px;
+    height: 62px;
+    background: rgba(212,160,23,0.95);
+    border: none;
+    border-radius: 0 12px 12px 0;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 3px 0 16px rgba(0,0,0,0.5);
+    font-size: 18px;
+    color: #1a1a1f;
+    font-weight: bold;
+    transition: width 0.2s;
+  }
+  #sb-toggle:hover { width: 38px; }
 </style>
-<button id="custom-sidebar-btn" title="Abrir/cerrar menu">&#9776;</button>
+</head>
+<body>
+<button id="sb-toggle" title="Abrir/cerrar menú">&#9776;</button>
 <script>
-(function() {
-    function tryClick() {
-        var selectors = [
-            '[data-testid="collapsedControl"]',
-            '[data-testid="stSidebarCollapsedControl"]',
-            'button[data-testid="collapsedControl"]',
-            'button[data-testid="stSidebarCollapsedControl"]'
-        ];
-        for (var i = 0; i < selectors.length; i++) {
-            try {
-                var el = parent.document.querySelector(selectors[i]);
-                if (el) { el.click(); return true; }
-            } catch(e) {}
-        }
-        return false;
-    }
-    function init() {
-        var btn = document.getElementById('custom-sidebar-btn');
-        if (btn) {
-            btn.addEventListener('click', function() { tryClick(); });
-        } else {
-            setTimeout(init, 300);
-        }
-    }
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', init);
+  var btn = document.getElementById('sb-toggle');
+
+  function getSidebar() {
+    try {
+      return parent.document.querySelector('[data-testid="stSidebar"]');
+    } catch(e) { return null; }
+  }
+
+  function getNativeBtn() {
+    var selectors = [
+      '[data-testid="collapsedControl"]',
+      '[data-testid="stSidebarCollapsedControl"]',
+      'button[data-testid="collapsedControl"]',
+      'button[data-testid="stSidebarCollapsedControl"]',
+      'section[data-testid="stSidebarCollapsedControl"]'
+    ];
+    try {
+      for (var i = 0; i < selectors.length; i++) {
+        var el = parent.document.querySelector(selectors[i]);
+        if (el) return el;
+      }
+    } catch(e) {}
+    return null;
+  }
+
+  function toggleSidebar() {
+    // Intento 1: click en botón nativo
+    var native = getNativeBtn();
+    if (native) { native.click(); return; }
+
+    // Intento 2: manipular el sidebar directamente
+    var sidebar = getSidebar();
+    if (!sidebar) return;
+    var isHidden = sidebar.style.display === 'none'
+                   || sidebar.getAttribute('aria-hidden') === 'true'
+                   || sidebar.offsetWidth < 10;
+    if (isHidden) {
+      sidebar.style.removeProperty('display');
+      sidebar.style.removeProperty('transform');
+      sidebar.style.width = '21rem';
+      sidebar.setAttribute('aria-expanded', 'true');
     } else {
-        init();
+      sidebar.style.width = '0';
+      sidebar.style.overflow = 'hidden';
     }
-})();
+  }
+
+  btn.addEventListener('click', toggleSidebar);
+
+  // Posicionar el botón correctamente respecto a la ventana padre
+  function reposition() {
+    try {
+      var rect = parent.document.documentElement;
+      btn.style.top = (rect.clientHeight / 2) + 'px';
+    } catch(e) {}
+  }
+  reposition();
+  setInterval(reposition, 2000);
 </script>
-""", unsafe_allow_html=True)
+</body>
+</html>
+""", height=0, scrolling=False)
 
 # ── Cliente Supabase ───────────────────────────────────────────
 SUPABASE_URL = st.secrets["SUPABASE_URL"]
@@ -113,41 +151,10 @@ st.markdown("""
         background: none !important;
     }
 
-    /* ── Botón expandir sidebar (siempre visible) ── */
+    /* ── Botón nativo sidebar: oculto (usamos botón propio via components.html) ── */
     [data-testid="collapsedControl"],
-    button[data-testid="collapsedControl"],
-    [data-testid="stSidebarCollapsedControl"],
-    button[data-testid="stSidebarCollapsedControl"] {
-        display: flex !important;
-        visibility: visible !important;
-        opacity: 1 !important;
-        position: fixed !important;
-        top: 50% !important;
-        left: 0px !important;
-        transform: translateY(-50%) !important;
-        z-index: 99999 !important;
-        background: rgba(212,160,23,0.9) !important;
-        border-radius: 0 12px 12px 0 !important;
-        width: 28px !important;
-        height: 56px !important;
-        align-items: center !important;
-        justify-content: center !important;
-        cursor: pointer !important;
-        box-shadow: 3px 0 12px rgba(0,0,0,0.4) !important;
-    }
-
-    [data-testid="collapsedControl"]:hover,
-    button[data-testid="collapsedControl"]:hover,
-    [data-testid="stSidebarCollapsedControl"]:hover {
-        background: rgba(212,160,23,1.0) !important;
-        width: 34px !important;
-    }
-
-    [data-testid="collapsedControl"] svg,
-    button[data-testid="collapsedControl"] svg,
-    [data-testid="stSidebarCollapsedControl"] svg {
-        color: #1a1a1f !important;
-        fill: #1a1a1f !important;
+    [data-testid="stSidebarCollapsedControl"] {
+        display: none !important;
     }
 
     html, body { background: #0e0e14 !important; }
