@@ -374,6 +374,16 @@ st.markdown("""
         background: rgba(212, 160, 23, 0.3);
         color: #f0f0f5 !important;
     }
+
+    /* ── Login: textos en blanco ── */
+    [data-testid="stForm"] h3,
+    [data-testid="stForm"] label,
+    [data-testid="stForm"] .stTextInput label,
+    [data-testid="stForm"] p,
+    [data-testid="stForm"] span,
+    [data-testid="stForm"] div[data-testid="stMarkdownContainer"] h3 {
+        color: #FFFFFF !important;
+    }
 </style>
 """, unsafe_allow_html=True)
 
