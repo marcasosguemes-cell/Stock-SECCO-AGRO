@@ -1330,58 +1330,56 @@ def pagina_historial():
     filas_html = ""
     for _, row in display_df.iterrows():
         if row["Tipo"] == "ingreso":
-            row_bg = "background-color:rgba(34,197,94,0.10);"
+            row_bg = "rgba(34,197,94,0.10)"
             tipo_badge = '<span style="background:#22c55e;color:#000;padding:2px 10px;border-radius:20px;font-size:0.78rem;font-weight:700;">▲ ingreso</span>'
         else:
-            row_bg = "background-color:rgba(239,68,68,0.10);"
+            row_bg = "rgba(239,68,68,0.10)"
             tipo_badge = '<span style="background:#ef4444;color:#fff;padding:2px 10px;border-radius:20px;font-size:0.78rem;font-weight:700;">▼ egreso</span>'
 
-        obs = row["Observaciones"] if row["Observaciones"] and str(row["Observaciones"]) not in ["nan", "None", ""] else "—"
-        remito = row["Remito"] if row["Remito"] and str(row["Remito"]) not in ["nan", "None", "", "—"] else "—"
+        obs = str(row["Observaciones"]) if row["Observaciones"] and str(row["Observaciones"]) not in ["nan", "None", ""] else "—"
+        remito = str(row["Remito"]) if row["Remito"] and str(row["Remito"]) not in ["nan", "None", "", "—"] else "—"
+        try:
+            cantidad_fmt = f"{float(row['Cantidad']):,.2f}"
+        except Exception:
+            cantidad_fmt = str(row["Cantidad"])
 
         filas_html += f"""
-        <tr style="{row_bg}border-bottom:1px solid rgba(212,160,23,0.15);transition:background 0.2s;"
-            onmouseover="this.style.background='rgba(212,160,23,0.12)'"
-            onmouseout="this.style.background='{('rgba(34,197,94,0.10)' if row['Tipo']=='ingreso' else 'rgba(239,68,68,0.10)')}'">
+        <tr style="background-color:{row_bg};border-bottom:1px solid rgba(212,160,23,0.15);"
+            onmouseover="this.style.backgroundColor='rgba(212,160,23,0.12)'"
+            onmouseout="this.style.backgroundColor='{row_bg}'">
             <td style="padding:9px 13px;color:#e8e8f0;font-size:0.84rem;white-space:nowrap;">{row['Fecha']}</td>
             <td style="padding:9px 13px;text-align:center;">{tipo_badge}</td>
             <td style="padding:9px 13px;color:#d4c8a8;font-size:0.84rem;">{row['Establecimiento']}</td>
             <td style="padding:9px 13px;color:#f0f0f5;font-size:0.84rem;font-weight:600;">{row['Producto']}</td>
-            <td style="padding:9px 13px;color:#d4a017;font-size:0.9rem;font-weight:700;text-align:right;">{row['Cantidad']:,.2f}</td>
+            <td style="padding:9px 13px;color:#d4a017;font-size:0.9rem;font-weight:700;text-align:right;">{cantidad_fmt}</td>
             <td style="padding:9px 13px;text-align:center;">{remito}</td>
             <td style="padding:9px 13px;color:#a0a0b0;font-size:0.82rem;">{obs}</td>
         </tr>"""
 
-    tabla_html = f"""
-    <div style="overflow-x:auto;border-radius:14px;border:1px solid rgba(212,160,23,0.35);
-                box-shadow:0 6px 24px rgba(0,0,0,0.4);margin-top:0.5rem;">
-        <table style="width:100%;border-collapse:collapse;font-family:'DM Sans',sans-serif;
-                      background:rgba(22,22,28,0.97);">
-            <thead>
-                <tr style="background:linear-gradient(135deg,#d4a017 0%,#b87a0c 100%);">
-                    <th style="padding:11px 13px;text-align:left;color:#1a1a1f;font-weight:700;font-size:0.8rem;
-                               text-transform:uppercase;letter-spacing:0.07em;white-space:nowrap;">📅 Fecha</th>
-                    <th style="padding:11px 13px;text-align:center;color:#1a1a1f;font-weight:700;font-size:0.8rem;
-                               text-transform:uppercase;letter-spacing:0.07em;">Tipo</th>
-                    <th style="padding:11px 13px;text-align:left;color:#1a1a1f;font-weight:700;font-size:0.8rem;
-                               text-transform:uppercase;letter-spacing:0.07em;">🏢 Establecimiento</th>
-                    <th style="padding:11px 13px;text-align:left;color:#1a1a1f;font-weight:700;font-size:0.8rem;
-                               text-transform:uppercase;letter-spacing:0.07em;">📦 Producto</th>
-                    <th style="padding:11px 13px;text-align:right;color:#1a1a1f;font-weight:700;font-size:0.8rem;
-                               text-transform:uppercase;letter-spacing:0.07em;">Cantidad</th>
-                    <th style="padding:11px 13px;text-align:center;color:#1a1a1f;font-weight:700;font-size:0.8rem;
-                               text-transform:uppercase;letter-spacing:0.07em;">📄 Remito</th>
-                    <th style="padding:11px 13px;text-align:left;color:#1a1a1f;font-weight:700;font-size:0.8rem;
-                               text-transform:uppercase;letter-spacing:0.07em;">📝 Observaciones</th>
-                </tr>
-            </thead>
-            <tbody>
-                {filas_html}
-            </tbody>
-        </table>
-    </div>
-    """
-    st.markdown(tabla_html, unsafe_allow_html=True)
+    tabla_html = f"""<!DOCTYPE html>
+<html><head><style>
+  body {{ margin:0; padding:0; background:transparent; font-family:'DM Sans',sans-serif; }}
+  .wrap {{ overflow-x:auto; border-radius:14px; border:1px solid rgba(212,160,23,0.35); box-shadow:0 6px 24px rgba(0,0,0,0.4); }}
+  table {{ width:100%; border-collapse:collapse; background:rgba(22,22,28,0.97); }}
+  thead tr {{ background:linear-gradient(135deg,#d4a017 0%,#b87a0c 100%); }}
+  th {{ padding:11px 13px; color:#1a1a1f; font-weight:700; font-size:0.8rem; text-transform:uppercase; letter-spacing:0.07em; white-space:nowrap; }}
+</style></head>
+<body><div class="wrap"><table>
+  <thead><tr>
+    <th style="text-align:left;">📅 Fecha</th>
+    <th style="text-align:center;">Tipo</th>
+    <th style="text-align:left;">🏢 Establecimiento</th>
+    <th style="text-align:left;">📦 Producto</th>
+    <th style="text-align:right;">Cantidad</th>
+    <th style="text-align:center;">📄 Remito</th>
+    <th style="text-align:left;">📝 Observaciones</th>
+  </tr></thead>
+  <tbody>{filas_html}</tbody>
+</table></div></body></html>"""
+
+    import streamlit.components.v1 as components
+    altura = min(700, 100 + len(display_df) * 42)
+    components.html(tabla_html, height=altura, scrolling=True)
 
 
 # ══════════════════════════════════════════════════════════════
