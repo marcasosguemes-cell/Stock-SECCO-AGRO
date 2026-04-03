@@ -987,19 +987,93 @@ def pagina_dashboard():
     
     total_stock = stock_productos["stock"].sum()
     total_productos = len(stock_productos)
-    
-    col1, col2, col3 = st.columns(3)
-    with col1:
-        st.metric("📦 Stock Total", f"{total_stock:,.0f} unidades")
-    with col2:
-        st.metric("🏷️ Productos en Stock", total_productos)
-    with col3:
-        stock_bajo = len(stock_productos[stock_productos["stock"] < 50])
-        st.metric("⚠️ Stock Crítico (<50)", stock_bajo)
-    
-    st.markdown("---")
-    st.markdown("### 📋 Stock Actual por Producto")
-    st.dataframe(stock_productos[["producto", "categoria", "presentacion", "stock", "unidad"]], use_container_width=True)
+    stock_bajo = len(stock_productos[stock_productos["stock"] < 50])
+
+    # ── Burbujas métricas ──
+    st.markdown(f"""
+    <div style="display:flex;gap:1.2rem;margin:1.2rem 0 1.8rem 0;flex-wrap:wrap;">
+        <div style="flex:1;min-width:200px;background:linear-gradient(135deg,rgba(212,160,23,0.25),rgba(212,160,23,0.12));
+                    border:1px solid rgba(212,160,23,0.6);border-radius:20px;padding:1.4rem 1.6rem;
+                    box-shadow:0 6px 24px rgba(0,0,0,0.35);text-align:center;backdrop-filter:blur(8px);">
+            <div style="font-size:2rem;margin-bottom:4px;">📦</div>
+            <div style="font-size:2.4rem;font-weight:800;color:#d4a017;font-family:'Playfair Display',serif;
+                        text-shadow:0 2px 8px rgba(0,0,0,0.4);line-height:1.1;">{total_stock:,.0f}</div>
+            <div style="font-size:0.8rem;color:#fff;font-weight:600;text-transform:uppercase;
+                        letter-spacing:0.1em;margin-top:6px;opacity:0.85;">Stock Total (unidades)</div>
+        </div>
+        <div style="flex:1;min-width:200px;background:linear-gradient(135deg,rgba(34,197,94,0.25),rgba(34,197,94,0.12));
+                    border:1px solid rgba(34,197,94,0.6);border-radius:20px;padding:1.4rem 1.6rem;
+                    box-shadow:0 6px 24px rgba(0,0,0,0.35);text-align:center;backdrop-filter:blur(8px);">
+            <div style="font-size:2rem;margin-bottom:4px;">🏷️</div>
+            <div style="font-size:2.4rem;font-weight:800;color:#22c55e;font-family:'Playfair Display',serif;
+                        text-shadow:0 2px 8px rgba(0,0,0,0.4);line-height:1.1;">{total_productos}</div>
+            <div style="font-size:0.8rem;color:#fff;font-weight:600;text-transform:uppercase;
+                        letter-spacing:0.1em;margin-top:6px;opacity:0.85;">Productos en Stock</div>
+        </div>
+        <div style="flex:1;min-width:200px;background:linear-gradient(135deg,rgba(239,68,68,0.25),rgba(239,68,68,0.12));
+                    border:1px solid rgba(239,68,68,0.6);border-radius:20px;padding:1.4rem 1.6rem;
+                    box-shadow:0 6px 24px rgba(0,0,0,0.35);text-align:center;backdrop-filter:blur(8px);">
+            <div style="font-size:2rem;margin-bottom:4px;">⚠️</div>
+            <div style="font-size:2.4rem;font-weight:800;color:#ef4444;font-family:'Playfair Display',serif;
+                        text-shadow:0 2px 8px rgba(0,0,0,0.4);line-height:1.1;">{stock_bajo}</div>
+            <div style="font-size:0.8rem;color:#fff;font-weight:600;text-transform:uppercase;
+                        letter-spacing:0.1em;margin-top:6px;opacity:0.85;">Stock Crítico (&lt;50)</div>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+    # ── Tabla de stock con components.html ──
+    st.markdown("""
+    <div style="font-size:1.3rem;font-weight:700;color:#fff;margin:0.5rem 0 0.8rem 0;
+                text-shadow:0 1px 4px rgba(0,0,0,0.5);">📋 Stock Actual por Producto</div>
+    """, unsafe_allow_html=True)
+
+    df_tabla = stock_productos[["producto", "categoria", "presentacion", "stock", "unidad"]].copy()
+    df_tabla = df_tabla.sort_values("stock", ascending=False)
+
+    filas_html = ""
+    for _, row in df_tabla.iterrows():
+        stock_val = float(row["stock"])
+        if stock_val < 50:
+            stock_color = "#ef4444"
+        elif stock_val < 200:
+            stock_color = "#f59e0b"
+        else:
+            stock_color = "#22c55e"
+
+        filas_html += f"""
+        <tr onmouseover="this.style.backgroundColor='rgba(212,160,23,0.12)'"
+            onmouseout="this.style.backgroundColor='transparent'">
+            <td style="padding:9px 13px;color:#f0f0f5;font-size:0.88rem;font-weight:600;">{row["producto"]}</td>
+            <td style="padding:9px 13px;color:#d4c8a8;font-size:0.84rem;">{row["categoria"]}</td>
+            <td style="padding:9px 13px;color:#b0b0c0;font-size:0.84rem;">{row["presentacion"]}</td>
+            <td style="padding:9px 13px;color:{stock_color};font-size:0.95rem;font-weight:800;text-align:right;">{stock_val:,.2f}</td>
+            <td style="padding:9px 13px;color:#a0a0b0;font-size:0.82rem;">{row["unidad"]}</td>
+        </tr>"""
+
+    tabla_html = f"""<!DOCTYPE html>
+<html><head><style>
+  body {{ margin:0; padding:0; background:transparent; font-family:'DM Sans',sans-serif; }}
+  .wrap {{ overflow-x:auto; border-radius:14px; border:1px solid rgba(212,160,23,0.35); box-shadow:0 6px 24px rgba(0,0,0,0.4); }}
+  table {{ width:100%; border-collapse:collapse; background:rgba(22,22,28,0.97); }}
+  thead tr {{ background:linear-gradient(135deg,#d4a017 0%,#b87a0c 100%); }}
+  th {{ padding:11px 13px; color:#1a1a1f; font-weight:700; font-size:0.8rem; text-transform:uppercase; letter-spacing:0.07em; white-space:nowrap; }}
+  tbody tr {{ border-bottom:1px solid rgba(212,160,23,0.15); transition:background 0.2s; }}
+</style></head>
+<body><div class="wrap"><table>
+  <thead><tr>
+    <th style="text-align:left;">📦 Producto</th>
+    <th style="text-align:left;">📁 Categoría</th>
+    <th style="text-align:left;">Presentación</th>
+    <th style="text-align:right;">Stock</th>
+    <th style="text-align:left;">Unidad</th>
+  </tr></thead>
+  <tbody>{filas_html}</tbody>
+</table></div></body></html>"""
+
+    import streamlit.components.v1 as components
+    altura = min(700, 100 + len(df_tabla) * 42)
+    components.html(tabla_html, height=altura, scrolling=True)
 
 
 # ══════════════════════════════════════════════════════════════
