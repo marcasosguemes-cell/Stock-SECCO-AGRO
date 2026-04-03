@@ -261,14 +261,15 @@ st.markdown("""
         margin: 0;
         font-family: 'Playfair Display', serif !important;
         font-size: 1.8rem !important;
-        color: #1a3a1a !important;
+        color: #FFFFFF !important;
         font-weight: 700;
         letter-spacing: 0.02em;
+        text-shadow: 0 2px 6px rgba(0,0,0,0.5) !important;
     }
 
     .title-bubble p {
         margin: 0.35rem 0 0 0;
-        color: #2a4a2a !important;
+        color: #FFE8B6 !important;
         font-size: 0.9rem;
         font-weight: 500;
     }
