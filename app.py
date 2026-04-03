@@ -99,6 +99,114 @@ st.markdown("""
         box-shadow: 4px 0 24px rgba(0,0,0,0.4) !important;
     }
 
+    /* ── Botón colapsar/expandir sidebar ── */
+    [data-testid="collapsedControl"],
+    button[data-testid="collapsedControl"],
+    [data-testid="stSidebarCollapsedControl"] {
+        display: flex !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        background: rgba(212,160,23,0.85) !important;
+        border-radius: 0 10px 10px 0 !important;
+        color: #1a1a1f !important;
+    }
+
+    /* ── Selectbox: label blanco ── */
+    [data-testid="stSelectbox"] label,
+    div[data-testid="stSelectbox"] > label,
+    .stSelectbox label {
+        color: #FFFFFF !important;
+        font-weight: 600 !important;
+        font-size: 0.88rem !important;
+        -webkit-text-fill-color: #FFFFFF !important;
+    }
+
+    /* ── Selectbox: fondo gris oscuro, texto blanco ── */
+    [data-testid="stSelectbox"] > div > div,
+    [data-testid="stSelectbox"] [data-baseweb="select"] > div {
+        background-color: rgba(55, 55, 65, 0.95) !important;
+        border: 1px solid rgba(212,160,23,0.4) !important;
+        border-radius: 10px !important;
+        color: #FFFFFF !important;
+    }
+
+    [data-testid="stSelectbox"] [data-baseweb="select"] span,
+    [data-testid="stSelectbox"] [data-baseweb="select"] div {
+        color: #FFFFFF !important;
+        -webkit-text-fill-color: #FFFFFF !important;
+    }
+
+    /* ── Date input: label blanco ── */
+    [data-testid="stDateInput"] label {
+        color: #FFFFFF !important;
+        font-weight: 600 !important;
+        -webkit-text-fill-color: #FFFFFF !important;
+    }
+
+    /* ── Todos los labels de inputs: blanco ── */
+    [data-testid="stNumberInput"] label,
+    [data-testid="stTextInput"] label,
+    [data-testid="stTextArea"] label,
+    [data-testid="stFileUploader"] label {
+        color: #FFFFFF !important;
+        font-weight: 600 !important;
+        -webkit-text-fill-color: #FFFFFF !important;
+    }
+
+    /* ── Botón colapsar/expandir sidebar ── */
+    [data-testid="collapsedControl"],
+    button[data-testid="collapsedControl"],
+    [data-testid="stSidebarCollapsedControl"] {
+        display: flex !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        background: rgba(212,160,23,0.85) !important;
+        border-radius: 0 10px 10px 0 !important;
+        color: #1a1a1f !important;
+    }
+
+    /* ── Selectbox: label blanco ── */
+    [data-testid="stSelectbox"] label,
+    div[data-testid="stSelectbox"] > label,
+    .stSelectbox label {
+        color: #FFFFFF !important;
+        font-weight: 600 !important;
+        font-size: 0.88rem !important;
+        -webkit-text-fill-color: #FFFFFF !important;
+    }
+
+    /* ── Selectbox: fondo gris oscuro, texto blanco ── */
+    [data-testid="stSelectbox"] > div > div,
+    [data-testid="stSelectbox"] [data-baseweb="select"] > div {
+        background-color: rgba(55, 55, 65, 0.95) !important;
+        border: 1px solid rgba(212,160,23,0.4) !important;
+        border-radius: 10px !important;
+        color: #FFFFFF !important;
+    }
+
+    [data-testid="stSelectbox"] [data-baseweb="select"] span,
+    [data-testid="stSelectbox"] [data-baseweb="select"] div {
+        color: #FFFFFF !important;
+        -webkit-text-fill-color: #FFFFFF !important;
+    }
+
+    /* ── Date input: label blanco ── */
+    [data-testid="stDateInput"] label {
+        color: #FFFFFF !important;
+        font-weight: 600 !important;
+        -webkit-text-fill-color: #FFFFFF !important;
+    }
+
+    /* ── Todos los labels de inputs: blanco ── */
+    [data-testid="stNumberInput"] label,
+    [data-testid="stTextInput"] label,
+    [data-testid="stTextArea"] label,
+    [data-testid="stFileUploader"] label {
+        color: #FFFFFF !important;
+        font-weight: 600 !important;
+        -webkit-text-fill-color: #FFFFFF !important;
+    }
+
     [data-testid="stSidebar"] .stButton button {
         background: rgba(50, 50, 60, 0.8) !important;
         border: 1px solid rgba(212, 160, 23, 0.5) !important;
@@ -985,24 +1093,39 @@ def pagina_dashboard():
         st.info("💡 Sin datos de stock. Registrá movimientos para ver el inventario.")
         return
 
-    # ── Filtros de categoría y producto ──
+    # ── Filtros de categoría, subcategoría y producto ──
+    SUBCATS_AGRO = ["Herbicidas", "Insecticidas", "Coadyuvantes"]
     categorias_disponibles = sorted(stock_productos["categoria"].dropna().unique().tolist())
-    productos_disponibles  = sorted(stock_productos["producto"].dropna().unique().tolist())
 
-    col_f1, col_f2 = st.columns(2)
+    col_f1, col_f2, col_f3 = st.columns(3)
     with col_f1:
-        cat_sel = st.selectbox("📁 Filtrar por Categoría", ["Todas"] + categorias_disponibles, key="dash_cat")
+        cat_sel = st.selectbox("📁 Categoría", ["Todas"] + categorias_disponibles, key="dash_cat")
+
+    es_agro_dash = cat_sel != "Todas" and ("agroqui" in cat_sel.lower() or "agroquí" in cat_sel.lower())
+
     with col_f2:
-        if cat_sel != "Todas":
-            prods_filtrados = sorted(stock_productos[stock_productos["categoria"] == cat_sel]["producto"].unique().tolist())
+        if es_agro_dash:
+            subcat_sel = st.selectbox("🌿 Tipo Agroquímico", ["Todos"] + SUBCATS_AGRO, key="dash_subcat")
         else:
-            prods_filtrados = productos_disponibles
-        prod_sel = st.selectbox("📦 Filtrar por Producto", ["Todos"] + prods_filtrados, key="dash_prod")
+            subcat_sel = "Todos"
+            st.selectbox("🌿 Tipo Agroquímico", ["—"], key="dash_subcat", disabled=True)
+
+    with col_f3:
+        df_para_prods = stock_productos.copy()
+        if cat_sel != "Todas":
+            df_para_prods = df_para_prods[df_para_prods["categoria"] == cat_sel]
+        prods_filtrados = sorted(df_para_prods["producto"].dropna().unique().tolist())
+        prod_sel = st.selectbox("📦 Producto", ["Todos"] + prods_filtrados, key="dash_prod")
 
     # Aplicar filtros
     df_filtrado = stock_productos.copy()
     if cat_sel != "Todas":
         df_filtrado = df_filtrado[df_filtrado["categoria"] == cat_sel]
+    if es_agro_dash and subcat_sel != "Todos":
+        # filtrar por subcategoría usando el campo 'producto' (nombre contiene subcat o filtramos por lista de productos)
+        prods_subcat = get_productos(subcategoria=subcat_sel)
+        nombres_subcat = [p["nombre"] for p in prods_subcat]
+        df_filtrado = df_filtrado[df_filtrado["producto"].isin(nombres_subcat)]
     if prod_sel != "Todos":
         df_filtrado = df_filtrado[df_filtrado["producto"] == prod_sel]
 
@@ -1413,21 +1536,36 @@ def pagina_historial():
     df["establecimiento_nombre"] = df["establecimientos"].apply(lambda x: x.get("nombre", "") if isinstance(x, dict) else "")
     df["fecha_str"] = df["fecha"].dt.strftime("%d/%m/%Y %H:%M")
 
-    # ── Fila 2: Categoría + Producto ──
-    col_c1, col_c2 = st.columns(2)
+    # ── Fila 2: Categoría + Subcategoría + Producto ──
+    SUBCATS_AGRO = ["Herbicidas", "Insecticidas", "Coadyuvantes"]
+    col_c1, col_c2, col_c3 = st.columns(3)
     with col_c1:
         cats_disp = sorted([c for c in df["categoria_nombre"].dropna().unique() if c])
         cat_sel = st.selectbox("📁 Categoría", ["Todas"] + cats_disp, key="hist_cat")
+
+    es_agro_hist = cat_sel != "Todas" and ("agroqui" in cat_sel.lower() or "agroquí" in cat_sel.lower())
+
     with col_c2:
-        if cat_sel != "Todas":
-            prods_disp = sorted(df[df["categoria_nombre"] == cat_sel]["producto_nombre"].dropna().unique().tolist())
+        if es_agro_hist:
+            subcat_sel = st.selectbox("🌿 Tipo Agroquímico", ["Todos"] + SUBCATS_AGRO, key="hist_subcat")
         else:
-            prods_disp = sorted([p for p in df["producto_nombre"].dropna().unique() if p])
+            subcat_sel = "Todos"
+            st.selectbox("🌿 Tipo Agroquímico", ["—"], key="hist_subcat", disabled=True)
+
+    with col_c3:
+        df_para_prods = df.copy()
+        if cat_sel != "Todas":
+            df_para_prods = df_para_prods[df_para_prods["categoria_nombre"] == cat_sel]
+        prods_disp = sorted([p for p in df_para_prods["producto_nombre"].dropna().unique() if p])
         prod_sel = st.selectbox("📦 Producto", ["Todos"] + prods_disp, key="hist_prod")
 
-    # Aplicar filtros de categoría y producto
+    # Aplicar filtros de categoría, subcategoría y producto
     if cat_sel != "Todas":
         df = df[df["categoria_nombre"] == cat_sel]
+    if es_agro_hist and subcat_sel != "Todos":
+        prods_subcat = get_productos(subcategoria=subcat_sel)
+        nombres_subcat = [p["nombre"] for p in prods_subcat]
+        df = df[df["producto_nombre"].isin(nombres_subcat)]
     if prod_sel != "Todos":
         df = df[df["producto_nombre"] == prod_sel]
 
