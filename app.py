@@ -53,17 +53,18 @@ st.markdown("""
         background: none !important;
     }
 
-    /* ── Botón nativo sidebar: eliminado, usamos botón propio ── */
+    /* ── Botón nativo sidebar: eliminado ── */
     [data-testid="collapsedControl"],
     button[data-testid="collapsedControl"],
     [data-testid="stSidebarCollapsedControl"],
-    button[data-testid="stSidebarCollapsedControl"] {
+    button[data-testid="stSidebarCollapsedControl"],
+    section[data-testid="stSidebarCollapsedControl"] {
         display: none !important;
         visibility: hidden !important;
-        opacity: 0 !important;
-        pointer-events: none !important;
         width: 0 !important;
         height: 0 !important;
+        opacity: 0 !important;
+        pointer-events: none !important;
     }
 
     html, body { background: #0e0e14 !important; }
@@ -155,35 +156,24 @@ st.markdown("""
     }
 
     [data-testid="stSidebar"] .stButton button {
-        background: rgba(40, 40, 50, 0.75) !important;
-        border: 1px solid rgba(212, 160, 23, 0.3) !important;
+        background: rgba(40, 40, 50, 0.7) !important;
+        border: 1px solid rgba(212, 160, 23, 0.25) !important;
         width: 100% !important;
         text-align: left !important;
-        padding: 0.65rem 1.1rem !important;
+        padding: 0.6rem 1rem !important;
         border-radius: 10px !important;
         margin: 3px 0 !important;
         font-size: 0.88rem !important;
         font-weight: 500 !important;
         transition: all 0.2s ease !important;
-        color: #d0d0d8 !important;
-        letter-spacing: 0.01em !important;
+        color: #c8c8d4 !important;
     }
 
     [data-testid="stSidebar"] .stButton button:hover {
         background: rgba(212, 160, 23, 0.18) !important;
-        border-color: rgba(212, 160, 23, 0.65) !important;
+        border-color: rgba(212, 160, 23, 0.6) !important;
         transform: translateX(4px) !important;
         color: #f0e8c8 !important;
-    }
-
-    /* Ítem activo del menú */
-    [data-testid="stSidebar"] .stButton button[data-active="true"],
-    [data-testid="stSidebar"] div[class*="nav-active"] button {
-        background: linear-gradient(90deg, rgba(212,160,23,0.35) 0%, rgba(212,160,23,0.12) 100%) !important;
-        border-color: rgba(212, 160, 23, 0.8) !important;
-        color: #f5e6b0 !important;
-        font-weight: 700 !important;
-        border-left: 3px solid #d4a017 !important;
     }
 
     .sidebar-header {
@@ -864,18 +854,16 @@ def sidebar():
             st.session_state["pagina"] = nombres_menu[0]
 
         for emoji, nombre in paginas_menu:
-            is_active = (nombre == pagina_actual)
-            if is_active:
-                st.markdown(f"""
-                <style>
-                div[data-testid="stSidebar"] div[data-testid="stButton"]:has(button[key="nav_{nombre}"]) button {{
-                    background: linear-gradient(90deg, rgba(212,160,23,0.35) 0%, rgba(212,160,23,0.1) 100%) !important;
-                    border-color: rgba(212, 160, 23, 0.85) !important;
+            es_activo = (nombre == pagina_actual)
+            if es_activo:
+                st.markdown(f"""<style>
+                [data-testid="stSidebar"] div[data-testid="stButton"]:has(button[key="nav_{nombre}"]) button {{
+                    background: linear-gradient(90deg,rgba(212,160,23,0.38) 0%,rgba(212,160,23,0.10) 100%) !important;
                     border-left: 3px solid #d4a017 !important;
+                    border-color: rgba(212,160,23,0.75) !important;
                     color: #f5e6b0 !important;
                     font-weight: 700 !important;
-                }}
-                </style>""", unsafe_allow_html=True)
+                }}</style>""", unsafe_allow_html=True)
             if st.button(f"{emoji}  {nombre}", key=f"nav_{nombre}"):
                 st.session_state["pagina"] = nombre
                 st.rerun()
@@ -1632,7 +1620,7 @@ def pagina_alertas():
     
     if not stock_bajo.empty:
         st.warning(f"⚠️ {len(stock_bajo)} productos con stock menor a {umbral} unidades")
-        st.dataframe(stock_bajo[["producto", "categoria", "stock", "unidad"]], use_container_width=True)
+        render_tabla_html(stock_bajo[["producto", "categoria", "stock", "unidad"]])
     else:
         st.success(f"✅ Todos los productos tienen stock mayor o igual a {umbral} unidades.")
 
@@ -1671,7 +1659,7 @@ def pagina_reportes():
         st.metric("📤 Total Egresos", f"{egresos:,.0f}")
     
     resumen = df.groupby(["mes", "tipo"])["cantidad"].sum().reset_index()
-    st.dataframe(resumen, use_container_width=True)
+    render_tabla_html(resumen)
 
 
 # ══════════════════════════════════════════════════════════════
@@ -1697,7 +1685,7 @@ def pagina_proveedores():
                 st.rerun()
     
     if proveedores:
-        st.dataframe(pd.DataFrame(proveedores)[["nombre", "activo"]], use_container_width=True)
+        render_tabla_html(pd.DataFrame(proveedores)[["nombre", "activo"]])
 
 
 def pagina_productos():
@@ -1732,7 +1720,7 @@ def pagina_productos():
     if productos:
         df = pd.DataFrame(productos)
         df["categoria"] = df["categorias"].apply(lambda x: x["nombre"] if x else "N/A")
-        st.dataframe(df[["nombre", "categoria", "presentacion", "unidad_medida", "activo"]], use_container_width=True)
+        render_tabla_html(df[["nombre", "categoria", "presentacion", "unidad_medida", "activo"]])
 
 
 def pagina_usuarios():
@@ -1749,10 +1737,51 @@ def pagina_usuarios():
         if usuarios:
             df = pd.DataFrame(usuarios)
             display_cols = ["nombre", "email", "rol", "establecimiento_nombre"]
-            st.dataframe(df[display_cols], use_container_width=True)
+            render_tabla_html(df[display_cols])
     except Exception as e:
         st.error(f"Error: {e}")
 
+
+
+def render_tabla_html(df, height=500):
+    """Renderiza un DataFrame con el estilo oscuro dorado del dashboard."""
+    import streamlit.components.v1 as components
+    cols = list(df.columns)
+    filas_html = ""
+    for _, row in df.iterrows():
+        filas_html += '<tr onmouseover="this.style.backgroundColor=\'rgba(212,160,23,0.10)\'" onmouseout="this.style.backgroundColor=\'transparent\'">'
+        for col in cols:
+            val = row[col]
+            # Color para stocks numéricos
+            style = "color:#f0f0f5;font-size:0.85rem;"
+            if col in ("stock", "Stock", "cantidad", "Cantidad"):
+                try:
+                    v = float(val)
+                    color = "#ef4444" if v < 50 else "#f59e0b" if v < 200 else "#22c55e"
+                    style = f"color:{color};font-weight:700;font-size:0.88rem;text-align:right;"
+                except:
+                    pass
+            elif str(val) in ("True","False"):
+                val = "✅" if val else "❌"
+                style = "text-align:center;"
+            filas_html += f'<td style="padding:8px 12px;border-bottom:1px solid rgba(212,160,23,0.12);{style}">{val}</td>'
+        filas_html += "</tr>"
+
+    headers = "".join([f'<th style="padding:10px 12px;color:#1a1a1f;font-weight:700;font-size:0.78rem;text-transform:uppercase;letter-spacing:0.07em;white-space:nowrap;text-align:left;">{c}</th>' for c in cols])
+
+    html = f"""<!DOCTYPE html><html><head><style>
+    body{{margin:0;padding:0;background:transparent;font-family:'DM Sans',sans-serif;}}
+    .wrap{{overflow-x:auto;border-radius:14px;border:1px solid rgba(212,160,23,0.35);box-shadow:0 6px 24px rgba(0,0,0,0.4);}}
+    table{{width:100%;border-collapse:collapse;background:rgba(22,22,28,0.97);}}
+    thead tr{{background:linear-gradient(135deg,#d4a017 0%,#b87a0c 100%);}}
+    tbody tr{{transition:background 0.15s;}}
+    </style></head><body>
+    <div class="wrap"><table>
+    <thead><tr>{headers}</tr></thead>
+    <tbody>{filas_html}</tbody>
+    </table></div></body></html>"""
+    altura = min(height, 80 + len(df) * 38)
+    components.html(html, height=altura, scrolling=True)
 
 def pagina_consolidado():
     st.markdown("""
@@ -1769,7 +1798,7 @@ def pagina_consolidado():
         st.info("💡 Sin datos consolidados.")
         return
     
-    st.dataframe(stock_df, use_container_width=True)
+    render_tabla_html(stock_df, height=600)
 
 
 # ══════════════════════════════════════════════════════════════
@@ -1790,89 +1819,65 @@ def main():
         mostrar_cambio_password()
         return
 
-    # ── Estado y CSS dinámico de la sidebar ──────────────────────
+    # ── Estado sidebar ─────────────────────────────────────────
     if "sidebar_abierta" not in st.session_state:
         st.session_state["sidebar_abierta"] = True
-
     sidebar_abierta = st.session_state.get("sidebar_abierta", True)
 
-    if sidebar_abierta:
-        st.markdown("""
-        <style>
-        [data-testid="stSidebar"] {
-            display: block !important;
-            visibility: visible !important;
-            width: 21rem !important;
-            min-width: 21rem !important;
-            transform: none !important;
-        }
-        /* Botón en el borde derecho de la sidebar */
-        div[data-testid="stButton"]:has(button[key="btn_toggle_sidebar"]) {
-            position: fixed !important;
-            top: 50vh !important;
-            left: 21rem !important;
-            transform: translateY(-50%) !important;
-            z-index: 999999 !important;
-            width: 18px !important;
-            height: 40px !important;
-            margin: 0 !important;
-            padding: 0 !important;
-        }
-        </style>""", unsafe_allow_html=True)
-    else:
-        st.markdown("""
-        <style>
-        [data-testid="stSidebar"] {
-            display: none !important;
-        }
-        /* Botón en el borde izquierdo de la pantalla */
-        div[data-testid="stButton"]:has(button[key="btn_toggle_sidebar"]) {
-            position: fixed !important;
-            top: 50vh !important;
-            left: 0px !important;
-            transform: translateY(-50%) !important;
-            z-index: 999999 !important;
-            width: 18px !important;
-            height: 40px !important;
-            margin: 0 !important;
-            padding: 0 !important;
-        }
+    # CSS: ocultar sidebar si está cerrada
+    if not sidebar_abierta:
+        st.markdown("""<style>
+        [data-testid="stSidebar"] { display: none !important; }
         </style>""", unsafe_allow_html=True)
 
-    # CSS del botón (estático, igual siempre)
-    st.markdown("""
-    <style>
-    div[data-testid="stButton"]:has(button[key="btn_toggle_sidebar"]) button {
-        position: static !important;
-        width: 18px !important;
-        min-width: 18px !important;
-        height: 40px !important;
+    # CSS del botón toggle: siempre fijo, pegado al borde derecho
+    # de la sidebar (21rem) cuando abierta, o al borde izquierdo (0) cuando cerrada
+    left_pos = "21rem" if sidebar_abierta else "0px"
+    st.markdown(f"""<style>
+    div[data-testid="stButton"]:has(button[key="btn_toggle_sidebar"]) {{
+        position: fixed !important;
+        top: 50vh !important;
+        left: {left_pos} !important;
+        transform: translateY(-50%) !important;
+        z-index: 2147483647 !important;
+        width: 16px !important;
+        height: 38px !important;
+        margin: 0 !important;
         padding: 0 !important;
-        background: rgba(160, 124, 36, 0.55) !important;
-        border: none !important;
-        border-radius: 0 7px 7px 0 !important;
-        font-size: 10px !important;
         line-height: 1 !important;
-        color: #e8d8a0 !important;
-        box-shadow: 2px 0 8px rgba(0,0,0,0.3) !important;
+    }}
+    div[data-testid="stButton"]:has(button[key="btn_toggle_sidebar"]) button {{
+        position: static !important;
+        width: 16px !important;
+        min-width: 16px !important;
+        height: 38px !important;
+        padding: 0 !important;
+        background: rgba(155, 118, 30, 0.50) !important;
+        border: none !important;
+        border-radius: 0 6px 6px 0 !important;
+        font-size: 11px !important;
+        font-weight: bold !important;
+        line-height: 1 !important;
+        color: #e8d898 !important;
+        box-shadow: 2px 0 6px rgba(0,0,0,0.35) !important;
         cursor: pointer !important;
         transition: background 0.2s, width 0.2s !important;
-    }
-    div[data-testid="stButton"]:has(button[key="btn_toggle_sidebar"]) button:hover {
-        background: rgba(160, 124, 36, 0.85) !important;
-        width: 24px !important;
-        min-width: 24px !important;
-        color: #fff8e0 !important;
-    }
-    div[data-testid="stButton"]:has(button[key="btn_toggle_sidebar"]) button p {
-        font-size: 12px !important;
+    }}
+    div[data-testid="stButton"]:has(button[key="btn_toggle_sidebar"]) button:hover {{
+        background: rgba(155, 118, 30, 0.80) !important;
+        width: 22px !important;
+        min-width: 22px !important;
+        color: #fff5cc !important;
+    }}
+    div[data-testid="stButton"]:has(button[key="btn_toggle_sidebar"]) button p {{
+        font-size: 11px !important;
         font-weight: bold !important;
-    }
-    </style>
-    """, unsafe_allow_html=True)
+        margin: 0 !important;
+    }}
+    </style>""", unsafe_allow_html=True)
 
-    icono_btn = "‹" if sidebar_abierta else "›"
-    if st.button(icono_btn, key="btn_toggle_sidebar"):
+    icono = "‹" if sidebar_abierta else "›"
+    if st.button(icono, key="btn_toggle_sidebar"):
         st.session_state["sidebar_abierta"] = not sidebar_abierta
         st.rerun()
 
