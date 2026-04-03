@@ -111,6 +111,12 @@ st.markdown("""
         background: linear-gradient(180deg, #1a1a1f 0%, #0f0f12 60%, #0a0a0c 100%) !important;
         border-right: 1px solid rgba(100, 100, 120, 0.3) !important;
         box-shadow: 4px 0 24px rgba(0,0,0,0.4) !important;
+        transition: transform 0.3s ease !important;
+    }
+
+    /* Sidebar cerrada */
+    [data-testid="stSidebar"][aria-expanded="false"] {
+        transform: translateX(-100%) !important;
     }
 
     /* ── Selectbox: label blanco ── */
@@ -473,7 +479,6 @@ st.markdown("""
     [data-testid="stForm"] [data-testid="stFormSubmitButton"] > button,
     [data-testid="stFormSubmitButton"] > button,
     [data-testid="stFormSubmitButton"] > button > div,
-    [data-testid="stFormSubmitButton"] > button p,
     [data-testid="stFormSubmitButton"] button * {
         color: #000000 !important;
         -webkit-text-fill-color: #000000 !important;
@@ -488,6 +493,51 @@ st.markdown("""
     [data-testid="stForm"] div[data-testid="stMarkdownContainer"] h3,
     [data-testid="stForm"] div[data-testid="stMarkdownContainer"] p {
         color: #FFFFFF !important;
+    }
+
+    /* Botón toggle mejorado */
+    .st-key-btn_toggle_sidebar {
+        position: fixed !important;
+        top: 50% !important;
+        transform: translateY(-50%) !important;
+        z-index: 999999 !important;
+        width: 32px !important;
+        height: 64px !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        transition: left 0.3s ease !important;
+    }
+    
+    .st-key-btn_toggle_sidebar button {
+        width: 32px !important;
+        min-width: 32px !important;
+        height: 64px !important;
+        padding: 0 !important;
+        background: linear-gradient(135deg, #d4a017 0%, #b87a0c 100%) !important;
+        border: none !important;
+        border-radius: 0 12px 12px 0 !important;
+        font-size: 20px !important;
+        font-weight: bold !important;
+        color: #1a1a1f !important;
+        cursor: pointer !important;
+        transition: all 0.2s ease !important;
+        box-shadow: 2px 0 10px rgba(0,0,0,0.3) !important;
+    }
+    
+    .st-key-btn_toggle_sidebar button:hover {
+        background: linear-gradient(135deg, #e5b52a 0%, #c98a1a 100%) !important;
+        width: 38px !important;
+        min-width: 38px !important;
+        color: #000000 !important;
+        box-shadow: 3px 0 15px rgba(0,0,0,0.4) !important;
+    }
+    
+    .st-key-btn_toggle_sidebar button p {
+        font-size: 20px !important;
+        font-weight: bold !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        line-height: 1 !important;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -549,33 +599,25 @@ def verificar_perfil():
 
 
 # ══════════════════════════════════════════════════════════════
-# FUNCIONES PARA MANEJO DE REMITOS (PDF) - VERSIÓN CORREGIDA
+# FUNCIONES PARA MANEJO DE REMITOS (PDF)
 # ══════════════════════════════════════════════════════════════
 
 def subir_remito_pdf(archivo_pdf, movimiento_id, usuario_id, establecimiento_id):
     """
     Sube un archivo PDF a Supabase Storage y guarda la referencia en la tabla movimientos.
-    Versión con logs para depuración.
     """
     if archivo_pdf is None:
         st.warning("⚠️ No hay archivo PDF para subir")
         return None
     
     try:
-        # Mostrar información del archivo
         nombre_original = archivo_pdf.name if hasattr(archivo_pdf, 'name') else 'sin_nombre'
         tamaño = len(archivo_pdf.getvalue())
-        st.info(f"📄 Procesando archivo: {nombre_original} - {tamaño} bytes")
         
-        # Generar nombre único para el archivo
         nombre_archivo = f"remito_{movimiento_id}_{uuid.uuid4().hex[:8]}.pdf"
-        ruta_completa = nombre_archivo  # Ruta simplificada
+        ruta_completa = nombre_archivo
         
-        # Leer el contenido del archivo
         archivo_bytes = archivo_pdf.getvalue()
-        
-        # Subir a Supabase Storage
-        st.info(f"📤 Subiendo a storage: {ruta_completa}")
         
         supabase.storage.from_(SUPABASE_STORAGE_BUCKET).upload(
             path=ruta_completa,
@@ -583,19 +625,13 @@ def subir_remito_pdf(archivo_pdf, movimiento_id, usuario_id, establecimiento_id)
             file_options={"content-type": "application/pdf"}
         )
         
-        # Construir URL pública manualmente
         url_publica = f"{SUPABASE_URL}/storage/v1/object/public/{SUPABASE_STORAGE_BUCKET}/{ruta_completa}"
         
-        st.success(f"✅ Archivo subido correctamente")
-        st.info(f"🔗 URL: {url_publica[:80]}...")
-        
-        # Actualizar el registro del movimiento
-        resultado = supabase.table("movimientos").update({
+        supabase.table("movimientos").update({
             "remito_url": url_publica,
             "remito_filename": nombre_archivo
         }).eq("id", movimiento_id).execute()
         
-        st.success(f"✅ Base de datos actualizada para movimiento {movimiento_id}")
         return url_publica
         
     except Exception as e:
@@ -608,7 +644,6 @@ def generar_link_pdf(url_pdf):
     if not url_pdf or url_pdf == "—":
         return "—"
     
-    # Crear un link con icono de PDF
     link_html = f"""
     <a href="{url_pdf}" target="_blank" class="pdf-miniatura">
         📄 Ver Remito
@@ -1033,7 +1068,7 @@ def get_stock_por_establecimiento():
 
 
 # ══════════════════════════════════════════════════════════════
-# DASHBOARD (VERSIÓN SIMPLIFICADA)
+# DASHBOARD
 # ══════════════════════════════════════════════════════════════
 
 def pagina_dashboard():
@@ -1052,7 +1087,6 @@ def pagina_dashboard():
         st.info("💡 Sin datos de stock. Registrá movimientos para ver el inventario.")
         return
 
-    # ── Filtros de categoría, subcategoría y producto ──
     SUBCATS_AGRO = ["Herbicidas", "Insecticidas", "Coadyuvantes"]
     categorias_disponibles = sorted(stock_productos["categoria"].dropna().unique().tolist())
 
@@ -1076,12 +1110,10 @@ def pagina_dashboard():
         prods_filtrados = sorted(df_para_prods["producto"].dropna().unique().tolist())
         prod_sel = st.selectbox("📦 Producto", ["Todos"] + prods_filtrados, key="dash_prod")
 
-    # Aplicar filtros
     df_filtrado = stock_productos.copy()
     if cat_sel != "Todas":
         df_filtrado = df_filtrado[df_filtrado["categoria"] == cat_sel]
     if es_agro_dash and subcat_sel != "Todos":
-        # filtrar por subcategoría usando el campo 'producto' (nombre contiene subcat o filtramos por lista de productos)
         prods_subcat = get_productos(subcategoria=subcat_sel)
         nombres_subcat = [p["nombre"] for p in prods_subcat]
         df_filtrado = df_filtrado[df_filtrado["producto"].isin(nombres_subcat)]
@@ -1092,7 +1124,6 @@ def pagina_dashboard():
     total_productos = len(df_filtrado)
     stock_bajo = len(df_filtrado[df_filtrado["stock"] < 50])
 
-    # ── Burbujas métricas ──
     st.markdown(f"""
     <div style="display:flex;gap:1.2rem;margin:1.2rem 0 1.8rem 0;flex-wrap:wrap;">
         <div style="flex:1;min-width:200px;background:linear-gradient(135deg,rgba(212,160,23,0.25),rgba(212,160,23,0.12));
@@ -1125,7 +1156,6 @@ def pagina_dashboard():
     </div>
     """, unsafe_allow_html=True)
 
-    # ── Tabla de stock con components.html ──
     st.markdown("""
     <div style="font-size:1.3rem;font-weight:700;color:#fff;margin:0.5rem 0 0.8rem 0;
                 text-shadow:0 1px 4px rgba(0,0,0,0.5);">📋 Stock Actual por Producto</div>
@@ -1152,7 +1182,7 @@ def pagina_dashboard():
             <td style="padding:9px 13px;color:#b0b0c0;font-size:0.84rem;">{row["presentacion"]}</td>
             <td style="padding:9px 13px;color:{stock_color};font-size:0.95rem;font-weight:800;text-align:right;">{stock_val:,.2f}</td>
             <td style="padding:9px 13px;color:#a0a0b0;font-size:0.82rem;">{row["unidad"]}</td>
-        </tr>"""
+        </table>"""
 
     tabla_html = f"""<!DOCTYPE html>
 <html><head><style>
@@ -1180,7 +1210,7 @@ def pagina_dashboard():
 
 
 # ══════════════════════════════════════════════════════════════
-# NUEVO INGRESO - CON REMITO OBLIGATORIO PARA NO ADMIN
+# NUEVO INGRESO
 # ══════════════════════════════════════════════════════════════
 
 def pagina_ingreso():
@@ -1246,7 +1276,6 @@ def pagina_ingreso():
     _now_arg = datetime.now(ZoneInfo("America/Argentina/Buenos_Aires")).replace(tzinfo=None)
     st.caption(f"🕐 Fecha y hora del registro: **{_now_arg.strftime('%d/%m/%Y %H:%M')}**")
 
-    # ── Campo para subir remito (obligatorio para no admin) ──
     if not es_admin:
         st.markdown("### 📎 Remito obligatorio")
         st.info("Debes adjuntar el remito en formato PDF que respalde este ingreso.")
@@ -1312,7 +1341,6 @@ def pagina_ingreso():
                     resultado = supabase.table("movimientos").insert(payload).execute()
                     movimiento_id = resultado.data[0]["id"] if resultado.data else None
                     
-                    # Subir el remito si existe
                     remito_subido = False
                     if movimiento_id and archivo_remito is not None:
                         url = subir_remito_pdf(archivo_remito, movimiento_id, st.session_state.get("user_id"), establecimiento_id)
@@ -1464,7 +1492,6 @@ def pagina_historial():
     </div>
     """, unsafe_allow_html=True)
 
-    # ── Fila 1: Tipo + Fechas ──
     col_f1, col_f2, col_f3 = st.columns(3)
     with col_f1:
         tipo_filtro = st.selectbox("🔄 Tipo", ["Todos", "ingreso", "egreso"], key="hist_tipo")
@@ -1473,7 +1500,6 @@ def pagina_historial():
     with col_f3:
         fecha_hasta = st.date_input("📅 Hasta", value=date.today(), key="hist_hasta")
 
-    # Cargar todos los movimientos del período para derivar categorías/productos disponibles
     movimientos = get_movimientos_con_filtros(
         establecimiento_id=estab_filter(),
         fecha_desde=fecha_desde,
@@ -1495,7 +1521,6 @@ def pagina_historial():
     df["establecimiento_nombre"] = df["establecimientos"].apply(lambda x: x.get("nombre", "") if isinstance(x, dict) else "")
     df["fecha_str"] = df["fecha"].dt.strftime("%d/%m/%Y %H:%M")
 
-    # ── Fila 2: Categoría + Subcategoría + Producto ──
     SUBCATS_AGRO = ["Herbicidas", "Insecticidas", "Coadyuvantes"]
     col_c1, col_c2, col_c3 = st.columns(3)
     with col_c1:
@@ -1518,7 +1543,6 @@ def pagina_historial():
         prods_disp = sorted([p for p in df_para_prods["producto_nombre"].dropna().unique() if p])
         prod_sel = st.selectbox("📦 Producto", ["Todos"] + prods_disp, key="hist_prod")
 
-    # Aplicar filtros de categoría, subcategoría y producto
     if cat_sel != "Todas":
         df = df[df["categoria_nombre"] == cat_sel]
     if es_agro_hist and subcat_sel != "Todos":
@@ -1528,7 +1552,6 @@ def pagina_historial():
     if prod_sel != "Todos":
         df = df[df["producto_nombre"] == prod_sel]
 
-    # Generar link de remito
     df["remito_link"] = df.apply(
         lambda r: generar_link_pdf(r.get("remito_url")) if r.get("remito_url") else "—",
         axis=1
@@ -1742,7 +1765,6 @@ def pagina_usuarios():
         st.error(f"Error: {e}")
 
 
-
 def render_tabla_html(df, height=500):
     """Renderiza un DataFrame con el estilo oscuro dorado del dashboard."""
     import streamlit.components.v1 as components
@@ -1752,7 +1774,6 @@ def render_tabla_html(df, height=500):
         filas_html += '<tr onmouseover="this.style.backgroundColor=\'rgba(212,160,23,0.10)\'" onmouseout="this.style.backgroundColor=\'transparent\'">'
         for col in cols:
             val = row[col]
-            # Color para stocks numéricos
             style = "color:#f0f0f5;font-size:0.85rem;"
             if col in ("stock", "Stock", "cantidad", "Cantidad"):
                 try:
@@ -1782,6 +1803,7 @@ def render_tabla_html(df, height=500):
     </table></div></body></html>"""
     altura = min(height, 80 + len(df) * 38)
     components.html(html, height=altura, scrolling=True)
+
 
 def pagina_consolidado():
     st.markdown("""
@@ -1822,64 +1844,39 @@ def main():
     # ── Estado sidebar ─────────────────────────────────────────
     if "sidebar_abierta" not in st.session_state:
         st.session_state["sidebar_abierta"] = True
+    
     sidebar_abierta = st.session_state.get("sidebar_abierta", True)
 
-    # CSS: ocultar sidebar si está cerrada
-    if not sidebar_abierta:
-        st.markdown("""<style>
-        [data-testid="stSidebar"] { display: none !important; }
-        </style>""", unsafe_allow_html=True)
+    # CSS para posicionar el botón toggle según el estado del sidebar
+    if sidebar_abierta:
+        st.markdown("""
+        <style>
+        .st-key-btn_toggle_sidebar {
+            left: 21rem !important;
+        }
+        </style>
+        """, unsafe_allow_html=True)
+    else:
+        st.markdown("""
+        <style>
+        .st-key-btn_toggle_sidebar {
+            left: 0px !important;
+        }
+        [data-testid="stSidebar"] {
+            display: none !important;
+        }
+        </style>
+        """, unsafe_allow_html=True)
 
-    # CSS del botón toggle: siempre fijo, pegado al borde derecho
-    # de la sidebar (21rem) cuando abierta, o al borde izquierdo (0) cuando cerrada
-    left_pos = "21rem" if sidebar_abierta else "0px"
-    st.markdown(f"""<style>
-    div[data-testid="stButton"]:has(button[key="btn_toggle_sidebar"]) {{
-        position: fixed !important;
-        top: 50vh !important;
-        left: {left_pos} !important;
-        transform: translateY(-50%) !important;
-        z-index: 2147483647 !important;
-        width: 16px !important;
-        height: 38px !important;
-        margin: 0 !important;
-        padding: 0 !important;
-        line-height: 1 !important;
-    }}
-    div[data-testid="stButton"]:has(button[key="btn_toggle_sidebar"]) button {{
-        position: static !important;
-        width: 16px !important;
-        min-width: 16px !important;
-        height: 38px !important;
-        padding: 0 !important;
-        background: rgba(155, 118, 30, 0.50) !important;
-        border: none !important;
-        border-radius: 0 6px 6px 0 !important;
-        font-size: 11px !important;
-        font-weight: bold !important;
-        line-height: 1 !important;
-        color: #e8d898 !important;
-        box-shadow: 2px 0 6px rgba(0,0,0,0.35) !important;
-        cursor: pointer !important;
-        transition: background 0.2s, width 0.2s !important;
-    }}
-    div[data-testid="stButton"]:has(button[key="btn_toggle_sidebar"]) button:hover {{
-        background: rgba(155, 118, 30, 0.80) !important;
-        width: 22px !important;
-        min-width: 22px !important;
-        color: #fff5cc !important;
-    }}
-    div[data-testid="stButton"]:has(button[key="btn_toggle_sidebar"]) button p {{
-        font-size: 11px !important;
-        font-weight: bold !important;
-        margin: 0 !important;
-    }}
-    </style>""", unsafe_allow_html=True)
-
+    # Botón toggle (posicionado con CSS fijo)
     icono = "‹" if sidebar_abierta else "›"
-    if st.button(icono, key="btn_toggle_sidebar"):
-        st.session_state["sidebar_abierta"] = not sidebar_abierta
-        st.rerun()
+    
+    # Crear un contenedor vacío para el botón flotante
+    col_vacio1, col_boton, col_vacio2 = st.columns([0.02, 0.03, 0.95])
+    with col_boton:
+        if st.button(icono, key="btn_toggle_sidebar", help="Toggle Sidebar"):
+            st.session_state["sidebar_abierta"] = not sidebar_abierta
+            st.rerun()
 
     sidebar()
 
