@@ -382,6 +382,36 @@ st.markdown("""
         color: #f0f0f5 !important;
     }
 
+    /* ── Sidebar: textos de sección en blanco ── */
+    [data-testid="stSidebar"] h3,
+    [data-testid="stSidebar"] h2,
+    [data-testid="stSidebar"] label,
+    [data-testid="stSidebar"] p,
+    [data-testid="stSidebar"] span,
+    [data-testid="stSidebar"] div[data-testid="stMarkdownContainer"] h3,
+    [data-testid="stSidebar"] div[data-testid="stMarkdownContainer"] p {
+        color: #FFFFFF !important;
+    }
+
+    /* ── Dashboard: métricas en blanco ── */
+    [data-testid="stMetric"] label,
+    [data-testid="stMetric"] div[data-testid="stMetricLabel"],
+    [data-testid="stMetric"] div[data-testid="stMetricValue"],
+    [data-testid="stMetric"] div[data-testid="stMetricDelta"],
+    [data-testid="metric-container"] label,
+    div[data-testid="stMetricLabel"] p,
+    div[data-testid="stMetricValue"] div {
+        color: #FFFFFF !important;
+        -webkit-text-fill-color: #FFFFFF !important;
+    }
+
+    /* ── Textos generales en el contenido principal ── */
+    [data-testid="stAppViewContainer"] h3,
+    [data-testid="stAppViewContainer"] div[data-testid="stMarkdownContainer"] h3 {
+        color: #FFFFFF !important;
+        text-shadow: 0 1px 4px rgba(0,0,0,0.6);
+    }
+
     /* ── Login: botón Ingresar con letras negras ── */
     [data-testid="stForm"] .stButton > button,
     [data-testid="stForm"] [data-testid="stFormSubmitButton"] > button,
