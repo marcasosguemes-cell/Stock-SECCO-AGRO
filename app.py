@@ -357,6 +357,12 @@ st.markdown("""
         color: #d4a017 !important;
         margin-top: 0 !important;
     }
+
+    .password-warning p,
+    .password-warning strong,
+    .password-warning span {
+        color: #f0f0f5 !important;
+    }
     
     .pdf-miniatura {
         background: rgba(212, 160, 23, 0.15);
@@ -386,13 +392,14 @@ st.markdown("""
         -webkit-text-fill-color: #000000 !important;
     }
 
-    /* ── Login: textos en blanco ── */
+    /* ── Todos los forms: labels y textos en blanco ── */
     [data-testid="stForm"] h3,
     [data-testid="stForm"] label,
     [data-testid="stForm"] .stTextInput label,
     [data-testid="stForm"] p,
     [data-testid="stForm"] span,
-    [data-testid="stForm"] div[data-testid="stMarkdownContainer"] h3 {
+    [data-testid="stForm"] div[data-testid="stMarkdownContainer"] h3,
+    [data-testid="stForm"] div[data-testid="stMarkdownContainer"] p {
         color: #FFFFFF !important;
     }
 </style>
