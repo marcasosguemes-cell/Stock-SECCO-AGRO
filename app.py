@@ -25,49 +25,65 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-# ── Inyección JS para forzar visibilidad del botón sidebar ────
-def _inject_sidebar_fix():
-    import streamlit.components.v1 as components
-    components.html("""
-    <script>
-    (function fixSidebarBtn() {
-        function applyFix() {
-            var selectors = [
-                '[data-testid="collapsedControl"]',
-                '[data-testid="stSidebarCollapsedControl"]',
-                'button[data-testid="collapsedControl"]',
-                'button[data-testid="stSidebarCollapsedControl"]'
-            ];
-            selectors.forEach(function(sel) {
-                try {
-                    parent.document.querySelectorAll(sel).forEach(function(el) {
-                        el.style.setProperty('display', 'flex', 'important');
-                        el.style.setProperty('visibility', 'visible', 'important');
-                        el.style.setProperty('opacity', '1', 'important');
-                        el.style.setProperty('position', 'fixed', 'important');
-                        el.style.setProperty('top', '50%', 'important');
-                        el.style.setProperty('left', '0px', 'important');
-                        el.style.setProperty('transform', 'translateY(-50%)', 'important');
-                        el.style.setProperty('z-index', '2147483647', 'important');
-                        el.style.setProperty('background', 'rgba(212,160,23,0.95)', 'important');
-                        el.style.setProperty('border-radius', '0 12px 12px 0', 'important');
-                        el.style.setProperty('width', '32px', 'important');
-                        el.style.setProperty('height', '64px', 'important');
-                        el.style.setProperty('pointer-events', 'all', 'important');
-                        el.style.setProperty('cursor', 'pointer', 'important');
-                    });
-                } catch(e) {}
-            });
+# ── Botón flotante propio para abrir/cerrar sidebar ────────────
+st.markdown("""
+<style>
+#custom-sidebar-btn {
+    position: fixed !important;
+    top: 50% !important;
+    left: 0px !important;
+    transform: translateY(-50%) !important;
+    z-index: 2147483647 !important;
+    width: 28px !important;
+    height: 60px !important;
+    background: rgba(212,160,23,0.95) !important;
+    border: none !important;
+    border-radius: 0 12px 12px 0 !important;
+    cursor: pointer !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    box-shadow: 3px 0 16px rgba(0,0,0,0.5) !important;
+    font-size: 16px !important;
+    color: #1a1a1f !important;
+    transition: width 0.2s ease !important;
+}
+#custom-sidebar-btn:hover { width: 36px !important; }
+</style>
+<button id="custom-sidebar-btn" title="Abrir/cerrar menu">&#9776;</button>
+<script>
+(function() {
+    function tryClick() {
+        var selectors = [
+            '[data-testid="collapsedControl"]',
+            '[data-testid="stSidebarCollapsedControl"]',
+            'button[data-testid="collapsedControl"]',
+            'button[data-testid="stSidebarCollapsedControl"]'
+        ];
+        for (var i = 0; i < selectors.length; i++) {
+            try {
+                var el = parent.document.querySelector(selectors[i]);
+                if (el) { el.click(); return true; }
+            } catch(e) {}
         }
-        applyFix();
-        setInterval(applyFix, 800);
-        try {
-            var obs = new MutationObserver(applyFix);
-            obs.observe(parent.document.body, { childList: true, subtree: true });
-        } catch(e) {}
-    })();
-    </script>
-    """, height=0)
+        return false;
+    }
+    function init() {
+        var btn = document.getElementById('custom-sidebar-btn');
+        if (btn) {
+            btn.addEventListener('click', function() { tryClick(); });
+        } else {
+            setTimeout(init, 300);
+        }
+    }
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+    } else {
+        init();
+    }
+})();
+</script>
+""", unsafe_allow_html=True)
 
 # ── Cliente Supabase ───────────────────────────────────────────
 SUPABASE_URL = st.secrets["SUPABASE_URL"]
@@ -101,9 +117,7 @@ st.markdown("""
     [data-testid="collapsedControl"],
     button[data-testid="collapsedControl"],
     [data-testid="stSidebarCollapsedControl"],
-    button[data-testid="stSidebarCollapsedControl"],
-    section[data-testid="stSidebarCollapsedControl"],
-    div[data-testid="collapsedControl"] {
+    button[data-testid="stSidebarCollapsedControl"] {
         display: flex !important;
         visibility: visible !important;
         opacity: 1 !important;
@@ -111,27 +125,22 @@ st.markdown("""
         top: 50% !important;
         left: 0px !important;
         transform: translateY(-50%) !important;
-        z-index: 2147483647 !important;
-        background: rgba(212,160,23,0.95) !important;
+        z-index: 99999 !important;
+        background: rgba(212,160,23,0.9) !important;
         border-radius: 0 12px 12px 0 !important;
-        width: 32px !important;
-        height: 64px !important;
-        min-width: 32px !important;
-        min-height: 64px !important;
+        width: 28px !important;
+        height: 56px !important;
         align-items: center !important;
         justify-content: center !important;
         cursor: pointer !important;
-        box-shadow: 3px 0 16px rgba(0,0,0,0.6) !important;
-        border: none !important;
-        pointer-events: all !important;
+        box-shadow: 3px 0 12px rgba(0,0,0,0.4) !important;
     }
 
     [data-testid="collapsedControl"]:hover,
     button[data-testid="collapsedControl"]:hover,
     [data-testid="stSidebarCollapsedControl"]:hover {
         background: rgba(212,160,23,1.0) !important;
-        width: 38px !important;
-        min-width: 38px !important;
+        width: 34px !important;
     }
 
     [data-testid="collapsedControl"] svg,
@@ -139,8 +148,6 @@ st.markdown("""
     [data-testid="stSidebarCollapsedControl"] svg {
         color: #1a1a1f !important;
         fill: #1a1a1f !important;
-        width: 18px !important;
-        height: 18px !important;
     }
 
     html, body { background: #0e0e14 !important; }
@@ -1909,7 +1916,6 @@ def main():
         mostrar_cambio_password()
         return
 
-    _inject_sidebar_fix()
     sidebar()
 
     pagina = st.session_state.get("pagina", "Dashboard")
