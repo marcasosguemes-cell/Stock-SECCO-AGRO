@@ -25,104 +25,6 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-# ── Botón flotante para abrir/cerrar sidebar ───────────────────
-import streamlit.components.v1 as _components
-_components.html("""
-<!DOCTYPE html>
-<html>
-<head>
-<style>
-  body { margin:0; padding:0; background:transparent; overflow:hidden; }
-  #sb-toggle {
-    position: fixed;
-    top: 50vh;
-    left: 0;
-    transform: translateY(-50%);
-    z-index: 2147483647;
-    width: 30px;
-    height: 62px;
-    background: rgba(212,160,23,0.95);
-    border: none;
-    border-radius: 0 12px 12px 0;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 3px 0 16px rgba(0,0,0,0.5);
-    font-size: 18px;
-    color: #1a1a1f;
-    font-weight: bold;
-    transition: width 0.2s;
-  }
-  #sb-toggle:hover { width: 38px; }
-</style>
-</head>
-<body>
-<button id="sb-toggle" title="Abrir/cerrar menú">&#9776;</button>
-<script>
-  var btn = document.getElementById('sb-toggle');
-
-  function getSidebar() {
-    try {
-      return parent.document.querySelector('[data-testid="stSidebar"]');
-    } catch(e) { return null; }
-  }
-
-  function getNativeBtn() {
-    var selectors = [
-      '[data-testid="collapsedControl"]',
-      '[data-testid="stSidebarCollapsedControl"]',
-      'button[data-testid="collapsedControl"]',
-      'button[data-testid="stSidebarCollapsedControl"]',
-      'section[data-testid="stSidebarCollapsedControl"]'
-    ];
-    try {
-      for (var i = 0; i < selectors.length; i++) {
-        var el = parent.document.querySelector(selectors[i]);
-        if (el) return el;
-      }
-    } catch(e) {}
-    return null;
-  }
-
-  function toggleSidebar() {
-    // Intento 1: click en botón nativo
-    var native = getNativeBtn();
-    if (native) { native.click(); return; }
-
-    // Intento 2: manipular el sidebar directamente
-    var sidebar = getSidebar();
-    if (!sidebar) return;
-    var isHidden = sidebar.style.display === 'none'
-                   || sidebar.getAttribute('aria-hidden') === 'true'
-                   || sidebar.offsetWidth < 10;
-    if (isHidden) {
-      sidebar.style.removeProperty('display');
-      sidebar.style.removeProperty('transform');
-      sidebar.style.width = '21rem';
-      sidebar.setAttribute('aria-expanded', 'true');
-    } else {
-      sidebar.style.width = '0';
-      sidebar.style.overflow = 'hidden';
-    }
-  }
-
-  btn.addEventListener('click', toggleSidebar);
-
-  // Posicionar el botón correctamente respecto a la ventana padre
-  function reposition() {
-    try {
-      var rect = parent.document.documentElement;
-      btn.style.top = (rect.clientHeight / 2) + 'px';
-    } catch(e) {}
-  }
-  reposition();
-  setInterval(reposition, 2000);
-</script>
-</body>
-</html>
-""", height=0, scrolling=False)
-
 # ── Cliente Supabase ───────────────────────────────────────────
 SUPABASE_URL = st.secrets["SUPABASE_URL"]
 SUPABASE_KEY = st.secrets["SUPABASE_ANON_KEY"]
@@ -151,10 +53,12 @@ st.markdown("""
         background: none !important;
     }
 
-    /* ── Botón nativo sidebar: oculto (usamos botón propio via components.html) ── */
+    /* ── Botón nativo sidebar: se mantiene el de Streamlit ── */
     [data-testid="collapsedControl"],
     [data-testid="stSidebarCollapsedControl"] {
-        display: none !important;
+        display: flex !important;
+        visibility: visible !important;
+        opacity: 1 !important;
     }
 
     html, body { background: #0e0e14 !important; }
@@ -201,72 +105,6 @@ st.markdown("""
         background: linear-gradient(180deg, #1a1a1f 0%, #0f0f12 60%, #0a0a0c 100%) !important;
         border-right: 1px solid rgba(100, 100, 120, 0.3) !important;
         box-shadow: 4px 0 24px rgba(0,0,0,0.4) !important;
-    }
-
-    /* ── Botón colapsar/expandir sidebar ── */
-    [data-testid="collapsedControl"],
-    button[data-testid="collapsedControl"],
-    [data-testid="stSidebarCollapsedControl"] {
-        display: flex !important;
-        visibility: visible !important;
-        opacity: 1 !important;
-        background: rgba(212,160,23,0.85) !important;
-        border-radius: 0 10px 10px 0 !important;
-        color: #1a1a1f !important;
-    }
-
-    /* ── Selectbox: label blanco ── */
-    [data-testid="stSelectbox"] label,
-    div[data-testid="stSelectbox"] > label,
-    .stSelectbox label {
-        color: #FFFFFF !important;
-        font-weight: 600 !important;
-        font-size: 0.88rem !important;
-        -webkit-text-fill-color: #FFFFFF !important;
-    }
-
-    /* ── Selectbox: fondo gris oscuro, texto blanco ── */
-    [data-testid="stSelectbox"] > div > div,
-    [data-testid="stSelectbox"] [data-baseweb="select"] > div {
-        background-color: rgba(55, 55, 65, 0.95) !important;
-        border: 1px solid rgba(212,160,23,0.4) !important;
-        border-radius: 10px !important;
-        color: #FFFFFF !important;
-    }
-
-    [data-testid="stSelectbox"] [data-baseweb="select"] span,
-    [data-testid="stSelectbox"] [data-baseweb="select"] div {
-        color: #FFFFFF !important;
-        -webkit-text-fill-color: #FFFFFF !important;
-    }
-
-    /* ── Date input: label blanco ── */
-    [data-testid="stDateInput"] label {
-        color: #FFFFFF !important;
-        font-weight: 600 !important;
-        -webkit-text-fill-color: #FFFFFF !important;
-    }
-
-    /* ── Todos los labels de inputs: blanco ── */
-    [data-testid="stNumberInput"] label,
-    [data-testid="stTextInput"] label,
-    [data-testid="stTextArea"] label,
-    [data-testid="stFileUploader"] label {
-        color: #FFFFFF !important;
-        font-weight: 600 !important;
-        -webkit-text-fill-color: #FFFFFF !important;
-    }
-
-    /* ── Botón colapsar/expandir sidebar ── */
-    [data-testid="collapsedControl"],
-    button[data-testid="collapsedControl"],
-    [data-testid="stSidebarCollapsedControl"] {
-        display: flex !important;
-        visibility: visible !important;
-        opacity: 1 !important;
-        background: rgba(212,160,23,0.85) !important;
-        border-radius: 0 10px 10px 0 !important;
-        color: #1a1a1f !important;
     }
 
     /* ── Selectbox: label blanco ── */
@@ -1922,6 +1760,74 @@ def main():
         not st.session_state.get("skip_password_check", False)):
         mostrar_cambio_password()
         return
+
+    # ── Botón hamburguesa para mostrar/ocultar sidebar ──
+    if "sidebar_abierta" not in st.session_state:
+        st.session_state["sidebar_abierta"] = True
+
+    # CSS dinámico según estado de la sidebar
+    if st.session_state["sidebar_abierta"]:
+        sidebar_css = """
+        <style>
+        [data-testid="stSidebar"] {
+            display: block !important;
+            visibility: visible !important;
+            width: 21rem !important;
+            min-width: 21rem !important;
+            transform: none !important;
+        }
+        </style>"""
+    else:
+        sidebar_css = """
+        <style>
+        [data-testid="stSidebar"] {
+            display: none !important;
+        }
+        </style>"""
+    st.markdown(sidebar_css, unsafe_allow_html=True)
+
+    # Botón flotante hamburguesa (siempre visible)
+    st.markdown("""
+    <style>
+    div[data-testid="stVerticalBlock"] > div:first-child .menu-btn-container {
+        position: fixed !important;
+        top: 50vh !important;
+        left: 0 !important;
+        z-index: 999999 !important;
+        transform: translateY(-50%) !important;
+    }
+    .menu-btn-container .stButton button {
+        position: fixed !important;
+        top: 50vh !important;
+        left: 0 !important;
+        z-index: 999999 !important;
+        transform: translateY(-50%) !important;
+        background: rgba(212,160,23,0.95) !important;
+        border: none !important;
+        border-radius: 0 12px 12px 0 !important;
+        width: 30px !important;
+        min-width: 30px !important;
+        height: 62px !important;
+        padding: 0 !important;
+        font-size: 18px !important;
+        color: #1a1a1f !important;
+        box-shadow: 3px 0 16px rgba(0,0,0,0.5) !important;
+        cursor: pointer !important;
+    }
+    .menu-btn-container .stButton button:hover {
+        background: rgba(212,160,23,1.0) !important;
+        width: 38px !important;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+
+    col_menu, col_contenido = st.columns([0.001, 0.999])
+    with col_menu:
+        st.markdown('<div class="menu-btn-container">', unsafe_allow_html=True)
+        if st.button("☰", key="btn_toggle_sidebar"):
+            st.session_state["sidebar_abierta"] = not st.session_state["sidebar_abierta"]
+            st.rerun()
+        st.markdown('</div>', unsafe_allow_html=True)
 
     sidebar()
 
