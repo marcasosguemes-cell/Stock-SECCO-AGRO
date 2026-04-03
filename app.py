@@ -53,6 +53,36 @@ st.markdown("""
         background: none !important;
     }
 
+    /* ── Botón expandir sidebar (siempre visible) ── */
+    [data-testid="collapsedControl"] {
+        display: flex !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        position: fixed !important;
+        top: 50% !important;
+        left: 0px !important;
+        transform: translateY(-50%) !important;
+        z-index: 999999 !important;
+        background: rgba(212,160,23,0.9) !important;
+        border-radius: 0 12px 12px 0 !important;
+        width: 28px !important;
+        height: 56px !important;
+        align-items: center !important;
+        justify-content: center !important;
+        cursor: pointer !important;
+        box-shadow: 3px 0 12px rgba(0,0,0,0.4) !important;
+    }
+
+    [data-testid="collapsedControl"]:hover {
+        background: rgba(212,160,23,1.0) !important;
+        width: 34px !important;
+    }
+
+    [data-testid="collapsedControl"] svg {
+        color: #1a1a1f !important;
+        fill: #1a1a1f !important;
+    }
+
     html, body { background: #0e0e14 !important; }
 
     .stApp {
