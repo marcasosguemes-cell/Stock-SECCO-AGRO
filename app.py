@@ -45,13 +45,24 @@ st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:wght@300;400;500;600;700&display=swap');
 
-    /* Header transparente — no se oculta para no perder eventos de Streamlit */
+    /* Header: transparente pero con overflow visible para que el botón sea clickeable */
     [data-testid="stHeader"], header[data-testid="stHeader"], .stAppHeader {
         background: transparent !important;
         box-shadow: none !important;
-        height: 0 !important;
-        min-height: 0 !important;
         overflow: visible !important;
+        height: 60px !important;
+        min-height: 60px !important;
+        padding: 0 !important;
+        /* Ocultar otros elementos del header menos el botón del sidebar */
+        display: flex !important;
+        align-items: center !important;
+    }
+    /* Ocultar el toolbar y decoraciones del header, solo mostrar el botón */
+    [data-testid="stHeader"] > div:not(:first-child),
+    [data-testid="stToolbar"],
+    [data-testid="stDecoration"],
+    [data-testid="stStatusWidget"] {
+        display: none !important;
     }
 
     /* Botón flotante personalizado para abrir/cerrar sidebar */
@@ -126,38 +137,42 @@ st.markdown("""
         box-shadow: 4px 0 24px rgba(0,0,0,0.4) !important;
     }
 
-    /* Botón flotante personalizado para abrir/cerrar sidebar */
-    #sidebar-toggle-btn {
-        position: fixed !important;
-        top: 14px !important;
-        left: 14px !important;
-        z-index: 99999 !important;
-        width: 42px !important;
-        height: 42px !important;
-        background: rgba(212, 160, 23, 0.9) !important;
-        border: none !important;
-        border-radius: 10px !important;
-        cursor: pointer !important;
-        display: flex !important;
-        align-items: center !important;
-        justify-content: center !important;
-        box-shadow: 0 4px 14px rgba(0,0,0,0.5) !important;
-        transition: background 0.2s ease, transform 0.15s ease !important;
-        font-size: 20px !important;
-        color: #1a1a1f !important;
-        line-height: 1 !important;
-    }
-    #sidebar-toggle-btn:hover {
-        background: rgba(212, 160, 23, 1) !important;
-        transform: scale(1.08) !important;
-    }
-
-    /* Ocultar el botón nativo (reemplazado por el flotante) */
+    /* Botón hamburguesa nativo de Streamlit: siempre visible y dorado */
     [data-testid="collapsedControl"],
     button[data-testid="collapsedControl"],
     [data-testid="stSidebarCollapsedControl"],
-    button[data-testid="stSidebarCollapsedControl"] {
-        display: none !important;
+    button[data-testid="stSidebarCollapsedControl"],
+    button[aria-label="Open sidebar"],
+    button[aria-label="Close sidebar"],
+    button[aria-label="Abrir barra lateral"],
+    button[aria-label="Cerrar barra lateral"] {
+        display: flex !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        pointer-events: all !important;
+        background: rgba(212, 160, 23, 0.85) !important;
+        border-radius: 10px !important;
+        z-index: 99999 !important;
+        width: 42px !important;
+        height: 42px !important;
+        position: fixed !important;
+        top: 14px !important;
+        left: 14px !important;
+        box-shadow: 0 4px 14px rgba(0,0,0,0.5) !important;
+    }
+    [data-testid="collapsedControl"]:hover,
+    button[data-testid="collapsedControl"]:hover,
+    [data-testid="stSidebarCollapsedControl"]:hover,
+    button[data-testid="stSidebarCollapsedControl"]:hover {
+        background: rgba(212, 160, 23, 1) !important;
+    }
+    /* Ícono dentro del botón nativo: negro para contraste */
+    [data-testid="collapsedControl"] svg,
+    button[data-testid="collapsedControl"] svg,
+    [data-testid="stSidebarCollapsedControl"] svg,
+    button[data-testid="stSidebarCollapsedControl"] svg {
+        color: #1a1a1f !important;
+        fill: #1a1a1f !important;
     }
 
     /* ── Selectbox: label blanco ── */
@@ -538,48 +553,6 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# ── Botón flotante para abrir/cerrar el sidebar ───────────────
-st.markdown("""
-<button id="sidebar-toggle-btn" title="Abrir/Cerrar menú">&#9776;</button>
-<script>
-(function() {
-    function toggleSidebar() {
-        var selectors = [
-            'button[data-testid="collapsedControl"]',
-            'button[data-testid="stSidebarCollapsedControl"]',
-            'section[data-testid="stSidebar"] + div button',
-            '[data-testid="stHeader"] button'
-        ];
-        for (var i = 0; i < selectors.length; i++) {
-            var btn = document.querySelector(selectors[i]);
-            if (btn) { btn.click(); return; }
-        }
-        // Fallback: forzar visibilidad del sidebar
-        var sidebar = document.querySelector('section[data-testid="stSidebar"]');
-        if (sidebar) {
-            var hidden = getComputedStyle(sidebar).width === '0px';
-            sidebar.style.width = hidden ? '' : '0px';
-            sidebar.style.overflow = hidden ? '' : 'hidden';
-        }
-    }
-
-    function init() {
-        var btn = document.getElementById('sidebar-toggle-btn');
-        if (btn) {
-            btn.addEventListener('click', toggleSidebar);
-        } else {
-            setTimeout(init, 400);
-        }
-    }
-
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', init);
-    } else {
-        setTimeout(init, 400);
-    }
-})();
-</script>
-""", unsafe_allow_html=True)
 
 
 # ══════════════════════════════════════════════════════════════
