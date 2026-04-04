@@ -53,20 +53,6 @@ st.markdown("""
         background: none !important;
     }
 
-    /* ── Botón nativo sidebar: eliminado ── */
-    [data-testid="collapsedControl"],
-    button[data-testid="collapsedControl"],
-    [data-testid="stSidebarCollapsedControl"],
-    button[data-testid="stSidebarCollapsedControl"],
-    section[data-testid="stSidebarCollapsedControl"] {
-        display: none !important;
-        visibility: hidden !important;
-        width: 0 !important;
-        height: 0 !important;
-        opacity: 0 !important;
-        pointer-events: none !important;
-    }
-
     html, body { background: #0e0e14 !important; }
 
     .stApp {
@@ -100,25 +86,17 @@ st.markdown("""
     }
 
     [data-testid="stAppViewContainer"],
+    [data-testid="stSidebar"],
     .stApp > div {
         position: relative !important;
         z-index: 1 !important;
         background: transparent !important;
     }
 
-    /* Sidebar base */
     [data-testid="stSidebar"] {
         background: linear-gradient(180deg, #1a1a1f 0%, #0f0f12 60%, #0a0a0c 100%) !important;
         border-right: 1px solid rgba(100, 100, 120, 0.3) !important;
         box-shadow: 4px 0 24px rgba(0,0,0,0.4) !important;
-        transition: transform 0.3s ease-in-out !important;
-        z-index: 999 !important;
-    }
-    
-    /* Sidebar cuando está cerrada */
-    [data-testid="stSidebar"][aria-expanded="false"] {
-        transform: translateX(-100%) !important;
-        margin-left: -21rem !important;
     }
 
     /* ── Selectbox: label blanco ── */
@@ -496,56 +474,6 @@ st.markdown("""
     [data-testid="stForm"] div[data-testid="stMarkdownContainer"] p {
         color: #FFFFFF !important;
     }
-
-    /* Botón toggle mejorado */
-    .st-key-btn_toggle_sidebar {
-        position: fixed !important;
-        top: 50% !important;
-        transform: translateY(-50%) !important;
-        z-index: 999999 !important;
-        width: 32px !important;
-        height: 64px !important;
-        margin: 0 !important;
-        padding: 0 !important;
-        transition: left 0.3s ease-in-out !important;
-    }
-    
-    .st-key-btn_toggle_sidebar button {
-        width: 32px !important;
-        min-width: 32px !important;
-        height: 64px !important;
-        padding: 0 !important;
-        background: linear-gradient(135deg, #d4a017 0%, #b87a0c 100%) !important;
-        border: none !important;
-        border-radius: 0 12px 12px 0 !important;
-        font-size: 20px !important;
-        font-weight: bold !important;
-        color: #1a1a1f !important;
-        cursor: pointer !important;
-        transition: all 0.2s ease !important;
-        box-shadow: 2px 0 10px rgba(0,0,0,0.3) !important;
-    }
-    
-    .st-key-btn_toggle_sidebar button:hover {
-        background: linear-gradient(135deg, #e5b52a 0%, #c98a1a 100%) !important;
-        width: 38px !important;
-        min-width: 38px !important;
-        color: #000000 !important;
-        box-shadow: 3px 0 15px rgba(0,0,0,0.4) !important;
-    }
-    
-    .st-key-btn_toggle_sidebar button p {
-        font-size: 20px !important;
-        font-weight: bold !important;
-        margin: 0 !important;
-        padding: 0 !important;
-        line-height: 1 !important;
-    }
-    
-    /* Ajuste del contenido principal cuando sidebar está cerrada */
-    .main-content {
-        transition: margin-left 0.3s ease-in-out !important;
-    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -572,7 +500,7 @@ def logout():
     try:
         supabase.auth.sign_out()
         keys_to_clear = ["session", "user_id", "perfil", "rol", "establecimiento_id", 
-                         "establecimiento_nombre", "pagina", "password_changed", "skip_password_check", "sidebar_abierta"]
+                         "establecimiento_nombre", "pagina", "password_changed", "skip_password_check"]
         for key in keys_to_clear:
             if key in st.session_state:
                 del st.session_state[key]
@@ -1200,7 +1128,7 @@ def pagina_dashboard():
   th {{ padding:11px 13px; color:#1a1a1f; font-weight:700; font-size:0.8rem; text-transform:uppercase; letter-spacing:0.07em; white-space:nowrap; }}
   tbody tr {{ border-bottom:1px solid rgba(212,160,23,0.15); transition:background 0.2s; }}
 </style></head>
-<body><div class="wrap"></table>
+<body><div class="wrap"><table>
   <thead><tr>
     <th style="text-align:left;">📦 Producto</th>
     <th style="text-align:left;">📁 Categoría</th>
@@ -1209,7 +1137,7 @@ def pagina_dashboard():
     <th style="text-align:left;">Unidad</th>
   </tr></thead>
   <tbody>{filas_html}</tbody>
-追赶</div></body></html>"""
+</table></div></body></html>"""
 
     import streamlit.components.v1 as components
     altura = min(700, 100 + len(df_tabla) * 42)
@@ -1793,7 +1721,7 @@ def render_tabla_html(df, height=500):
                 val = "✅" if val else "❌"
                 style = "text-align:center;"
             filas_html += f'<td style="padding:8px 12px;border-bottom:1px solid rgba(212,160,23,0.12);{style}">{val}</td>'
-        filas_html += "</tr>"
+        filas_html += "<tr>"
 
     headers = "".join([f'<th style="padding:10px 12px;color:#1a1a1f;font-weight:700;font-size:0.78rem;text-transform:uppercase;letter-spacing:0.07em;white-space:nowrap;text-align:left;">{c}</th>' for c in cols])
 
@@ -1804,7 +1732,7 @@ def render_tabla_html(df, height=500):
     thead tr{{background:linear-gradient(135deg,#d4a017 0%,#b87a0c 100%);}}
     tbody tr{{transition:background 0.15s;}}
     </style></head><body>
-    <div class="wrap"><tr>
+    <div class="wrap"><table>
     <thead><tr>{headers}</tr></thead>
     <tbody>{filas_html}</tbody>
    </table</div></body></html>"""
@@ -1848,46 +1776,7 @@ def main():
         mostrar_cambio_password()
         return
 
-    # ── Estado sidebar ─────────────────────────────────────────
-    if "sidebar_abierta" not in st.session_state:
-        st.session_state["sidebar_abierta"] = True
-    
-    sidebar_abierta = st.session_state.get("sidebar_abierta", True)
-
-    # CSS para posicionar el botón toggle según el estado del sidebar
-    if sidebar_abierta:
-        st.markdown("""
-        <style>
-        .st-key-btn_toggle_sidebar {
-            left: 21rem !important;
-        }
-        </style>
-        """, unsafe_allow_html=True)
-    else:
-        st.markdown("""
-        <style>
-        .st-key-btn_toggle_sidebar {
-            left: 0px !important;
-        }
-        /* Ocultar sidebar cuando está cerrado */
-        [data-testid="stSidebar"] {
-            transform: translateX(-100%) !important;
-            margin-left: -21rem !important;
-            visibility: hidden !important;
-        }
-        </style>
-        """, unsafe_allow_html=True)
-
-    # Botón toggle
-    icono = "‹" if sidebar_abierta else "›"
-    
-    # Contenedor para el botón flotante
-    col_vacio1, col_boton, col_vacio2 = st.columns([0.02, 0.03, 0.95])
-    with col_boton:
-        if st.button(icono, key="btn_toggle_sidebar", help="Toggle Sidebar"):
-            st.session_state["sidebar_abierta"] = not sidebar_abierta
-            st.rerun()
-
+    # Sidebar nativo de Streamlit (sin botón toggle personalizado)
     sidebar()
 
     pagina = st.session_state.get("pagina", "Dashboard")
