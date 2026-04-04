@@ -45,13 +45,15 @@ st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:wght@300;400;500;600;700&display=swap');
 
-    /* Ocultar header por defecto */
+    /* Ocultar header pero preservar el botón del sidebar */
     [data-testid="stHeader"], header[data-testid="stHeader"], .stAppHeader {
+        background: transparent !important;
+        box-shadow: none !important;
+    }
+
+    /* Ocultar solo el contenido interno del header, no el header en sí */
+    [data-testid="stHeader"] > *:not([data-testid="stSidebarCollapsedControl"]):not([data-testid="collapsedControl"]) {
         display: none !important;
-        height: 0 !important;
-        min-height: 0 !important;
-        padding: 0 !important;
-        background: none !important;
     }
 
     html, body { background: #0e0e14 !important; }
@@ -104,17 +106,26 @@ st.markdown("""
     [data-testid="collapsedControl"],
     button[data-testid="collapsedControl"],
     [data-testid="stSidebarCollapsedControl"],
-    button[data-testid="stSidebarCollapsedControl"] {
+    button[data-testid="stSidebarCollapsedControl"],
+    [data-testid="stHeader"] button,
+    section[data-testid="stSidebar"] + div button[kind="header"],
+    button[aria-label="Open sidebar"],
+    button[aria-label="Close sidebar"] {
         display: flex !important;
         visibility: visible !important;
         opacity: 1 !important;
         background: rgba(212, 160, 23, 0.3) !important;
         border-radius: 0 8px 8px 0 !important;
         margin-top: 10px !important;
+        z-index: 9999 !important;
+        position: relative !important;
     }
     
     [data-testid="collapsedControl"]:hover,
-    button[data-testid="collapsedControl"]:hover {
+    button[data-testid="collapsedControl"]:hover,
+    [data-testid="stSidebarCollapsedControl"]:hover,
+    button[data-testid="stSidebarCollapsedControl"]:hover,
+    [data-testid="stHeader"] button:hover {
         background: rgba(212, 160, 23, 0.6) !important;
     }
 
