@@ -45,23 +45,18 @@ st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:wght@300;400;500;600;700&display=swap');
 
-    /* Header: transparente pero con overflow visible para que el botón sea clickeable */
-    [data-testid="stHeader"], header[data-testid="stHeader"], .stAppHeader {
-        background: transparent !important;
-        box-shadow: none !important;
-        overflow: visible !important;
-        height: 60px !important;
-        min-height: 60px !important;
-        padding: 0 !important;
-        /* Ocultar otros elementos del header menos el botón del sidebar */
-        display: flex !important;
-        align-items: center !important;
+    /* Header: oculto, el toggle lo manejamos con Python */
+    [data-testid="stHeader"], header[data-testid="stHeader"], .stAppHeader,
+    [data-testid="stToolbar"], [data-testid="stDecoration"], [data-testid="stStatusWidget"] {
+        display: none !important;
+        height: 0 !important;
+        min-height: 0 !important;
     }
-    /* Ocultar el toolbar y decoraciones del header, solo mostrar el botón */
-    [data-testid="stHeader"] > div:not(:first-child),
-    [data-testid="stToolbar"],
-    [data-testid="stDecoration"],
-    [data-testid="stStatusWidget"] {
+    /* Ocultar el botón nativo también (usamos el nuestro de Python) */
+    [data-testid="collapsedControl"],
+    button[data-testid="collapsedControl"],
+    [data-testid="stSidebarCollapsedControl"],
+    button[data-testid="stSidebarCollapsedControl"] {
         display: none !important;
     }
 
@@ -137,42 +132,31 @@ st.markdown("""
         box-shadow: 4px 0 24px rgba(0,0,0,0.4) !important;
     }
 
-    /* Botón hamburguesa nativo de Streamlit: siempre visible y dorado */
-    [data-testid="collapsedControl"],
-    button[data-testid="collapsedControl"],
-    [data-testid="stSidebarCollapsedControl"],
-    button[data-testid="stSidebarCollapsedControl"],
-    button[aria-label="Open sidebar"],
-    button[aria-label="Close sidebar"],
-    button[aria-label="Abrir barra lateral"],
-    button[aria-label="Cerrar barra lateral"] {
-        display: flex !important;
-        visibility: visible !important;
-        opacity: 1 !important;
-        pointer-events: all !important;
-        background: rgba(212, 160, 23, 0.85) !important;
-        border-radius: 10px !important;
-        z-index: 99999 !important;
-        width: 42px !important;
-        height: 42px !important;
+    /* Botón hamburguesa Python - posición fija esquina superior izquierda */
+    div[data-testid="stMainBlockContainer"] > div:first-child .sidebar-toggle-wrap {
         position: fixed !important;
         top: 14px !important;
         left: 14px !important;
-        box-shadow: 0 4px 14px rgba(0,0,0,0.5) !important;
+        z-index: 99999 !important;
     }
-    [data-testid="collapsedControl"]:hover,
-    button[data-testid="collapsedControl"]:hover,
-    [data-testid="stSidebarCollapsedControl"]:hover,
-    button[data-testid="stSidebarCollapsedControl"]:hover {
-        background: rgba(212, 160, 23, 1) !important;
-    }
-    /* Ícono dentro del botón nativo: negro para contraste */
-    [data-testid="collapsedControl"] svg,
-    button[data-testid="collapsedControl"] svg,
-    [data-testid="stSidebarCollapsedControl"] svg,
-    button[data-testid="stSidebarCollapsedControl"] svg {
+    .sidebar-toggle-wrap > div > button {
+        width: 42px !important;
+        height: 42px !important;
+        padding: 0 !important;
+        font-size: 20px !important;
+        background: rgba(212, 160, 23, 0.9) !important;
         color: #1a1a1f !important;
-        fill: #1a1a1f !important;
+        border: none !important;
+        border-radius: 10px !important;
+        box-shadow: 0 4px 14px rgba(0,0,0,0.5) !important;
+        cursor: pointer !important;
+        min-height: unset !important;
+        line-height: 1 !important;
+    }
+    .sidebar-toggle-wrap > div > button:hover {
+        background: rgba(212, 160, 23, 1) !important;
+        transform: scale(1.06) !important;
+        color: #000 !important;
     }
 
     /* ── Selectbox: label blanco ── */
@@ -1853,7 +1837,41 @@ def main():
         mostrar_cambio_password()
         return
 
-    # Sidebar nativo de Streamlit (el botón de hamburguesa ahora es visible)
+    # ── Toggle sidebar con botón Python ──────────────────────────
+    if "sidebar_open" not in st.session_state:
+        st.session_state["sidebar_open"] = True
+
+    # Botón hamburguesa en posición fija (via CSS + contenedor)
+    st.markdown('<div class="sidebar-toggle-wrap">', unsafe_allow_html=True)
+    icono = "✕" if st.session_state["sidebar_open"] else "☰"
+    if st.button(icono, key="btn_toggle_sidebar"):
+        st.session_state["sidebar_open"] = not st.session_state["sidebar_open"]
+        st.rerun()
+    st.markdown('</div>', unsafe_allow_html=True)
+
+    # Mostrar u ocultar sidebar según estado
+    if st.session_state["sidebar_open"]:
+        st.markdown("""
+        <style>
+            [data-testid="stSidebar"] {
+                display: flex !important;
+                width: 21rem !important;
+                min-width: 21rem !important;
+                transform: translateX(0) !important;
+                visibility: visible !important;
+            }
+        </style>""", unsafe_allow_html=True)
+    else:
+        st.markdown("""
+        <style>
+            [data-testid="stSidebar"] {
+                display: none !important;
+                width: 0 !important;
+                min-width: 0 !important;
+                visibility: hidden !important;
+            }
+        </style>""", unsafe_allow_html=True)
+
     sidebar()
 
     pagina = st.session_state.get("pagina", "Dashboard")
