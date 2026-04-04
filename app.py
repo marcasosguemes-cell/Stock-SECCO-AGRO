@@ -1711,34 +1711,49 @@ def pagina_productos():
     st.markdown("""
     <div>
         <div class="title-bubble">
-            <h1>📦 Productos</h1>
+            <h1>📦 Productos Globales</h1>
         </div>
     </div>
     """, unsafe_allow_html=True)
-    
-    categorias = get_categorias()
-    cat_options = {c["nombre"]: c["id"] for c in categorias}
-    
-    with st.expander("➕ Agregar producto"):
-        cat_sel = st.selectbox("Categoría", list(cat_options.keys()))
-        with st.form("nuevo_producto"):
-            nombre = st.text_input("Nombre")
-            presentacion = st.text_input("Presentación")
-            unidad = st.selectbox("Unidad", ["litros", "kg", "unidades"])
-            if st.form_submit_button("Guardar") and nombre:
-                supabase.table("productos").insert({
-                    "categoria_id": cat_options[cat_sel],
-                    "nombre": nombre,
-                    "presentacion": presentacion,
-                    "unidad_medida": unidad,
-                    "activo": True
-                }).execute()
-                st.rerun()
-    
+
+    rol = st.session_state.get("rol", "")
+    es_admin = (rol == "admin")
+
+    if es_admin:
+        st.info("ℹ️ Los productos creados aquí están disponibles para **todos los establecimientos**.")
+        categorias = get_categorias()
+        cat_options = {c["nombre"]: c["id"] for c in categorias}
+
+        with st.expander("➕ Agregar nuevo producto global"):
+            col_a, col_b = st.columns(2)
+            with col_a:
+                cat_sel = st.selectbox("Categoría", list(cat_options.keys()), key="prod_cat_nueva")
+            with col_b:
+                unidad = st.selectbox("Unidad", ["litros", "kg", "unidades"], key="prod_unidad_nueva")
+            with st.form("nuevo_producto"):
+                nombre = st.text_input("Nombre del producto *")
+                presentacion = st.text_input("Presentación (ej: 20L, 50kg)")
+                if st.form_submit_button("💾 Guardar producto global") and nombre:
+                    supabase.table("productos").insert({
+                        "categoria_id": cat_options[cat_sel],
+                        "nombre": nombre,
+                        "presentacion": presentacion,
+                        "unidad_medida": unidad,
+                        "activo": True
+                    }).execute()
+                    st.success(f"✅ Producto '{nombre}' creado y disponible para todos los establecimientos.")
+                    st.rerun()
+    else:
+        st.info("📋 Lista de productos disponibles. Solo el administrador puede agregar nuevos productos.")
+
     productos = get_productos()
     if productos:
         df = pd.DataFrame(productos)
         df["categoria"] = df["categorias"].apply(lambda x: x["nombre"] if x else "N/A")
+        # Búsqueda rápida
+        buscar_prod = st.text_input("🔎 Buscar producto", key="prod_buscar", placeholder="Escribí para filtrar...")
+        if buscar_prod:
+            df = df[df["nombre"].str.contains(buscar_prod, case=False, na=False)]
         render_tabla_html(df[["nombre", "categoria", "presentacion", "unidad_medida", "activo"]])
 
 
@@ -1809,14 +1824,174 @@ def pagina_consolidado():
         </div>
     </div>
     """, unsafe_allow_html=True)
-    
+
     stock_df = get_stock_por_establecimiento()
-    
+
     if stock_df.empty:
         st.info("💡 Sin datos consolidados.")
         return
-    
-    render_tabla_html(stock_df, height=600)
+
+    establecimientos_disp = sorted(stock_df["establecimiento"].dropna().unique().tolist())
+    categorias_disp = sorted(stock_df["categoria"].dropna().unique().tolist())
+    SUBCATS_AGRO = ["Herbicidas", "Insecticidas", "Coadyuvantes", "Fungicidas", "Fertilizantes foliares"]
+
+    # ── Filtros ──────────────────────────────────────────────────
+    st.markdown("#### 🔍 Filtros")
+    col1, col2, col3, col4 = st.columns(4)
+
+    with col1:
+        estabs_sel = st.multiselect(
+            "🏢 Establecimientos",
+            options=establecimientos_disp,
+            default=establecimientos_disp,
+            key="cons_estabs"
+        )
+    with col2:
+        cat_sel = st.selectbox("📁 Categoría", ["Todas"] + categorias_disp, key="cons_cat")
+    with col3:
+        es_agro = cat_sel != "Todas" and ("agroqui" in cat_sel.lower() or "agroquí" in cat_sel.lower())
+        if es_agro:
+            subcat_sel = st.selectbox("🌿 Subcategoría", ["Todas"] + SUBCATS_AGRO, key="cons_subcat")
+        else:
+            subcat_sel = "Todas"
+            st.selectbox("🌿 Subcategoría", ["—"], key="cons_subcat_dis", disabled=True)
+    with col4:
+        buscar = st.text_input("🔎 Buscar producto", key="cons_buscar", placeholder="Nombre...")
+
+    # ── Aplicar filtros ──────────────────────────────────────────
+    df_f = stock_df.copy()
+    if estabs_sel:
+        df_f = df_f[df_f["establecimiento"].isin(estabs_sel)]
+    if cat_sel != "Todas":
+        df_f = df_f[df_f["categoria"] == cat_sel]
+    if es_agro and subcat_sel != "Todas":
+        df_f = df_f[df_f.get("subcategoria", pd.Series(dtype=str)) == subcat_sel] if "subcategoria" in df_f.columns else df_f
+    if buscar:
+        df_f = df_f[df_f["producto"].str.contains(buscar, case=False, na=False)]
+
+    if df_f.empty:
+        st.warning("Sin datos para los filtros seleccionados.")
+        return
+
+    # ── Tabs: Tabla | Gráficos ───────────────────────────────────
+    tab1, tab2 = st.tabs(["📋 Tabla de Stock", "📊 Gráficos"])
+
+    with tab1:
+        col_ord1, col_ord2 = st.columns([3, 1])
+        with col_ord2:
+            orden = st.selectbox("Ordenar por", ["producto", "establecimiento", "categoria", "stock"], key="cons_orden")
+            asc = st.checkbox("Ascendente", value=True, key="cons_asc")
+        df_show = df_f.sort_values(orden, ascending=asc)
+        render_tabla_html(df_show[["producto", "presentacion", "unidad", "categoria", "establecimiento", "stock"]], height=600)
+
+    with tab2:
+        # ── Gráfico 1: Barras comparativas por establecimiento ────
+        st.markdown("##### 📊 Stock por Producto y Establecimiento")
+        top_n = st.slider("Mostrar top N productos", 5, 50, 20, key="cons_topn")
+        df_top = df_f.groupby("producto")["stock"].sum().nlargest(top_n).index
+        df_bar = df_f[df_f["producto"].isin(df_top)]
+
+        fig_bar = px.bar(
+            df_bar, x="producto", y="stock", color="establecimiento",
+            barmode="group",
+            color_discrete_sequence=["#d4a017", "#22c55e", "#3b82f6"],
+            template="plotly_dark",
+            labels={"producto": "Producto", "stock": "Stock", "establecimiento": "Establecimiento"}
+        )
+        fig_bar.update_layout(
+            paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(20,20,28,0.85)",
+            font_color="#f0f0f5", legend_font_color="#f0f0f5",
+            xaxis_tickangle=-40, height=420, margin=dict(t=30, b=80)
+        )
+        st.plotly_chart(fig_bar, use_container_width=True)
+
+        col_g2, col_g3 = st.columns(2)
+
+        # ── Gráfico 2: Torta por categoría ────────────────────────
+        with col_g2:
+            st.markdown("##### 🥧 Distribución por Categoría")
+            df_pie = df_f.groupby("categoria")["stock"].sum().reset_index()
+            df_pie = df_pie[df_pie["stock"] > 0]
+            fig_pie = px.pie(
+                df_pie, names="categoria", values="stock",
+                color_discrete_sequence=px.colors.sequential.Oranges_r,
+                template="plotly_dark"
+            )
+            fig_pie.update_layout(
+                paper_bgcolor="rgba(0,0,0,0)", font_color="#f0f0f5",
+                legend_font_color="#f0f0f5", height=340, margin=dict(t=20, b=20)
+            )
+            st.plotly_chart(fig_pie, use_container_width=True)
+
+        # ── Gráfico 3: Stock bajo (alertas visuales) ─────────────
+        with col_g3:
+            st.markdown("##### ⚠️ Stock Bajo (< 50 unidades)")
+            df_bajo = df_f[df_f["stock"] < 50].sort_values("stock")
+            if df_bajo.empty:
+                st.success("✅ Sin productos con stock crítico en la selección actual.")
+            else:
+                fig_bajo = px.bar(
+                    df_bajo, x="stock", y="producto", orientation="h",
+                    color="establecimiento",
+                    color_discrete_sequence=["#ef4444", "#f59e0b", "#f97316"],
+                    template="plotly_dark",
+                    labels={"stock": "Stock", "producto": "Producto"}
+                )
+                fig_bajo.update_layout(
+                    paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(20,20,28,0.85)",
+                    font_color="#f0f0f5", height=340, margin=dict(t=10, b=20)
+                )
+                st.plotly_chart(fig_bajo, use_container_width=True)
+
+        # ── Gráfico 4: Evolución histórica de movimientos ─────────
+        st.markdown("##### 📈 Evolución Histórica de Movimientos")
+        movs_hist = get_movimientos(None, limit=10000)
+        if movs_hist:
+            df_hist = pd.DataFrame(movs_hist)
+            df_hist["fecha"] = pd.to_datetime(df_hist["fecha"])
+            df_hist["mes"] = df_hist["fecha"].dt.to_period("M").dt.to_timestamp()
+            df_hist["establecimiento_nombre"] = df_hist["establecimientos"].apply(
+                lambda x: x.get("nombre", "") if isinstance(x, dict) else ""
+            )
+            # Filtrar por establecimientos seleccionados
+            if estabs_sel:
+                df_hist = df_hist[df_hist["establecimiento_nombre"].isin(estabs_sel)]
+            df_evo = df_hist.groupby(["mes", "tipo", "establecimiento_nombre"])["cantidad"].sum().reset_index()
+            fig_evo = px.line(
+                df_evo, x="mes", y="cantidad", color="establecimiento_nombre",
+                line_dash="tipo",
+                color_discrete_sequence=["#d4a017", "#22c55e", "#3b82f6"],
+                template="plotly_dark",
+                labels={"mes": "Mes", "cantidad": "Cantidad", "establecimiento_nombre": "Establecimiento", "tipo": "Tipo"}
+            )
+            fig_evo.update_layout(
+                paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(20,20,28,0.85)",
+                font_color="#f0f0f5", legend_font_color="#f0f0f5",
+                height=380, margin=dict(t=20, b=40)
+            )
+            st.plotly_chart(fig_evo, use_container_width=True)
+
+        # ── Gráfico 5: Comparativa de productos entre establecimientos ──
+        st.markdown("##### 🔀 Comparativa de Producto entre Establecimientos")
+        productos_disp = sorted(df_f["producto"].dropna().unique().tolist())
+        prod_comp = st.selectbox("Seleccionar producto a comparar", productos_disp, key="cons_prod_comp")
+        df_comp = df_f[df_f["producto"] == prod_comp]
+        if not df_comp.empty:
+            fig_comp = px.bar(
+                df_comp, x="establecimiento", y="stock",
+                color="establecimiento",
+                color_discrete_sequence=["#d4a017", "#22c55e", "#3b82f6"],
+                template="plotly_dark",
+                text="stock",
+                labels={"establecimiento": "Establecimiento", "stock": "Stock"}
+            )
+            fig_comp.update_traces(textposition="outside", textfont_color="#f0f0f5")
+            fig_comp.update_layout(
+                paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(20,20,28,0.85)",
+                font_color="#f0f0f5", showlegend=False,
+                height=320, margin=dict(t=20, b=40)
+            )
+            st.plotly_chart(fig_comp, use_container_width=True)
 
 
 # ══════════════════════════════════════════════════════════════
