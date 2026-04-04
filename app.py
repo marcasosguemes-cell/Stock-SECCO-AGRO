@@ -45,6 +45,7 @@ st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:wght@300;400;500;600;700&display=swap');
 
+    /* Ocultar header por defecto */
     [data-testid="stHeader"], header[data-testid="stHeader"], .stAppHeader {
         display: none !important;
         height: 0 !important;
@@ -97,6 +98,24 @@ st.markdown("""
         background: linear-gradient(180deg, #1a1a1f 0%, #0f0f12 60%, #0a0a0c 100%) !important;
         border-right: 1px solid rgba(100, 100, 120, 0.3) !important;
         box-shadow: 4px 0 24px rgba(0,0,0,0.4) !important;
+    }
+
+    /* Mostrar el botón nativo de colapso del sidebar */
+    [data-testid="collapsedControl"],
+    button[data-testid="collapsedControl"],
+    [data-testid="stSidebarCollapsedControl"],
+    button[data-testid="stSidebarCollapsedControl"] {
+        display: flex !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        background: rgba(212, 160, 23, 0.3) !important;
+        border-radius: 0 8px 8px 0 !important;
+        margin-top: 10px !important;
+    }
+    
+    [data-testid="collapsedControl"]:hover,
+    button[data-testid="collapsedControl"]:hover {
+        background: rgba(212, 160, 23, 0.6) !important;
     }
 
     /* ── Selectbox: label blanco ── */
@@ -1776,7 +1795,7 @@ def main():
         mostrar_cambio_password()
         return
 
-    # Sidebar nativo de Streamlit (sin botón toggle personalizado)
+    # Sidebar nativo de Streamlit (el botón de hamburguesa ahora es visible)
     sidebar()
 
     pagina = st.session_state.get("pagina", "Dashboard")
