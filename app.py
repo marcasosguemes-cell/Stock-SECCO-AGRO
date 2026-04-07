@@ -9,6 +9,11 @@ import logging
 import streamlit as st
 from supabase import create_client, Client
 from datetime import date, datetime, timedelta
+from zoneinfo import ZoneInfo
+
+def now_arg():
+    """Retorna la hora actual de Buenos Aires sin tzinfo (naive)."""
+    return datetime.now(ZoneInfo("America/Argentina/Buenos_Aires")).replace(tzinfo=None)
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
@@ -549,18 +554,18 @@ def check_auth():
             # Timeout de inactividad
             last = st.session_state.get("last_activity")
             if last:
-                delta = (datetime.utcnow() - last).total_seconds() / 60
+                delta = (now_arg() - last).total_seconds() / 60
                 if delta > cfg.SESSION_TIMEOUT_MINUTES:
                     logout()
                     st.warning("⏰ Sesión expirada por inactividad. Volvé a ingresar.")
                     return False
-            st.session_state["last_activity"] = datetime.utcnow()
+            st.session_state["last_activity"] = now_arg()
             return True
         session = supabase.auth.get_session()
         if session:
             st.session_state["session"] = session
             st.session_state["user_id"] = session.user.id
-            st.session_state["last_activity"] = datetime.utcnow()
+            st.session_state["last_activity"] = now_arg()
             return True
         return False
     except Exception:
@@ -612,7 +617,7 @@ def _check_login_lockout():
     """Retorna (bloqueado: bool, segundos_restantes: int)"""
     locked_until = st.session_state.get(_login_locked_until_key())
     if locked_until:
-        remaining = (locked_until - datetime.utcnow()).total_seconds()
+        remaining = (locked_until - now_arg()).total_seconds()
         if remaining > 0:
             return True, int(remaining)
         else:
@@ -626,7 +631,7 @@ def _register_failed_attempt():
     st.session_state[_login_attempts_key()] = attempts
     if attempts >= cfg.MAX_LOGIN_ATTEMPTS:
         st.session_state[_login_locked_until_key()] = (
-            datetime.utcnow() + timedelta(minutes=cfg.LOGIN_LOCKOUT_MINUTES)
+            now_arg() + timedelta(minutes=cfg.LOGIN_LOCKOUT_MINUTES)
         )
     return attempts
 
@@ -673,7 +678,6 @@ def subir_remito_pdf(archivo_pdf, movimiento_id, usuario_id, establecimiento_id)
         return None
 
     try:
-        from zoneinfo import ZoneInfo
         now = datetime.now(ZoneInfo("America/Argentina/Buenos_Aires"))
         nombre_archivo = f"remito_{movimiento_id}_{uuid.uuid4().hex[:8]}.pdf"
         # Organización por carpetas: estab_id/año/mes/archivo
@@ -780,7 +784,7 @@ def login():
                         res = supabase.auth.sign_in_with_password({"email": email, "password": password})
                         st.session_state["session"] = res.session
                         st.session_state["user_id"] = res.user.id
-                        st.session_state["last_activity"] = datetime.utcnow()
+                        st.session_state["last_activity"] = now_arg()
                         st.session_state.pop(_login_attempts_key(), None)
                         st.session_state.pop(_login_locked_until_key(), None)
 
@@ -1289,7 +1293,7 @@ def registrar_auditoria(accion: str, datos: dict = None):
             "usuario_id": st.session_state.get("user_id"),
             "accion": accion,
             "datos": json.dumps(datos, ensure_ascii=False, default=str) if datos else None,
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": now_arg().isoformat(),
         }).execute()
     except Exception:
         pass  # La tabla puede no existir; no interrumpe el flujo
@@ -1531,7 +1535,6 @@ def pagina_ingreso():
         prod_sel = st.selectbox("🏷️ Producto *", list(prod_options.keys()), key="ing_prod")
         producto_id = prod_options[prod_sel]
 
-    from zoneinfo import ZoneInfo
     _now_arg = datetime.now(ZoneInfo("America/Argentina/Buenos_Aires")).replace(tzinfo=None)
     st.caption(f"🕐 Fecha y hora del registro: **{_now_arg.strftime('%d/%m/%Y %H:%M')}**")
 
@@ -1680,7 +1683,6 @@ def pagina_egreso():
         prod_sel = st.selectbox("🏷️ Producto *", list(prod_options.keys()), key="eg_prod")
         producto_id = prod_options[prod_sel]
 
-    from zoneinfo import ZoneInfo
     _now_arg = datetime.now(ZoneInfo("America/Argentina/Buenos_Aires")).replace(tzinfo=None)
     st.caption(f"🕐 Fecha y hora del registro: **{_now_arg.strftime('%d/%m/%Y %H:%M')}**")
 
