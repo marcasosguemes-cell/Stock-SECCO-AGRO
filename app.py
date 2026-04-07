@@ -433,14 +433,7 @@ st.markdown("""
         border: 1px solid var(--gold-30);
     }
 
-    .footer {
-        text-align: center;
-        padding: 1.6rem 2rem;
-        color: #a8a8b0 !important;
-        font-size: 0.78rem;
-        border-top: 1px solid var(--gold-25);
-        margin-top: 3rem;
-    }
+
 
     .password-warning {
         background: linear-gradient(135deg,rgba(212,160,23,0.2),rgba(180,120,10,0.15));
@@ -2550,11 +2543,7 @@ def main():
         "estab_activo_nombre",
         st.session_state.get("establecimiento_nombre", "Consolidado")
     )
-    st.markdown(f"""
-    <div class="footer">
-        <p>🌾 Sistema de Control de Stock Agrícola | 📍 {html.escape(str(estab_nombre))}</p>
-    </div>
-    """, unsafe_allow_html=True)
+
 
 
 if __name__ == "__main__":
