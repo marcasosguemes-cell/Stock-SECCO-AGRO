@@ -1964,7 +1964,16 @@ def pagina_reportes():
     with col3:
         st.metric("⚖️ Balance neto", f"{ingresos - egresos_total:,.0f}")
 
-    resumen = df.groupby(["mes", "tipo"])["cantidad"].sum().reset_index()
+    # Construir resumen con columnas explícitas para evitar KeyError
+    resumen = (
+        df.groupby(["mes", "tipo"], as_index=False)["cantidad"]
+        .sum()
+        .rename(columns={"cantidad": "cantidad"})
+    )
+    # Asegurar que las columnas necesarias existen
+    for col in ["mes", "tipo", "cantidad"]:
+        if col not in resumen.columns:
+            resumen[col] = ""
 
     col_exp1, col_exp2 = st.columns([4, 1])
     with col_exp2:
@@ -1980,18 +1989,24 @@ def pagina_reportes():
     render_tabla_html(resumen)
 
     # Gráfico evolución mensual
-    if not resumen.empty:
-        fig = px.bar(
-            resumen, x="mes", y="cantidad", color="tipo",
-            color_discrete_map={"ingreso": "#22c55e", "egreso": "#ef4444"},
-            template="plotly_dark",
-            labels={"mes": "Mes", "cantidad": "Cantidad", "tipo": "Tipo"}
-        )
-        fig.update_layout(
-            paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(20,20,28,0.85)",
-            font_color="#f0f0f5", height=380, margin=dict(t=20, b=40)
-        )
-        st.plotly_chart(fig, use_container_width=True)
+    if not resumen.empty and "mes" in resumen.columns and "tipo" in resumen.columns:
+        try:
+            fig = px.bar(
+                resumen, x="mes", y="cantidad", color="tipo",
+                color_discrete_map={"ingreso": "#22c55e", "egreso": "#ef4444"},
+                barmode="group",
+                template="plotly_dark",
+                labels={"mes": "Mes", "cantidad": "Cantidad", "tipo": "Tipo"}
+            )
+            fig.update_layout(
+                paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(20,20,28,0.85)",
+                font_color="#f0f0f5", height=380, margin=dict(t=20, b=40),
+                xaxis_tickangle=-30
+            )
+            st.plotly_chart(fig, use_container_width=True)
+        except Exception as e:
+            logger.warning(f"No se pudo graficar reporte: {e}")
+            st.info("ℹ️ No hay suficientes datos para generar el gráfico.")
 
 
 # ══════════════════════════════════════════════════════════════
