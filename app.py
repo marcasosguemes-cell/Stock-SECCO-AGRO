@@ -236,8 +236,8 @@ st.markdown("""
         background: #f7f3e8;
         border: 2px solid var(--gold-60);
         border-radius: 50%;
-        width: 120px;
-        height: 120px;
+        width: 160px;
+        height: 160px;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -247,7 +247,7 @@ st.markdown("""
     }
 
     .sidebar-logo {
-        width: 115% !important;
+        width: 125% !important;
         height: auto !important;
         object-fit: contain !important;
         display: block;
