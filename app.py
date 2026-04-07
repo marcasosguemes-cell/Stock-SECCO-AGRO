@@ -1520,26 +1520,7 @@ def pagina_ingreso():
     _now_arg = datetime.now(ZoneInfo("America/Argentina/Buenos_Aires")).replace(tzinfo=None)
     st.caption(f"🕐 Fecha y hora del registro: **{_now_arg.strftime('%d/%m/%Y %H:%M')}**")
 
-    if not es_admin:
-        st.markdown("### 📎 Remito obligatorio")
-        st.info(f"Debés adjuntar el remito en PDF (máx. {cfg.MAX_PDF_SIZE_MB}MB).")
-        archivo_remito = st.file_uploader(
-            "Seleccionar archivo PDF del remito *",
-            type=["pdf"],
-            key="remito_ingreso"
-        )
-        if archivo_remito is not None:
-            ok, msg = _validar_pdf(archivo_remito)
-            if ok:
-                st.success(f"✅ Archivo válido: {archivo_remito.name} ({len(archivo_remito.getvalue()) // 1024} KB)")
-            else:
-                st.error(f"❌ {msg}")
-                archivo_remito = None
-    else:
-        archivo_remito = None
-        st.caption("ℹ️ Como administrador, no es obligatorio adjuntar remito.")
-
-    with st.form("form_ingreso", clear_on_submit=True):
+    with st.form("form_ingreso", clear_on_submit=False):
         col3, col4, col5 = st.columns(3)
 
         with col3:
@@ -1557,6 +1538,26 @@ def pagina_ingreso():
             tipo_ingreso = st.selectbox("📌 Tipo de Ingreso", ["Compra", "Devolución", "Traslado", "Otro"])
 
         observaciones = st.text_area("📝 Observaciones", placeholder="N° factura, lote, detalles adicionales...")
+
+        if not es_admin:
+            st.markdown("### 📎 Remito obligatorio")
+            st.info(f"Debés adjuntar el remito en PDF (máx. {cfg.MAX_PDF_SIZE_MB}MB).")
+            archivo_remito = st.file_uploader(
+                "Seleccionar archivo PDF del remito *",
+                type=["pdf"],
+                key="remito_ingreso"
+            )
+            if archivo_remito is not None:
+                ok, msg = _validar_pdf(archivo_remito)
+                if ok:
+                    st.success(f"✅ Archivo válido: {archivo_remito.name} ({len(archivo_remito.getvalue()) // 1024} KB)")
+                else:
+                    st.error(f"❌ {msg}")
+                    archivo_remito = None
+        else:
+            archivo_remito = None
+            st.caption("ℹ️ Como administrador, no es obligatorio adjuntar remito.")
+
         submitted = st.form_submit_button("✅ Registrar Ingreso", use_container_width=True)
 
         if submitted:
@@ -1668,28 +1669,29 @@ def pagina_egreso():
     _now_arg = datetime.now(ZoneInfo("America/Argentina/Buenos_Aires")).replace(tzinfo=None)
     st.caption(f"🕐 Fecha y hora del registro: **{_now_arg.strftime('%d/%m/%Y %H:%M')}**")
 
-    if not es_admin:
-        st.markdown("### 📎 Remito obligatorio")
-        st.info(f"Debés adjuntar el remito en PDF (máx. {cfg.MAX_PDF_SIZE_MB}MB).")
-        archivo_remito = st.file_uploader(
-            "Seleccionar archivo PDF del remito *",
-            type=["pdf"],
-            key="remito_egreso"
-        )
-        if archivo_remito is not None:
-            ok, msg = _validar_pdf(archivo_remito)
-            if ok:
-                st.success(f"✅ Archivo válido: {archivo_remito.name} ({len(archivo_remito.getvalue()) // 1024} KB)")
-            else:
-                st.error(f"❌ {msg}")
-                archivo_remito = None
-    else:
-        archivo_remito = None
-
-    with st.form("form_egreso", clear_on_submit=True):
+    with st.form("form_egreso", clear_on_submit=False):
         cantidad = st.number_input("📦 Cantidad *", min_value=0.001, step=0.5, format="%.3f")
         tipo_egreso = st.selectbox("📌 Tipo de Egreso", ["Uso", "Venta", "Traslado", "Merma", "Otro"])
         observaciones = st.text_area("📝 Observaciones", placeholder="Motivo del egreso, destino, responsable, etc.")
+
+        if not es_admin:
+            st.markdown("### 📎 Remito obligatorio")
+            st.info(f"Debés adjuntar el remito en PDF (máx. {cfg.MAX_PDF_SIZE_MB}MB).")
+            archivo_remito = st.file_uploader(
+                "Seleccionar archivo PDF del remito *",
+                type=["pdf"],
+                key="remito_egreso"
+            )
+            if archivo_remito is not None:
+                ok, msg = _validar_pdf(archivo_remito)
+                if ok:
+                    st.success(f"✅ Archivo válido: {archivo_remito.name} ({len(archivo_remito.getvalue()) // 1024} KB)")
+                else:
+                    st.error(f"❌ {msg}")
+                    archivo_remito = None
+        else:
+            archivo_remito = None
+
         submitted = st.form_submit_button("✅ Registrar Egreso", use_container_width=True)
 
         if submitted:
