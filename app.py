@@ -699,7 +699,7 @@ def subir_remito_pdf(archivo_pdf, movimiento_id, usuario_id, establecimiento_id)
 
 def get_signed_url(ruta: str) -> str | None:
     """Genera una URL firmada con 1 hora de expiración."""
-    if not ruta or ruta == "—":
+    if not ruta or ruta == "—" or pd.isna(ruta):
         return None
     try:
         res = supabase.storage.from_(cfg.SUPABASE_STORAGE_BUCKET).create_signed_url(
@@ -714,7 +714,7 @@ def get_signed_url(ruta: str) -> str | None:
 
 def generar_link_pdf(ruta_pdf):
     """Genera link HTML con URL firmada (temporal 1h)."""
-    if not ruta_pdf or ruta_pdf == "—":
+    if not ruta_pdf or ruta_pdf == "—" or pd.isna(ruta_pdf):
         return "—"
     url = get_signed_url(ruta_pdf)
     if not url:
@@ -733,7 +733,7 @@ def generar_link_pdf(ruta_pdf):
         f'<line x1="16" y1="13" x2="8" y2="13"/>'
         f'<line x1="16" y1="17" x2="8" y2="17"/>'
         f'<polyline points="10 9 9 9 8 9"/>'
-        f'</svg>\u00a0PDF</a>'
+        f'</svg> PDF</a>'
     )
 
 
@@ -1743,7 +1743,7 @@ def pagina_egreso():
 
 
 # ══════════════════════════════════════════════════════════════
-# HISTORIAL
+# HISTORIAL (CORREGIDO - AHORA MUESTRA LOS PDFs)
 # ══════════════════════════════════════════════════════════════
 
 def pagina_historial():
@@ -1818,9 +1818,20 @@ def pagina_historial():
     if prod_sel != "Todos":
         df = df[df["producto_nombre"] == prod_sel]
 
-    # Generar links firmados para remitos
+    # Generar links firmados para remitos - CORREGIDO
+    def generar_link_seguro(ruta):
+        if not ruta or ruta == "—" or pd.isna(ruta):
+            return "—"
+        try:
+            signed_url = get_signed_url(ruta)
+            if signed_url:
+                return f'<a href="{html.escape(signed_url)}" target="_blank" style="display:inline-flex;align-items:center;gap:5px;text-decoration:none;background:linear-gradient(135deg,#c0392b,#e74c3c);color:#fff;padding:4px 10px;border-radius:6px;font-size:0.78rem;font-weight:700;letter-spacing:0.04em;box-shadow:0 2px 6px rgba(0,0,0,0.35);">📄 PDF</a>'
+        except Exception as e:
+            logger.warning(f"Error generando link para {ruta}: {e}")
+        return "—"
+    
     df["remito_link"] = df.apply(
-        lambda r: generar_link_pdf(r.get("remito_url")) if r.get("remito_url") else "—",
+        lambda r: generar_link_seguro(r.get("remito_url")) if r.get("remito_url") else "—",
         axis=1
     )
 
@@ -1840,37 +1851,34 @@ def pagina_historial():
             use_container_width=True
         )
 
-    display_df = df[["fecha_str", "tipo", "establecimiento_nombre", "producto_nombre", "cantidad", "remito_link", "observaciones"]].copy()
-    display_df.columns = ["Fecha", "Tipo", "Establecimiento", "Producto", "Cantidad", "Remito", "Observaciones"]
-
+    # Construir tabla HTML con los links de PDF
     filas_html = ""
-    for _, row in display_df.iterrows():
-        if row["Tipo"] == "ingreso":
+    for _, row in df.iterrows():
+        if row["tipo"] == "ingreso":
             row_bg = "rgba(34,197,94,0.10)"
             tipo_badge = '<span style="background:#22c55e;color:#000;padding:2px 10px;border-radius:20px;font-size:0.78rem;font-weight:700;">▲ ingreso</span>'
         else:
             row_bg = "rgba(239,68,68,0.10)"
             tipo_badge = '<span style="background:#ef4444;color:#fff;padding:2px 10px;border-radius:20px;font-size:0.78rem;font-weight:700;">▼ egreso</span>'
 
-        obs_raw = row["Observaciones"]
+        obs_raw = row.get("observaciones", "")
         obs = html.escape(str(obs_raw)) if obs_raw and str(obs_raw) not in ["nan", "None", ""] else "—"
-        remito_val = row["Remito"]
-        remito = str(remito_val) if remito_val and str(remito_val) not in ["nan", "None", "", "—"] else '<span style="color:#666;font-size:0.8rem;">—</span>'
+        remito_html = row.get("remito_link", "—")
         try:
-            cantidad_fmt = f"{float(row['Cantidad']):,.2f}"
+            cantidad_fmt = f"{float(row['cantidad']):,.2f}"
         except Exception:
-            cantidad_fmt = html.escape(str(row["Cantidad"]))
+            cantidad_fmt = html.escape(str(row.get("cantidad", "")))
 
         filas_html += f"""
         <tr style="background-color:{row_bg};border-bottom:1px solid rgba(212,160,23,0.15);"
             onmouseover="this.style.backgroundColor='rgba(212,160,23,0.12)'"
             onmouseout="this.style.backgroundColor='{row_bg}'">
-            <td style="padding:9px 13px;color:#e8e8f0;font-size:0.84rem;white-space:nowrap;">{html.escape(str(row['Fecha']))}</td>
+            <td style="padding:9px 13px;color:#e8e8f0;font-size:0.84rem;white-space:nowrap;">{html.escape(str(row['fecha_str']))}</td>
             <td style="padding:9px 13px;text-align:center;">{tipo_badge}</td>
-            <td style="padding:9px 13px;color:#d4c8a8;font-size:0.84rem;">{html.escape(str(row['Establecimiento']))}</td>
-            <td style="padding:9px 13px;color:#f0f0f5;font-size:0.84rem;font-weight:600;">{html.escape(str(row['Producto']))}</td>
+            <td style="padding:9px 13px;color:#d4c8a8;font-size:0.84rem;">{html.escape(str(row['establecimiento_nombre']))}</td>
+            <td style="padding:9px 13px;color:#f0f0f5;font-size:0.84rem;font-weight:600;">{html.escape(str(row['producto_nombre']))}</td>
             <td style="padding:9px 13px;color:#d4a017;font-size:0.9rem;font-weight:700;text-align:right;">{cantidad_fmt}</td>
-            <td style="padding:9px 13px;text-align:center;">{remito}</td>
+            <td style="padding:9px 13px;text-align:center;">{remito_html}</td>
             <td style="padding:9px 13px;color:#a0a0b0;font-size:0.82rem;">{obs}</td>
         </tr>"""
 
@@ -1881,6 +1889,7 @@ def pagina_historial():
   table {{ width:100%; border-collapse:collapse; background:rgba(22,22,28,0.97); }}
   thead tr {{ background:linear-gradient(135deg,#d4a017 0%,#b87a0c 100%); }}
   th {{ padding:11px 13px; color:#1a1a1f; font-weight:700; font-size:0.8rem; text-transform:uppercase; letter-spacing:0.07em; white-space:nowrap; }}
+  a {{ text-decoration:none; }}
 </style></head>
 <body><div class="wrap"><table>
   <thead><tr>
@@ -1896,7 +1905,7 @@ def pagina_historial():
 </table></div></body></html>"""
 
     import streamlit.components.v1 as components
-    altura = min(700, 100 + len(display_df) * 42)
+    altura = min(700, 100 + len(df) * 42)
     components.html(tabla_html, height=altura, scrolling=True)
 
 
