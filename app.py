@@ -798,6 +798,16 @@ def login():
                             st.session_state["password_changed"] = p.get("password_changed", False)
                             st.session_state["pagina"] = "Dashboard"
                             st.session_state.pop("skip_password_check", None)
+                            # Log de acceso
+                            try:
+                                supabase.table("audit_log").insert({
+                                    "accion": "login",
+                                    "usuario": email,
+                                    "datos": {"rol": p.get("rol", ""), "establecimiento": p.get("establecimiento_nombre", "")},
+                                    "timestamp": now_arg().isoformat()
+                                }).execute()
+                            except Exception:
+                                pass
                             st.toast("✅ ¡Bienvenido!")
                             st.rerun()
                         else:
@@ -1353,6 +1363,12 @@ def pagina_dashboard():
         prods_filtrados = sorted(df_para_prods["producto"].dropna().unique().tolist())
         prod_sel = st.selectbox("📦 Producto", ["Todos"] + prods_filtrados, key="dash_prod")
 
+    busqueda_rapida = st.text_input(
+        "🔍 Búsqueda rápida de producto",
+        placeholder="Escribí el nombre del producto...",
+        key="dash_busqueda"
+    )
+
     df_filtrado = stock_productos.copy()
     if cat_sel != "Todas":
         df_filtrado = df_filtrado[df_filtrado["categoria"] == cat_sel]
@@ -1362,6 +1378,8 @@ def pagina_dashboard():
         df_filtrado = df_filtrado[df_filtrado["producto"].isin(nombres_subcat)]
     if prod_sel != "Todos":
         df_filtrado = df_filtrado[df_filtrado["producto"] == prod_sel]
+    if busqueda_rapida:
+        df_filtrado = df_filtrado[df_filtrado["producto"].str.contains(busqueda_rapida, case=False, na=False)]
 
     total_stock = df_filtrado["stock"].sum()
     total_productos = len(df_filtrado)
@@ -1418,6 +1436,85 @@ def pagina_dashboard():
         </div>
     </div>
     """, unsafe_allow_html=True)
+
+    # ── RESUMEN DEL DÍA ─────────────────────────────────────────
+    hoy_str = now_arg().date()
+    movs_hoy_ing = 0
+    movs_hoy_eg = 0
+    cant_hoy_ing = 0.0
+    cant_hoy_eg = 0.0
+    if movs_mes:
+        df_hoy = pd.DataFrame(movs_mes)
+        df_hoy["fecha"] = pd.to_datetime(df_hoy["fecha"])
+        df_hoy_filt = df_hoy[df_hoy["fecha"].dt.date == hoy_str]
+        movs_hoy_ing = len(df_hoy_filt[df_hoy_filt["tipo"] == "ingreso"])
+        movs_hoy_eg = len(df_hoy_filt[df_hoy_filt["tipo"] == "egreso"])
+        cant_hoy_ing = float(df_hoy_filt[df_hoy_filt["tipo"] == "ingreso"]["cantidad"].sum()) if movs_hoy_ing > 0 else 0.0
+        cant_hoy_eg = float(df_hoy_filt[df_hoy_filt["tipo"] == "egreso"]["cantidad"].sum()) if movs_hoy_eg > 0 else 0.0
+
+    st.markdown(f"""
+    <div style="background:linear-gradient(135deg,rgba(212,160,23,0.08),rgba(40,40,50,0.6));
+                border:1px solid rgba(212,160,23,0.25);border-radius:16px;padding:0.9rem 1.4rem;
+                margin:0 0 1.4rem 0;display:flex;align-items:center;gap:2rem;flex-wrap:wrap;">
+        <div style="font-size:0.78rem;font-weight:700;color:#d4a017;text-transform:uppercase;letter-spacing:0.1em;min-width:80px;">
+            📅 Hoy
+        </div>
+        <div style="display:flex;gap:1.8rem;flex-wrap:wrap;">
+            <span style="font-size:0.88rem;color:#22c55e;font-weight:600;">
+                ▲ {movs_hoy_ing} ingresos
+                <span style="color:#a0a0b0;font-weight:400;font-size:0.8rem;"> ({cant_hoy_ing:,.1f} un.)</span>
+            </span>
+            <span style="font-size:0.88rem;color:#ef4444;font-weight:600;">
+                ▼ {movs_hoy_eg} egresos
+                <span style="color:#a0a0b0;font-weight:400;font-size:0.8rem;"> ({cant_hoy_eg:,.1f} un.)</span>
+            </span>
+            <span style="font-size:0.82rem;color:#a0a0b0;">
+                Total movimientos hoy: <strong style="color:#f0f0f5;">{movs_hoy_ing + movs_hoy_eg}</strong>
+            </span>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+    # ── GRÁFICO DE BARRAS ────────────────────────────────────────
+    if len(df_filtrado) > 0:
+        df_chart = df_filtrado.sort_values("stock", ascending=True).tail(20).copy()
+        df_chart["color_stock"] = df_chart["stock"].apply(
+            lambda s: "#ef4444" if s < cfg.STOCK_CRITICO_DEFAULT else ("#f59e0b" if s < 200 else "#22c55e")
+        )
+        fig = go.Figure(go.Bar(
+            x=df_chart["stock"],
+            y=df_chart["producto"],
+            orientation="h",
+            marker=dict(
+                color=df_chart["color_stock"],
+                line=dict(color="rgba(212,160,23,0.3)", width=0.5)
+            ),
+            text=df_chart["stock"].apply(lambda v: f"{v:,.1f}"),
+            textposition="outside",
+            textfont=dict(color="#d4c8a8", size=11),
+            hovertemplate="<b>%{y}</b><br>Stock: %{x:,.2f}<extra></extra>"
+        ))
+        fig.update_layout(
+            paper_bgcolor="rgba(0,0,0,0)",
+            plot_bgcolor="rgba(22,22,28,0.6)",
+            font=dict(family="DM Sans", color="#c8c8d4", size=12),
+            margin=dict(l=10, r=60, t=30, b=10),
+            height=max(220, len(df_chart) * 32 + 50),
+            xaxis=dict(
+                gridcolor="rgba(212,160,23,0.15)",
+                zerolinecolor="rgba(212,160,23,0.3)",
+                tickfont=dict(color="#a0a0b0", size=10),
+                title=dict(text="Stock", font=dict(color="#d4a017", size=11))
+            ),
+            yaxis=dict(
+                gridcolor="rgba(0,0,0,0)",
+                tickfont=dict(color="#f0f0f5", size=11),
+                title=None
+            ),
+            hoverlabel=dict(bgcolor="rgba(22,22,28,0.95)", font_color="#f0f0f5"),
+            bargap=0.25,
+        )
+        st.plotly_chart(fig, use_container_width=True, config={"displayModeBar": False})
 
     st.markdown("""
     <div style="font-size:1.3rem;font-weight:700;color:#fff;margin:0.5rem 0 0.8rem 0;
@@ -1530,6 +1627,20 @@ def pagina_ingreso():
         </div>
     </div>
     """, unsafe_allow_html=True)
+
+    # Banner de éxito
+    if st.session_state.pop("ingreso_ok", None):
+        st.markdown("""
+        <div style="background:linear-gradient(135deg,rgba(34,197,94,0.25),rgba(34,197,94,0.10));
+                    border:1px solid rgba(34,197,94,0.6);border-radius:14px;padding:1rem 1.5rem;
+                    margin-bottom:1rem;display:flex;align-items:center;gap:12px;">
+            <span style="font-size:1.8rem;">✅</span>
+            <div>
+                <div style="color:#22c55e;font-weight:700;font-size:1rem;">¡Ingreso registrado exitosamente!</div>
+                <div style="color:#a0a0b0;font-size:0.82rem;">El movimiento quedó guardado en el historial.</div>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
 
     rol = st.session_state.get("rol", "")
     es_admin = (rol == "admin")
@@ -1659,8 +1770,7 @@ def pagina_ingreso():
                     registrar_auditoria("ingreso_registrado", {"movimiento_id": movimiento_id, "producto": prod_sel})
                     get_movimientos.clear() if hasattr(get_movimientos, "clear") else None
 
-                    msg = "✅ Ingreso registrado exitosamente!" + (" — Remito adjuntado" if remito_subido else "")
-                    st.toast(msg)
+                    st.session_state["ingreso_ok"] = True
                     st.rerun()
             except Exception as e:
                 logger.error(f"Error al registrar ingreso: {e}")
@@ -1680,6 +1790,20 @@ def pagina_egreso():
         </div>
     </div>
     """, unsafe_allow_html=True)
+
+    # Banner de éxito
+    if st.session_state.pop("egreso_ok", None):
+        st.markdown("""
+        <div style="background:linear-gradient(135deg,rgba(239,68,68,0.25),rgba(239,68,68,0.10));
+                    border:1px solid rgba(239,68,68,0.6);border-radius:14px;padding:1rem 1.5rem;
+                    margin-bottom:1rem;display:flex;align-items:center;gap:12px;">
+            <span style="font-size:1.8rem;">✅</span>
+            <div>
+                <div style="color:#ef4444;font-weight:700;font-size:1rem;">¡Egreso registrado exitosamente!</div>
+                <div style="color:#a0a0b0;font-size:0.82rem;">El movimiento quedó guardado en el historial.</div>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
 
     rol = st.session_state.get("rol", "")
     es_admin = (rol == "admin")
@@ -1797,7 +1921,7 @@ def pagina_egreso():
 
                     registrar_auditoria("egreso_registrado", {"movimiento_id": movimiento_id, "producto": prod_sel})
 
-                    st.toast("✅ Egreso registrado exitosamente!" + (" — Remito adjuntado" if remito_subido else ""))
+                    st.session_state["egreso_ok"] = True
                     st.rerun()
             except Exception as e:
                 logger.error(f"Error al registrar egreso: {e}")
@@ -1888,17 +2012,30 @@ def pagina_historial():
 
     st.markdown(f"### 📊 Resultados: **{len(df)}** movimientos")
 
-    # Botón de exportación
-    col_exp1, col_exp2 = st.columns([4, 1])
+    # Botones de exportación
+    export_df = df[["fecha_str", "tipo", "establecimiento_nombre", "producto_nombre", "cantidad", "observaciones"]].copy()
+    export_df.columns = ["Fecha", "Tipo", "Establecimiento", "Producto", "Cantidad", "Observaciones"]
+
+    col_exp1, col_exp2, col_exp3 = st.columns([3, 1, 1])
     with col_exp2:
-        export_df = df[["fecha_str", "tipo", "establecimiento_nombre", "producto_nombre", "cantidad", "observaciones"]].copy()
-        export_df.columns = ["Fecha", "Tipo", "Establecimiento", "Producto", "Cantidad", "Observaciones"]
         csv_data = export_df.to_csv(index=False).encode("utf-8")
         st.download_button(
-            "📥 Exportar CSV",
+            "📥 CSV",
             data=csv_data,
             file_name=f"historial_{date.today()}.csv",
             mime="text/csv",
+            use_container_width=True
+        )
+    with col_exp3:
+        buf_excel = BytesIO()
+        with pd.ExcelWriter(buf_excel, engine="openpyxl") as writer:
+            export_df.to_excel(writer, index=False, sheet_name="Historial")
+        buf_excel.seek(0)
+        st.download_button(
+            "📊 Excel",
+            data=buf_excel.getvalue(),
+            file_name=f"historial_{date.today()}.xlsx",
+            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
             use_container_width=True
         )
 
