@@ -247,10 +247,11 @@ st.markdown("""
     }
 
     .sidebar-logo {
-        width: 350% !important;
+        width: 100% !important;
         height: auto !important;
-        object-fit: contain !important;
         display: block;
+        transform: scale(3);
+        transform-origin: center center;
     }
 
     .sidebar-header h1 {
