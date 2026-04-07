@@ -52,6 +52,31 @@ def get_supabase() -> Client:
 
 supabase = get_supabase()
 
+# ── Verificar/Crear bucket de almacenamiento ─────────────────
+def ensure_bucket_exists():
+    """Verifica que el bucket exista, si no lo crea."""
+    try:
+        # Intentar obtener información del bucket
+        buckets = supabase.storage.list_buckets()
+        bucket_names = [b.name for b in buckets]
+        
+        if cfg.SUPABASE_STORAGE_BUCKET not in bucket_names:
+            # Crear el bucket si no existe
+            supabase.storage.create_bucket(
+                cfg.SUPABASE_STORAGE_BUCKET,
+                options={"public": False}  # Bucket privado por seguridad
+            )
+            logger.info(f"✅ Bucket '{cfg.SUPABASE_STORAGE_BUCKET}' creado exitosamente")
+            return True
+        return True
+    except Exception as e:
+        logger.error(f"Error verificando/creando bucket: {e}")
+        st.error(f"⚠️ Error con el almacenamiento de remitos: {e}. Contactá al administrador.")
+        return False
+
+# Llamar al inicio para asegurar que el bucket existe
+ensure_bucket_exists()
+
 
 # ══════════════════════════════════════════════════════════════
 # CSS — variables de token + estilos
@@ -645,7 +670,7 @@ def _password_strength(pwd: str) -> tuple[int, str, str]:
 
 
 # ══════════════════════════════════════════════════════════════
-# ALMACENAMIENTO: REMITOS PDF
+# ALMACENAMIENTO: REMITOS PDF (CORREGIDO)
 # ══════════════════════════════════════════════════════════════
 
 def _validar_pdf(archivo_pdf) -> tuple[bool, str]:
@@ -677,18 +702,20 @@ def subir_remito_pdf(archivo_pdf, movimiento_id, usuario_id, establecimiento_id)
         ruta_completa = f"{establecimiento_id}/{now.year}/{now.month:02d}/{nombre_archivo}"
         archivo_bytes = archivo_pdf.getvalue()
 
+        # Subir el archivo
         supabase.storage.from_(cfg.SUPABASE_STORAGE_BUCKET).upload(
             path=ruta_completa,
             file=archivo_bytes,
             file_options={"content-type": "application/pdf"}
         )
 
-        # Guardar ruta interna (no URL pública) en la tabla
+        # Guardar la ruta en la tabla movimientos
         supabase.table("movimientos").update({
             "remito_url": ruta_completa,
             "remito_filename": nombre_archivo
         }).eq("id", movimiento_id).execute()
 
+        logger.info(f"✅ Remito subido: {ruta_completa}")
         return ruta_completa
 
     except Exception as e:
@@ -699,14 +726,18 @@ def subir_remito_pdf(archivo_pdf, movimiento_id, usuario_id, establecimiento_id)
 
 def get_signed_url(ruta: str) -> str | None:
     """Genera una URL firmada con 1 hora de expiración."""
-    if not ruta or ruta == "—" or pd.isna(ruta):
+    if not ruta or ruta == "—":
         return None
     try:
+        # CORREGIDO: La respuesta es un diccionario con la clave 'signedURL'
         res = supabase.storage.from_(cfg.SUPABASE_STORAGE_BUCKET).create_signed_url(
             path=ruta,
             expires_in=3600
         )
-        return res.get("signedURL") or res.get("signed_url")
+        # Manejar diferentes formatos de respuesta
+        if isinstance(res, dict):
+            return res.get("signedURL") or res.get("signed_url")
+        return str(res) if res else None
     except Exception as e:
         logger.warning(f"No se pudo generar URL firmada para {ruta}: {e}")
         return None
@@ -714,27 +745,25 @@ def get_signed_url(ruta: str) -> str | None:
 
 def generar_link_pdf(ruta_pdf):
     """Genera link HTML con URL firmada (temporal 1h)."""
-    if not ruta_pdf or ruta_pdf == "—" or pd.isna(ruta_pdf):
+    if not ruta_pdf or ruta_pdf == "—":
         return "—"
     url = get_signed_url(ruta_pdf)
     if not url:
-        return "—"
-    return (
-        f'<a href="{html.escape(url)}" target="_blank" title="Ver remito PDF" '
-        f'style="display:inline-flex;align-items:center;gap:5px;text-decoration:none;'
-        f'background:linear-gradient(135deg,#c0392b,#e74c3c);color:#fff;'
-        f'padding:4px 10px;border-radius:6px;font-size:0.78rem;font-weight:700;'
-        f'letter-spacing:0.04em;box-shadow:0 2px 6px rgba(0,0,0,0.35);" '
-        f'onmouseover="this.style.opacity=\'0.82\'" onmouseout="this.style.opacity=\'1\'">'
-        f'<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" '
-        f'fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">'
-        f'<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>'
-        f'<polyline points="14 2 14 8 20 8"/>'
-        f'<line x1="16" y1="13" x2="8" y2="13"/>'
-        f'<line x1="16" y1="17" x2="8" y2="17"/>'
-        f'<polyline points="10 9 9 9 8 9"/>'
-        f'</svg> PDF</a>'
-    )
+        return '<span style="color:#666;font-size:0.75rem;">⚠️ No disponible</span>'
+    
+    # CORREGIDO: SVG simplificado y válido
+    return f'''
+    <a href="{html.escape(url)}" target="_blank" 
+       style="display:inline-flex;align-items:center;gap:6px;text-decoration:none;
+              background:linear-gradient(135deg,#c0392b,#e74c3c);color:#fff;
+              padding:5px 12px;border-radius:20px;font-size:0.75rem;font-weight:700;
+              letter-spacing:0.04em;box-shadow:0 2px 6px rgba(0,0,0,0.35);
+              transition:all 0.2s ease;"
+       onmouseover="this.style.opacity='0.85';this.style.transform='scale(1.02)'" 
+       onmouseout="this.style.opacity='1';this.style.transform='scale(1)'">
+       📄 VER REMITO
+    </a>
+    '''
 
 
 # ══════════════════════════════════════════════════════════════
@@ -1266,10 +1295,11 @@ def render_tabla_html(df, height=500):
     thead tr{{background:linear-gradient(135deg,#d4a017 0%,#b87a0c 100%);}}
     tbody tr{{transition:background 0.15s;}}
     </style></head><body>
-    <div class="wrap"><table>
-    <thead><tr>{headers}</tr></thead>
+    <div class="wrap"><tr>
+    <thead><tr>{headers}</thead>
     <tbody>{filas_html}</tbody>
-    </table></div></body></html>"""
+    </table>
+    </div></body></html>"""
     altura = min(height, 80 + len(df) * 38)
     components.html(tabla_html, height=altura, scrolling=True)
 
@@ -1426,7 +1456,7 @@ def pagina_dashboard():
             <td style="padding:9px 13px;color:#b0b0c0;font-size:0.84rem;">{html.escape(str(row['presentacion']))}</td>
             <td style="padding:9px 13px;color:{stock_color};font-size:0.95rem;font-weight:800;text-align:right;">{stock_val:,.2f}</td>
             <td style="padding:9px 13px;color:#a0a0b0;font-size:0.82rem;">{html.escape(str(row['unidad']))}</td>
-        </tr>"""
+        </table>"""
 
     tabla_html = f"""<!DOCTYPE html>
 <html><head><style>
@@ -1743,7 +1773,7 @@ def pagina_egreso():
 
 
 # ══════════════════════════════════════════════════════════════
-# HISTORIAL (CORREGIDO - AHORA MUESTRA LOS PDFs)
+# HISTORIAL
 # ══════════════════════════════════════════════════════════════
 
 def pagina_historial():
@@ -1818,20 +1848,9 @@ def pagina_historial():
     if prod_sel != "Todos":
         df = df[df["producto_nombre"] == prod_sel]
 
-    # Generar links firmados para remitos - CORREGIDO
-    def generar_link_seguro(ruta):
-        if not ruta or ruta == "—" or pd.isna(ruta):
-            return "—"
-        try:
-            signed_url = get_signed_url(ruta)
-            if signed_url:
-                return f'<a href="{html.escape(signed_url)}" target="_blank" style="display:inline-flex;align-items:center;gap:5px;text-decoration:none;background:linear-gradient(135deg,#c0392b,#e74c3c);color:#fff;padding:4px 10px;border-radius:6px;font-size:0.78rem;font-weight:700;letter-spacing:0.04em;box-shadow:0 2px 6px rgba(0,0,0,0.35);">📄 PDF</a>'
-        except Exception as e:
-            logger.warning(f"Error generando link para {ruta}: {e}")
-        return "—"
-    
+    # Generar links firmados para remitos
     df["remito_link"] = df.apply(
-        lambda r: generar_link_seguro(r.get("remito_url")) if r.get("remito_url") else "—",
+        lambda r: generar_link_pdf(r.get("remito_url")) if r.get("remito_url") else "—",
         axis=1
     )
 
@@ -1851,34 +1870,37 @@ def pagina_historial():
             use_container_width=True
         )
 
-    # Construir tabla HTML con los links de PDF
+    display_df = df[["fecha_str", "tipo", "establecimiento_nombre", "producto_nombre", "cantidad", "remito_link", "observaciones"]].copy()
+    display_df.columns = ["Fecha", "Tipo", "Establecimiento", "Producto", "Cantidad", "Remito", "Observaciones"]
+
     filas_html = ""
-    for _, row in df.iterrows():
-        if row["tipo"] == "ingreso":
+    for _, row in display_df.iterrows():
+        if row["Tipo"] == "ingreso":
             row_bg = "rgba(34,197,94,0.10)"
             tipo_badge = '<span style="background:#22c55e;color:#000;padding:2px 10px;border-radius:20px;font-size:0.78rem;font-weight:700;">▲ ingreso</span>'
         else:
             row_bg = "rgba(239,68,68,0.10)"
             tipo_badge = '<span style="background:#ef4444;color:#fff;padding:2px 10px;border-radius:20px;font-size:0.78rem;font-weight:700;">▼ egreso</span>'
 
-        obs_raw = row.get("observaciones", "")
+        obs_raw = row["Observaciones"]
         obs = html.escape(str(obs_raw)) if obs_raw and str(obs_raw) not in ["nan", "None", ""] else "—"
-        remito_html = row.get("remito_link", "—")
+        remito_val = row["Remito"]
+        remito = str(remito_val) if remito_val and str(remito_val) not in ["nan", "None", "", "—"] else '<span style="color:#666;font-size:0.8rem;">—</span>'
         try:
-            cantidad_fmt = f"{float(row['cantidad']):,.2f}"
+            cantidad_fmt = f"{float(row['Cantidad']):,.2f}"
         except Exception:
-            cantidad_fmt = html.escape(str(row.get("cantidad", "")))
+            cantidad_fmt = html.escape(str(row["Cantidad"]))
 
         filas_html += f"""
         <tr style="background-color:{row_bg};border-bottom:1px solid rgba(212,160,23,0.15);"
             onmouseover="this.style.backgroundColor='rgba(212,160,23,0.12)'"
             onmouseout="this.style.backgroundColor='{row_bg}'">
-            <td style="padding:9px 13px;color:#e8e8f0;font-size:0.84rem;white-space:nowrap;">{html.escape(str(row['fecha_str']))}</td>
+            <td style="padding:9px 13px;color:#e8e8f0;font-size:0.84rem;white-space:nowrap;">{html.escape(str(row['Fecha']))}</td>
             <td style="padding:9px 13px;text-align:center;">{tipo_badge}</td>
-            <td style="padding:9px 13px;color:#d4c8a8;font-size:0.84rem;">{html.escape(str(row['establecimiento_nombre']))}</td>
-            <td style="padding:9px 13px;color:#f0f0f5;font-size:0.84rem;font-weight:600;">{html.escape(str(row['producto_nombre']))}</td>
+            <td style="padding:9px 13px;color:#d4c8a8;font-size:0.84rem;">{html.escape(str(row['Establecimiento']))}</td>
+            <td style="padding:9px 13px;color:#f0f0f5;font-size:0.84rem;font-weight:600;">{html.escape(str(row['Producto']))}</td>
             <td style="padding:9px 13px;color:#d4a017;font-size:0.9rem;font-weight:700;text-align:right;">{cantidad_fmt}</td>
-            <td style="padding:9px 13px;text-align:center;">{remito_html}</td>
+            <td style="padding:9px 13px;text-align:center;">{remito}</td>
             <td style="padding:9px 13px;color:#a0a0b0;font-size:0.82rem;">{obs}</td>
         </tr>"""
 
@@ -1889,7 +1911,6 @@ def pagina_historial():
   table {{ width:100%; border-collapse:collapse; background:rgba(22,22,28,0.97); }}
   thead tr {{ background:linear-gradient(135deg,#d4a017 0%,#b87a0c 100%); }}
   th {{ padding:11px 13px; color:#1a1a1f; font-weight:700; font-size:0.8rem; text-transform:uppercase; letter-spacing:0.07em; white-space:nowrap; }}
-  a {{ text-decoration:none; }}
 </style></head>
 <body><div class="wrap"><table>
   <thead><tr>
@@ -1905,7 +1926,7 @@ def pagina_historial():
 </table></div></body></html>"""
 
     import streamlit.components.v1 as components
-    altura = min(700, 100 + len(df) * 42)
+    altura = min(700, 100 + len(display_df) * 42)
     components.html(tabla_html, height=altura, scrolling=True)
 
 
