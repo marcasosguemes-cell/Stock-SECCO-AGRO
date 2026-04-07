@@ -1282,14 +1282,26 @@ def render_tabla_html(df, height=500):
 def registrar_auditoria(accion: str, datos: dict = None):
     """Registra acciones de admin en la tabla audit_log (si existe)."""
     try:
+        import json
         supabase.table("audit_log").insert({
             "usuario_id": st.session_state.get("user_id"),
             "accion": accion,
-            "datos": str(datos) if datos else None,
+            "datos": json.dumps(datos, ensure_ascii=False, default=str) if datos else None,
             "timestamp": datetime.utcnow().isoformat(),
         }).execute()
     except Exception:
         pass  # La tabla puede no existir; no interrumpe el flujo
+
+
+def es_super_admin() -> bool:
+    """Retorna True si el usuario logueado es el superadmin de SECCO Agro."""
+    try:
+        session = st.session_state.get("session")
+        if session and hasattr(session, "user") and session.user:
+            return session.user.email.lower() == "admin@seccoagro.com.ar"
+    except Exception:
+        pass
+    return False
 
 
 # ══════════════════════════════════════════════════════════════
@@ -1896,6 +1908,138 @@ def pagina_historial():
 </table></div>"""
 
     st.markdown(tabla_html, unsafe_allow_html=True)
+
+    # ── PANEL ADMINISTRACIÓN (solo superadmin) ──────────────────
+    if es_super_admin():
+        st.markdown("---")
+        st.markdown("""
+        <div style="background:linear-gradient(135deg,rgba(212,160,23,0.15),rgba(180,60,60,0.10));
+                    border:1px solid rgba(212,160,23,0.4);border-radius:12px;padding:12px 18px;margin-bottom:10px;">
+            <span style="font-size:1.1rem;font-weight:700;color:#d4a017;">⚙️ Panel de Administración</span>
+            <span style="color:#a0a0b0;font-size:0.82rem;margin-left:10px;">Solo visible para el administrador</span>
+        </div>
+        """, unsafe_allow_html=True)
+
+        tab_edit, tab_del = st.tabs(["✏️ Modificar Registro", "🗑️ Eliminar Registro"])
+
+        # Construir opciones usando el df filtrado con id
+        if "id" in df.columns:
+            opciones_dict = {
+                f"{row['fecha_str']}  |  {row['tipo'].upper()}  |  {row['producto_nombre']}  |  cant: {row['cantidad']}": row["id"]
+                for _, row in df.iterrows()
+            }
+        else:
+            opciones_dict = {}
+
+        # ── TAB: MODIFICAR ─────────────────────────────────────
+        with tab_edit:
+            if not opciones_dict:
+                st.info("Sin registros para modificar en el filtro actual.")
+            else:
+                sel_edit = st.selectbox(
+                    "📋 Seleccioná el registro a modificar",
+                    list(opciones_dict.keys()),
+                    key="admin_edit_sel"
+                )
+                mov_id_edit = opciones_dict.get(sel_edit)
+                if mov_id_edit:
+                    mov_orig = next((m for m in movimientos if m.get("id") == mov_id_edit), None)
+                    if mov_orig:
+                        with st.form("form_modificar_registro"):
+                            st.markdown(f"**Registro seleccionado:** `{sel_edit}`")
+                            col_e1, col_e2 = st.columns(2)
+                            with col_e1:
+                                nueva_cantidad = st.number_input(
+                                    "📦 Nueva Cantidad",
+                                    value=float(mov_orig.get("cantidad") or 0),
+                                    min_value=0.0,
+                                    step=0.01,
+                                    key="edit_nueva_cantidad"
+                                )
+                            with col_e2:
+                                nueva_obs = st.text_area(
+                                    "📝 Observaciones",
+                                    value=mov_orig.get("observaciones") or "",
+                                    key="edit_nueva_obs"
+                                )
+                            motivo_edit = st.text_input(
+                                "⚠️ Motivo de la modificación (requerido)",
+                                placeholder="Ej: Corrección de error de carga",
+                                key="edit_motivo"
+                            )
+                            submitted_edit = st.form_submit_button("💾 Guardar cambios", type="primary")
+
+                        if submitted_edit:
+                            if not motivo_edit.strip():
+                                st.error("❌ Debés indicar el motivo de la modificación.")
+                            else:
+                                try:
+                                    datos_antes = {
+                                        "cantidad": mov_orig.get("cantidad"),
+                                        "observaciones": mov_orig.get("observaciones"),
+                                    }
+                                    datos_despues = {
+                                        "cantidad": nueva_cantidad,
+                                        "observaciones": nueva_obs,
+                                    }
+                                    supabase.table("movimientos").update({
+                                        "cantidad": nueva_cantidad,
+                                        "observaciones": nueva_obs,
+                                    }).eq("id", mov_id_edit).execute()
+                                    registrar_auditoria("modificacion_registro", {
+                                        "movimiento_id": mov_id_edit,
+                                        "registro": sel_edit,
+                                        "motivo": motivo_edit.strip(),
+                                        "antes": datos_antes,
+                                        "despues": datos_despues,
+                                    })
+                                    st.success("✅ Registro modificado correctamente. El cambio quedó registrado en el log de auditoría.")
+                                    st.rerun()
+                                except Exception as e:
+                                    st.error(f"❌ Error al modificar: {e}")
+
+        # ── TAB: ELIMINAR ──────────────────────────────────────
+        with tab_del:
+            if not opciones_dict:
+                st.info("Sin registros para eliminar en el filtro actual.")
+            else:
+                sel_del = st.selectbox(
+                    "📋 Seleccioná el registro a eliminar",
+                    list(opciones_dict.keys()),
+                    key="admin_del_sel"
+                )
+                mov_id_del = opciones_dict.get(sel_del)
+                if mov_id_del:
+                    mov_del = next((m for m in movimientos if m.get("id") == mov_id_del), None)
+                    if mov_del:
+                        st.warning(f"⚠️ Estás por **eliminar permanentemente** este registro:\n\n`{sel_del}`")
+                        motivo_del = st.text_input(
+                            "⚠️ Motivo de eliminación (requerido)",
+                            placeholder="Ej: Registro duplicado / Error de carga",
+                            key="del_motivo"
+                        )
+                        confirmar_del = st.checkbox(
+                            "✅ Confirmo que quiero eliminar este registro de forma permanente",
+                            key="del_confirm"
+                        )
+                        btn_disabled = not confirmar_del or not motivo_del.strip()
+                        if st.button("🗑️ Eliminar registro", type="primary", disabled=btn_disabled, key="btn_eliminar"):
+                            try:
+                                datos_eliminados = {
+                                    k: v for k, v in mov_del.items()
+                                    if k not in ["productos", "establecimientos"]
+                                }
+                                registrar_auditoria("eliminacion_registro", {
+                                    "movimiento_id": mov_id_del,
+                                    "registro": sel_del,
+                                    "motivo": motivo_del.strip(),
+                                    "datos_eliminados": datos_eliminados,
+                                })
+                                supabase.table("movimientos").delete().eq("id", mov_id_del).execute()
+                                st.success("✅ Registro eliminado. El evento quedó registrado en el log de auditoría.")
+                                st.rerun()
+                            except Exception as e:
+                                st.error(f"❌ Error al eliminar: {e}")
 
 
 # ══════════════════════════════════════════════════════════════
