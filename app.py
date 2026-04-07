@@ -247,7 +247,7 @@ st.markdown("""
     }
 
     .sidebar-logo {
-        width: 158% !important;
+        width: 200% !important;
         height: auto !important;
         object-fit: contain !important;
         display: block;
