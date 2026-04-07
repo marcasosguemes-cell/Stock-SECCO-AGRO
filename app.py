@@ -1874,15 +1874,14 @@ def pagina_historial():
             <td style="padding:9px 13px;color:#a0a0b0;font-size:0.82rem;">{obs}</td>
         </tr>"""
 
-    tabla_html = f"""<!DOCTYPE html>
-<html><head><style>
-  body {{ margin:0; padding:0; background:transparent; font-family:'DM Sans',sans-serif; }}
-  .wrap {{ overflow-x:auto; border-radius:14px; border:1px solid rgba(212,160,23,0.35); box-shadow:0 6px 24px rgba(0,0,0,0.4); }}
-  table {{ width:100%; border-collapse:collapse; background:rgba(22,22,28,0.97); }}
-  thead tr {{ background:linear-gradient(135deg,#d4a017 0%,#b87a0c 100%); }}
-  th {{ padding:11px 13px; color:#1a1a1f; font-weight:700; font-size:0.8rem; text-transform:uppercase; letter-spacing:0.07em; white-space:nowrap; }}
-</style></head>
-<body><div class="wrap"><table>
+    tabla_html = f"""
+<style>
+  .hist-wrap {{ overflow-x:auto; border-radius:14px; border:1px solid rgba(212,160,23,0.35); box-shadow:0 6px 24px rgba(0,0,0,0.4); margin-top:8px; }}
+  .hist-wrap table {{ width:100%; border-collapse:collapse; background:rgba(22,22,28,0.97); font-family:'DM Sans',sans-serif; }}
+  .hist-wrap thead tr {{ background:linear-gradient(135deg,#d4a017 0%,#b87a0c 100%); }}
+  .hist-wrap th {{ padding:11px 13px; color:#1a1a1f; font-weight:700; font-size:0.8rem; text-transform:uppercase; letter-spacing:0.07em; white-space:nowrap; }}
+</style>
+<div class="hist-wrap"><table>
   <thead><tr>
     <th style="text-align:left;">📅 Fecha</th>
     <th style="text-align:center;">Tipo</th>
@@ -1893,11 +1892,9 @@ def pagina_historial():
     <th style="text-align:left;">📝 Observaciones</th>
   </tr></thead>
   <tbody>{filas_html}</tbody>
-</table></div></body></html>"""
+</table></div>"""
 
-    import streamlit.components.v1 as components
-    altura = min(700, 100 + len(display_df) * 42)
-    components.html(tabla_html, height=altura, scrolling=True)
+    st.markdown(tabla_html, unsafe_allow_html=True)
 
 
 # ══════════════════════════════════════════════════════════════
