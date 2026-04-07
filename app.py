@@ -250,7 +250,7 @@ st.markdown("""
         width: 100% !important;
         height: auto !important;
         display: block;
-        transform: scale(3);
+        transform: scale(2);
         transform-origin: center center;
     }
 
