@@ -1447,6 +1447,14 @@ def pagina_dashboard():
             <td style="padding:9px 13px;color:#a0a0b0;font-size:0.82rem;">{html.escape(str(row['unidad']))}</td>
         </tr>"""
 
+    estab_label = st.session_state.get("estab_activo_nombre", "Todos los establecimientos")
+    filtros_label = f"Categoría: {cat_sel}"
+    if es_agro_dash and subcat_sel != "Todos":
+        filtros_label += f" | Tipo: {subcat_sel}"
+    if prod_sel != "Todos":
+        filtros_label += f" | Producto: {prod_sel}"
+    fecha_impresion = now_arg().strftime("%d/%m/%Y %H:%M")
+
     tabla_html = f"""<!DOCTYPE html>
 <html><head><style>
   body {{ margin:0; padding:0; background:transparent; font-family:'DM Sans',sans-serif; }}
@@ -1455,20 +1463,57 @@ def pagina_dashboard():
   thead tr {{ background:linear-gradient(135deg,#d4a017 0%,#b87a0c 100%); }}
   th {{ padding:11px 13px; color:#1a1a1f; font-weight:700; font-size:0.8rem; text-transform:uppercase; letter-spacing:0.07em; white-space:nowrap; }}
   tbody tr {{ border-bottom:1px solid rgba(212,160,23,0.15); transition:background 0.2s; }}
+  .print-btn {{
+    display:inline-flex; align-items:center; gap:6px;
+    margin-bottom:10px; padding:7px 18px;
+    background:linear-gradient(135deg,#d4a017,#b87a0c);
+    color:#1a1a1f; font-weight:700; font-size:0.85rem;
+    border:none; border-radius:8px; cursor:pointer;
+    box-shadow:0 3px 10px rgba(0,0,0,0.3);
+    font-family:'DM Sans',sans-serif;
+  }}
+  .print-btn:hover {{ background:linear-gradient(135deg,#e6b520,#c98a10); }}
+  @media print {{
+    .print-btn {{ display:none !important; }}
+    body {{ background:#fff !important; }}
+    .wrap {{ border:1px solid #ccc !important; box-shadow:none !important; border-radius:4px !important; }}
+    table {{ background:#fff !important; }}
+    thead tr {{ background:#d4a017 !important; -webkit-print-color-adjust:exact; print-color-adjust:exact; }}
+    th {{ color:#1a1a1f !important; }}
+    tbody tr {{ border-bottom:1px solid #ddd !important; }}
+    td {{ color:#111 !important; font-size:0.82rem !important; }}
+    .print-header {{ display:block !important; }}
+  }}
+  .print-header {{
+    display:none;
+    margin-bottom:12px;
+    font-family:'DM Sans',sans-serif;
+  }}
+  .print-header h2 {{ margin:0 0 4px 0; font-size:1.1rem; color:#333; }}
+  .print-header p {{ margin:2px 0; font-size:0.8rem; color:#555; }}
 </style></head>
-<body><div class="wrap"><table>
-  <thead><tr>
-    <th style="text-align:left;">📦 Producto</th>
-    <th style="text-align:left;">📁 Categoría</th>
-    <th style="text-align:left;">Presentación</th>
-    <th style="text-align:right;">Stock</th>
-    <th style="text-align:left;">Unidad</th>
-  </tr></thead>
-  <tbody>{filas_html}</tbody>
-</table></div></body></html>"""
+<body>
+  <div class="print-header">
+    <h2>📊 Stock Actual — SECCO Agro</h2>
+    <p><strong>Establecimiento:</strong> {html.escape(str(estab_label))}</p>
+    <p><strong>Filtros:</strong> {html.escape(str(filtros_label))}</p>
+    <p><strong>Generado:</strong> {fecha_impresion}</p>
+  </div>
+  <button class="print-btn" onclick="window.print()">🖨️ Imprimir / Exportar PDF</button>
+  <div class="wrap"><table>
+    <thead><tr>
+      <th style="text-align:left;">📦 Producto</th>
+      <th style="text-align:left;">📁 Categoría</th>
+      <th style="text-align:left;">Presentación</th>
+      <th style="text-align:right;">Stock</th>
+      <th style="text-align:left;">Unidad</th>
+    </tr></thead>
+    <tbody>{filas_html}</tbody>
+  </table></div>
+</body></html>"""
 
     import streamlit.components.v1 as components
-    altura = min(700, 100 + len(df_tabla) * 42)
+    altura = min(750, 160 + len(df_tabla) * 42)
     components.html(tabla_html, height=altura, scrolling=True)
 
 
