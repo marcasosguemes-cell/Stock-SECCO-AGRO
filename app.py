@@ -719,7 +719,22 @@ def generar_link_pdf(ruta_pdf):
     url = get_signed_url(ruta_pdf)
     if not url:
         return "—"
-    return f'<a href="{html.escape(url)}" target="_blank" class="pdf-miniatura">📄 Ver Remito</a>'
+    return (
+        f'<a href="{html.escape(url)}" target="_blank" title="Ver remito PDF" '
+        f'style="display:inline-flex;align-items:center;gap:5px;text-decoration:none;'
+        f'background:linear-gradient(135deg,#c0392b,#e74c3c);color:#fff;'
+        f'padding:4px 10px;border-radius:6px;font-size:0.78rem;font-weight:700;'
+        f'letter-spacing:0.04em;box-shadow:0 2px 6px rgba(0,0,0,0.35);" '
+        f'onmouseover="this.style.opacity=\'0.82\'" onmouseout="this.style.opacity=\'1\'">'
+        f'<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" '
+        f'fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">'
+        f'<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>'
+        f'<polyline points="14 2 14 8 20 8"/>'
+        f'<line x1="16" y1="13" x2="8" y2="13"/>'
+        f'<line x1="16" y1="17" x2="8" y2="17"/>'
+        f'<polyline points="10 9 9 9 8 9"/>'
+        f'</svg>\u00a0PDF</a>'
+    )
 
 
 # ══════════════════════════════════════════════════════════════
@@ -1837,7 +1852,8 @@ def pagina_historial():
 
         obs_raw = row["Observaciones"]
         obs = html.escape(str(obs_raw)) if obs_raw and str(obs_raw) not in ["nan", "None", ""] else "—"
-        remito = str(row["Remito"]) if row["Remito"] and str(row["Remito"]) not in ["nan", "None", "", "—"] else "—"
+        remito_val = row["Remito"]
+        remito = str(remito_val) if remito_val and str(remito_val) not in ["nan", "None", "", "—"] else '<span style="color:#666;font-size:0.8rem;">—</span>'
         try:
             cantidad_fmt = f"{float(row['Cantidad']):,.2f}"
         except Exception:
