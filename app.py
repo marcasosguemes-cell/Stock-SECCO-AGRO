@@ -200,9 +200,36 @@ st.markdown("""
     [data-testid="stNumberInput"] label,
     [data-testid="stTextInput"] label,
     [data-testid="stTextArea"] label,
-    [data-testid="stFileUploader"] label {
+    [data-testid="stFileUploader"] label,
+    [data-testid="stMultiSelect"] label,
+    [data-testid="stCheckbox"] label,
+    [data-testid="stCheckbox"] span,
+    [data-testid="stRadio"] label,
+    [data-testid="stRadio"] span {
         color: #FFFFFF !important;
         font-weight: 600 !important;
+        -webkit-text-fill-color: #FFFFFF !important;
+    }
+
+    /* Tabs blancos y visibles */
+    [data-testid="stTabs"] [data-baseweb="tab"] {
+        color: #FFFFFF !important;
+        font-weight: 600 !important;
+    }
+    [data-testid="stTabs"] [data-baseweb="tab"][aria-selected="true"] {
+        color: var(--gold) !important;
+        border-bottom-color: var(--gold) !important;
+    }
+    [data-testid="stTabs"] [data-baseweb="tab-list"] {
+        background: transparent !important;
+        border-bottom: 1px solid rgba(255,255,255,0.2) !important;
+    }
+
+    /* Multiselect etiquetas y tags */
+    [data-testid="stMultiSelect"] [data-baseweb="select"] span,
+    [data-testid="stMultiSelect"] [data-baseweb="select"] div,
+    [data-testid="stMultiSelect"] [data-baseweb="tag"] span {
+        color: #FFFFFF !important;
         -webkit-text-fill-color: #FFFFFF !important;
     }
 
