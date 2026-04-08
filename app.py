@@ -1367,7 +1367,7 @@ def pagina_dashboard():
         st.info("💡 Sin datos de stock. Registrá movimientos para ver el inventario.")
         return
 
-    SUBCATS_AGRO = ["Herbicidas", "Insecticidas", "Coadyuvantes"]
+    SUBCATS_AGRO = ["Herbicidas", "Insecticidas", "Fungicidas", "Coadyuvantes", "Fertilizantes foliares"]
     categorias_disponibles = sorted(stock_productos["categoria"].dropna().unique().tolist())
 
     col_f1, col_f2, col_f3 = st.columns(3)
@@ -1714,7 +1714,7 @@ def pagina_ingreso():
     if es_agroquimico_ing:
         subcategoria_ing = st.selectbox(
             "🌿 Tipo de Agroquímico *",
-            ["Herbicidas", "Insecticidas", "Coadyuvantes"],
+            ["Herbicidas", "Insecticidas", "Fungicidas", "Coadyuvantes", "Fertilizantes foliares"],
             key="ing_subcategoria"
         )
 
@@ -1906,7 +1906,7 @@ def pagina_egreso():
     if es_agroquimico_eg:
         subcategoria_eg = st.selectbox(
             "🌿 Tipo de Agroquímico *",
-            ["Herbicidas", "Insecticidas", "Coadyuvantes"],
+            ["Herbicidas", "Insecticidas", "Fungicidas", "Coadyuvantes", "Fertilizantes foliares"],
             key="eg_subcategoria"
         )
 
@@ -2040,7 +2040,7 @@ def pagina_historial():
     df["establecimiento_nombre"] = df["establecimientos"].apply(lambda x: x.get("nombre", "") if isinstance(x, dict) else "")
     df["fecha_str"] = df["fecha"].dt.strftime("%d/%m/%Y %H:%M")
 
-    SUBCATS_AGRO = ["Herbicidas", "Insecticidas", "Coadyuvantes"]
+    SUBCATS_AGRO = ["Herbicidas", "Insecticidas", "Fungicidas", "Coadyuvantes", "Fertilizantes foliares"]
     col_c1, col_c2, col_c3 = st.columns(3)
     with col_c1:
         cats_disp = sorted([c for c in df["categoria_nombre"].dropna().unique() if c])
@@ -2631,7 +2631,7 @@ def pagina_consolidado():
 
     establecimientos_disp = sorted(stock_df["establecimiento"].dropna().unique().tolist())
     categorias_disp = sorted(stock_df["categoria"].dropna().unique().tolist())
-    SUBCATS_AGRO = ["Herbicidas", "Insecticidas", "Coadyuvantes", "Fungicidas", "Fertilizantes foliares"]
+    SUBCATS_AGRO = ["Herbicidas", "Insecticidas", "Fungicidas", "Coadyuvantes", "Fertilizantes foliares"]
 
     st.markdown("#### 🔍 Filtros")
     col1, col2, col3, col4 = st.columns(4)
