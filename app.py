@@ -1685,10 +1685,19 @@ def pagina_ingreso():
         return
 
     if es_admin:
-        estab_options = {e["nombre"]: e["id"] for e in establecimientos}
-        estab_sel = st.selectbox("🏢 Establecimiento *", list(estab_options.keys()), key="ing_estab")
-        establecimiento_id = estab_options[estab_sel]
-        establecimiento_nombre = estab_sel
+        estab_activo_id = st.session_state.get("estab_activo_id")
+        estab_activo_nombre = st.session_state.get("estab_activo_nombre", "Consolidado")
+        if estab_activo_id:
+            # Ya hay un establecimiento seleccionado en el sidebar
+            establecimiento_id = estab_activo_id
+            establecimiento_nombre = estab_activo_nombre
+            st.info(f"📍 Establecimiento: **{establecimiento_nombre}**")
+        else:
+            # Consolidado: mostrar selector
+            estab_options = {e["nombre"]: e["id"] for e in establecimientos}
+            estab_sel = st.selectbox("🏢 Establecimiento *", list(estab_options.keys()), key="ing_estab")
+            establecimiento_id = estab_options[estab_sel]
+            establecimiento_nombre = estab_sel
     else:
         establecimiento_id = st.session_state.get("establecimiento_id")
         establecimiento_nombre = st.session_state.get("establecimiento_nombre", "")
@@ -1843,10 +1852,19 @@ def pagina_egreso():
         return
 
     if es_admin:
-        estab_options = {e["nombre"]: e["id"] for e in establecimientos}
-        estab_sel = st.selectbox("🏢 Establecimiento *", list(estab_options.keys()), key="eg_estab")
-        establecimiento_id = estab_options[estab_sel]
-        establecimiento_nombre = estab_sel
+        estab_activo_id = st.session_state.get("estab_activo_id")
+        estab_activo_nombre = st.session_state.get("estab_activo_nombre", "Consolidado")
+        if estab_activo_id:
+            # Ya hay un establecimiento seleccionado en el sidebar
+            establecimiento_id = estab_activo_id
+            establecimiento_nombre = estab_activo_nombre
+            st.info(f"📍 Establecimiento: **{establecimiento_nombre}**")
+        else:
+            # Consolidado: mostrar selector
+            estab_options = {e["nombre"]: e["id"] for e in establecimientos}
+            estab_sel = st.selectbox("🏢 Establecimiento *", list(estab_options.keys()), key="eg_estab")
+            establecimiento_id = estab_options[estab_sel]
+            establecimiento_nombre = estab_sel
     else:
         establecimiento_id = st.session_state.get("establecimiento_id")
         establecimiento_nombre = st.session_state.get("establecimiento_nombre", "")
