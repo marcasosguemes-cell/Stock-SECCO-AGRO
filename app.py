@@ -2437,7 +2437,7 @@ def pagina_productos():
 
             # Selector de subcategoría para Agroquímicos
             SUBCATS_AGRO_PROD = ["Herbicidas", "Insecticidas", "Fungicidas", "Coadyuvantes", "Fertilizantes foliares"]
-            es_agroquimico_prod = "agroquim" in cat_sel.lower()
+            es_agroquimico_prod = "agroquimico" in cat_sel.lower() or "agroquímico" in cat_sel.lower()
             subcategoria_prod_sel = None
             if es_agroquimico_prod:
                 subcategoria_prod_sel = st.selectbox("🌿 Tipo de Agroquímico *", SUBCATS_AGRO_PROD, key="prod_subcategoria_nueva")
