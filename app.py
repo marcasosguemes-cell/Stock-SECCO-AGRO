@@ -1727,6 +1727,11 @@ def pagina_ingreso():
         prod_sel = st.selectbox("🏷️ Producto *", list(prod_options.keys()), key="ing_prod")
         producto_id = prod_options[prod_sel]
 
+    # Pre-cargar datos actuales del producto seleccionado
+    prod_actual = next((p for p in productos if p["id"] == producto_id), {})
+    marca_actual = prod_actual.get("marca", "") or ""
+    concentracion_actual = prod_actual.get("concentracion", "") or ""
+
     _now_arg = datetime.now(ZoneInfo("America/Argentina/Buenos_Aires")).replace(tzinfo=None)
     st.caption(f"🕐 Fecha y hora del registro: **{_now_arg.strftime('%d/%m/%Y %H:%M')}**")
 
@@ -1746,6 +1751,12 @@ def pagina_ingreso():
 
         with col5:
             tipo_ingreso = st.selectbox("📌 Tipo de Ingreso", ["Compra", "Devolución", "Traslado", "Otro"])
+
+        col_mc1, col_mc2 = st.columns(2)
+        with col_mc1:
+            marca = st.text_input("🏷️ Marca", value=marca_actual, placeholder="Ej: Monsanto, Bayer...")
+        with col_mc2:
+            concentracion = st.text_input("⚗️ Concentración", value=concentracion_actual, placeholder="Ej: 48%, 500g/L")
 
         observaciones = st.text_area("📝 Observaciones", placeholder="N° factura, lote, detalles adicionales...")
 
@@ -1794,6 +1805,14 @@ def pagina_ingreso():
                         "observaciones": observaciones_full,
                         "usuario_id": st.session_state.get("user_id"),
                     }
+
+                    # Actualizar marca/concentración en catálogo global si cambiaron
+                    if marca.strip() != marca_actual or concentracion.strip() != concentracion_actual:
+                        supabase.table("productos").update({
+                            "marca": marca.strip() or None,
+                            "concentracion": concentracion.strip() or None
+                        }).eq("id", producto_id).execute()
+                        get_productos.clear()
 
                     resultado = supabase.table("movimientos").insert(payload).execute()
                     movimiento_id = resultado.data[0]["id"] if resultado.data else None
@@ -2463,6 +2482,11 @@ def pagina_productos():
             with st.form("nuevo_producto"):
                 nombre = st.text_input("Nombre del producto *")
                 presentacion = st.text_input("Presentación (ej: 20L, 50kg)")
+                col_mc1, col_mc2 = st.columns(2)
+                with col_mc1:
+                    marca_nueva = st.text_input("🏷️ Marca", placeholder="Ej: Monsanto, Bayer...")
+                with col_mc2:
+                    concentracion_nueva = st.text_input("⚗️ Concentración", placeholder="Ej: 48%, 500g/L")
                 if st.form_submit_button("💾 Guardar producto global") and nombre:
                     # Verificar si ya existe un producto con el mismo nombre y categoría
                     existente = supabase.table("productos").select("id").ilike("nombre", nombre.strip()).eq("categoria_id", cat_options[cat_sel]).execute()
@@ -2475,6 +2499,8 @@ def pagina_productos():
                             "presentacion": presentacion.strip(),
                             "unidad_medida": unidad,
                             "subcategoria": subcategoria_prod_sel,
+                            "marca": marca_nueva.strip() or None,
+                            "concentracion": concentracion_nueva.strip() or None,
                             "activo": True
                         }).execute()
                         registrar_auditoria("producto_creado", {"nombre": nombre})
