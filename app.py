@@ -2032,7 +2032,7 @@ def pagina_historial():
 
     df = pd.DataFrame(movimientos)
     if "fecha" in df.columns:
-        df["fecha"] = pd.to_datetime(df["fecha"])
+        df["fecha"] = pd.to_datetime(df["fecha"], utc=True).dt.tz_convert("America/Argentina/Buenos_Aires").dt.tz_localize(None)
         df = df.sort_values("fecha", ascending=False)
 
     df["producto_nombre"] = df["productos"].apply(lambda x: x.get("nombre", "") if isinstance(x, dict) else "")
@@ -2181,7 +2181,7 @@ def pagina_historial():
         </div>
         """, unsafe_allow_html=True)
 
-        tab_edit, tab_del, tab_audit = st.tabs(["✏️ Modificar Registro", "🗑️ Eliminar Registro", "🔍 Auditoría de Cambios"])
+        tab_edit, tab_del, tab_audit, tab_assign = st.tabs(["✏️ Modificar Registro", "🗑️ Eliminar Registro", "🔍 Auditoría de Cambios", "👤 Asignar Usuario"])
 
         # Construir opciones usando el df filtrado con id
         if "id" in df.columns:
@@ -2336,6 +2336,118 @@ def pagina_historial():
                                 st.rerun()
                             except Exception as e:
                                 st.error(f"❌ Error al eliminar: {e}")
+
+        # ── TAB: ASIGNAR USUARIO ───────────────────────────────
+        with tab_assign:
+            st.markdown("##### 👤 Asignar usuario a movimientos")
+
+            # ── Sección 1: Asignar todos los sin usuario al Admin ──
+            st.markdown("---")
+            st.markdown("**🔁 Asignar movimientos sin usuario al Admin**")
+            st.caption("Todos los movimientos que no tienen usuario asignado serán atribuidos al usuario Admin.")
+            col_aa1, col_aa2 = st.columns([2, 1])
+            with col_aa1:
+                nombre_admin_input = st.text_input(
+                    "Nombre del Admin a asignar",
+                    value="Admin",
+                    key="assign_admin_nombre"
+                )
+            with col_aa2:
+                st.markdown("<br>", unsafe_allow_html=True)
+                if st.button("✅ Asignar todos al Admin", key="btn_asignar_admin", type="primary"):
+                    try:
+                        resp = supabase.table("movimientos").update({
+                            "usuario_nombre": nombre_admin_input.strip() or "Admin"
+                        }).is_("usuario_nombre", "null").execute()
+                        # También los que tienen string vacío
+                        supabase.table("movimientos").update({
+                            "usuario_nombre": nombre_admin_input.strip() or "Admin"
+                        }).eq("usuario_nombre", "").execute()
+                        registrar_auditoria("asignacion_masiva_usuario", {
+                            "usuario_asignado": nombre_admin_input.strip() or "Admin",
+                            "descripcion": "Se asignaron todos los movimientos sin usuario al Admin"
+                        })
+                        st.success(f"✅ Movimientos sin usuario asignados a '{nombre_admin_input.strip() or 'Admin'}'. Recargando...")
+                        st.rerun()
+                    except Exception as e:
+                        st.error(f"❌ Error: {e}")
+
+            # ── Sección 2: Reasignar movimientos filtrados ──
+            st.markdown("---")
+            st.markdown("**🎯 Reasignar movimientos a un usuario específico**")
+            st.caption("Filtrá los movimientos que querés reasignar y elegí el usuario destino.")
+
+            try:
+                usuarios_lista = supabase.table("usuarios").select("id, nombre, rol").execute().data or []
+                if not usuarios_lista:
+                    st.warning("No se encontraron usuarios.")
+                else:
+                    col_r1, col_r2, col_r3 = st.columns(3)
+                    with col_r1:
+                        establ_opts = ["Todos"] + sorted(list(set(
+                            m.get("establecimientos", {}).get("nombre", "") if isinstance(m.get("establecimientos"), dict) else ""
+                            for m in movimientos if m.get("establecimientos")
+                        )))
+                        filtro_estab = st.selectbox("🏢 Establecimiento", establ_opts, key="assign_estab")
+                    with col_r2:
+                        usuario_actual_opts = ["Todos"] + sorted(list(set(
+                            m.get("usuario_nombre", "") or "—"
+                            for m in movimientos
+                        )))
+                        filtro_usr_actual = st.selectbox("👤 Usuario actual", usuario_actual_opts, key="assign_usr_actual")
+                    with col_r3:
+                        usuario_destino_opts = {u["nombre"]: u["id"] for u in usuarios_lista}
+                        usuario_destino_sel = st.selectbox(
+                            "🎯 Asignar a",
+                            list(usuario_destino_opts.keys()),
+                            key="assign_usr_destino"
+                        )
+
+                    # Filtrar movimientos según selección
+                    movs_filtrados = movimientos.copy()
+                    if filtro_estab != "Todos":
+                        movs_filtrados = [
+                            m for m in movs_filtrados
+                            if isinstance(m.get("establecimientos"), dict)
+                            and m["establecimientos"].get("nombre") == filtro_estab
+                        ]
+                    if filtro_usr_actual != "Todos":
+                        val_filtro = None if filtro_usr_actual == "—" else filtro_usr_actual
+                        movs_filtrados = [
+                            m for m in movs_filtrados
+                            if (m.get("usuario_nombre") or "—") == (filtro_usr_actual)
+                        ]
+
+                    st.caption(f"📦 Movimientos a reasignar: **{len(movs_filtrados)}**")
+
+                    if movs_filtrados:
+                        if st.button(
+                            f"🔁 Reasignar {len(movs_filtrados)} movimientos a '{usuario_destino_sel}'",
+                            key="btn_reasignar",
+                            type="primary"
+                        ):
+                            try:
+                                ids_a_reasignar = [m["id"] for m in movs_filtrados if m.get("id")]
+                                # Actualizar en lotes
+                                for mid in ids_a_reasignar:
+                                    supabase.table("movimientos").update({
+                                        "usuario_nombre": usuario_destino_sel,
+                                        "usuario_id": usuario_destino_opts[usuario_destino_sel]
+                                    }).eq("id", mid).execute()
+                                registrar_auditoria("reasignacion_usuario", {
+                                    "usuario_destino": usuario_destino_sel,
+                                    "cantidad_movimientos": len(ids_a_reasignar),
+                                    "filtro_estab": filtro_estab,
+                                    "filtro_usr_anterior": filtro_usr_actual,
+                                })
+                                st.success(f"✅ {len(ids_a_reasignar)} movimientos reasignados a '{usuario_destino_sel}'.")
+                                st.rerun()
+                            except Exception as e:
+                                st.error(f"❌ Error al reasignar: {e}")
+                    else:
+                        st.info("No hay movimientos que coincidan con el filtro.")
+            except Exception as e:
+                st.error(f"❌ Error al cargar usuarios: {e}")
 
 
 # ══════════════════════════════════════════════════════════════
