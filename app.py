@@ -2520,7 +2520,73 @@ def pagina_productos():
         buscar_prod = st.text_input("🔎 Buscar producto", key="prod_buscar", placeholder="Escribí para filtrar...")
         if buscar_prod:
             df = df[df["nombre"].str.contains(buscar_prod, case=False, na=False)]
-        render_tabla_html(df[["nombre", "categoria", "presentacion", "unidad_medida", "activo"]])
+
+        if es_admin:
+            st.markdown("---")
+            st.markdown("### ✏️ Editar producto existente")
+            opciones_prod = {f"{r['nombre']} ({r['categoria']})": r for _, r in df.iterrows()}
+            prod_sel_edit = st.selectbox("Seleccioná un producto para editar", list(opciones_prod.keys()), key="prod_editar_sel")
+            if prod_sel_edit:
+                p = opciones_prod[prod_sel_edit]
+                categorias_edit = get_categorias()
+                cat_opts_edit = {c["nombre"]: c["id"] for c in categorias_edit}
+                cat_actual_edit = p["categoria"]
+
+                with st.form("form_editar_producto"):
+                    col_e1, col_e2 = st.columns(2)
+                    with col_e1:
+                        nombre_edit = st.text_input("Nombre *", value=p.get("nombre", ""))
+                        marca_edit = st.text_input("🏷️ Marca", value=p.get("marca") or "")
+                        presentacion_edit = st.text_input("Presentación", value=p.get("presentacion") or "")
+                    with col_e2:
+                        cat_edit_sel = st.selectbox("Categoría", list(cat_opts_edit.keys()),
+                                                     index=list(cat_opts_edit.keys()).index(cat_actual_edit) if cat_actual_edit in cat_opts_edit else 0,
+                                                     key="prod_cat_edit")
+                        concentracion_edit = st.text_input("⚗️ Concentración", value=p.get("concentracion") or "")
+                        unidad_edit = st.selectbox("Unidad", ["litros", "kg", "unidades"],
+                                                    index=["litros", "kg", "unidades"].index(p.get("unidad_medida", "litros")) if p.get("unidad_medida") in ["litros", "kg", "unidades"] else 0,
+                                                    key="prod_unidad_edit")
+
+                    SUBCATS_AGRO_EDIT = ["Herbicidas", "Insecticidas", "Fungicidas", "Coadyuvantes", "Fertilizantes foliares"]
+                    es_agro_edit = "agroquimico" in cat_edit_sel.lower() or "agroquímico" in cat_edit_sel.lower()
+                    subcateg_edit = None
+                    if es_agro_edit:
+                        subcat_actual = p.get("subcategoria") or SUBCATS_AGRO_EDIT[0]
+                        idx_sub = SUBCATS_AGRO_EDIT.index(subcat_actual) if subcat_actual in SUBCATS_AGRO_EDIT else 0
+                        subcateg_edit = st.selectbox("🌿 Tipo de Agroquímico", SUBCATS_AGRO_EDIT, index=idx_sub, key="prod_subcateg_edit")
+
+                    activo_edit = st.checkbox("✅ Producto activo", value=bool(p.get("activo", True)))
+
+                    col_btn1, col_btn2 = st.columns(2)
+                    with col_btn1:
+                        guardar_edit = st.form_submit_button("💾 Guardar cambios", use_container_width=True)
+                    with col_btn2:
+                        eliminar_edit = st.form_submit_button("🗑️ Desactivar producto", use_container_width=True)
+
+                    if guardar_edit and nombre_edit:
+                        supabase.table("productos").update({
+                            "nombre": nombre_edit.strip(),
+                            "categoria_id": cat_opts_edit[cat_edit_sel],
+                            "marca": marca_edit.strip() or None,
+                            "concentracion": concentracion_edit.strip() or None,
+                            "presentacion": presentacion_edit.strip() or None,
+                            "unidad_medida": unidad_edit,
+                            "subcategoria": subcateg_edit,
+                            "activo": activo_edit,
+                        }).eq("id", p["id"]).execute()
+                        registrar_auditoria("producto_editado", {"nombre": nombre_edit})
+                        get_productos.clear()
+                        st.toast(f"✅ Producto '{nombre_edit}' actualizado.")
+                        st.rerun()
+
+                    if eliminar_edit:
+                        supabase.table("productos").update({"activo": False}).eq("id", p["id"]).execute()
+                        registrar_auditoria("producto_desactivado", {"nombre": p.get("nombre")})
+                        get_productos.clear()
+                        st.warning(f"⚠️ Producto '{p.get('nombre')}' desactivado.")
+                        st.rerun()
+        else:
+            render_tabla_html(df[["nombre", "categoria", "presentacion", "unidad_medida", "activo"]])
 
 
 def pagina_usuarios():
