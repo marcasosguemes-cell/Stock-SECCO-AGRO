@@ -2446,18 +2446,23 @@ def pagina_productos():
                 nombre = st.text_input("Nombre del producto *")
                 presentacion = st.text_input("Presentación (ej: 20L, 50kg)")
                 if st.form_submit_button("💾 Guardar producto global") and nombre:
-                    supabase.table("productos").insert({
-                        "categoria_id": cat_options[cat_sel],
-                        "nombre": nombre.strip(),
-                        "presentacion": presentacion.strip(),
-                        "unidad_medida": unidad,
-                        "subcategoria": subcategoria_prod_sel,
-                        "activo": True
-                    }).execute()
-                    registrar_auditoria("producto_creado", {"nombre": nombre})
-                    get_productos.clear()
-                    st.toast(f"✅ Producto '{nombre}' creado.")
-                    st.rerun()
+                    # Verificar si ya existe un producto con el mismo nombre y categoría
+                    existente = supabase.table("productos").select("id").ilike("nombre", nombre.strip()).eq("categoria_id", cat_options[cat_sel]).execute()
+                    if existente.data:
+                        st.warning(f"⚠️ Ya existe un producto llamado **'{nombre.strip()}'** en la categoría **'{cat_sel}'**. No se guardó.")
+                    else:
+                        supabase.table("productos").insert({
+                            "categoria_id": cat_options[cat_sel],
+                            "nombre": nombre.strip(),
+                            "presentacion": presentacion.strip(),
+                            "unidad_medida": unidad,
+                            "subcategoria": subcategoria_prod_sel,
+                            "activo": True
+                        }).execute()
+                        registrar_auditoria("producto_creado", {"nombre": nombre})
+                        get_productos.clear()
+                        st.toast(f"✅ Producto '{nombre}' creado.")
+                        st.rerun()
     else:
         st.info("📋 Lista de productos disponibles. Solo el administrador puede agregar nuevos.")
 
