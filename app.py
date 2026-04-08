@@ -1758,6 +1758,8 @@ def pagina_ingreso():
         with col_mc2:
             concentracion = st.text_input("⚗️ Concentración", value=concentracion_actual, placeholder="Ej: 48%, 500g/L")
 
+        fecha_vencimiento = st.date_input("📅 Fecha de vencimiento", value=None, min_value=None, format="DD/MM/YYYY", key="fecha_venc_ingreso", help="Opcional — dejá en blanco si no aplica")
+
         observaciones = st.text_area("📝 Observaciones", placeholder="N° factura, lote, detalles adicionales...")
 
         if not es_admin:
@@ -1804,6 +1806,7 @@ def pagina_ingreso():
                         "proveedor_id": proveedor_id,
                         "observaciones": observaciones_full,
                         "usuario_id": st.session_state.get("user_id"),
+                        "fecha_vencimiento": fecha_vencimiento.isoformat() if fecha_vencimiento else None,
                     }
 
                     # Actualizar marca/concentración en catálogo global si cambiaron
