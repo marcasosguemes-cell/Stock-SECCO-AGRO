@@ -2434,6 +2434,14 @@ def pagina_productos():
                 cat_sel = st.selectbox("Categoría", list(cat_options.keys()), key="prod_cat_nueva")
             with col_b:
                 unidad = st.selectbox("Unidad", ["litros", "kg", "unidades"], key="prod_unidad_nueva")
+
+            # Selector de subcategoría para Agroquímicos
+            SUBCATS_AGRO_PROD = ["Herbicidas", "Insecticidas", "Fungicidas", "Coadyuvantes", "Fertilizantes foliares"]
+            es_agroquimico_prod = "agroquim" in cat_sel.lower()
+            subcategoria_prod_sel = None
+            if es_agroquimico_prod:
+                subcategoria_prod_sel = st.selectbox("🌿 Tipo de Agroquímico *", SUBCATS_AGRO_PROD, key="prod_subcategoria_nueva")
+
             with st.form("nuevo_producto"):
                 nombre = st.text_input("Nombre del producto *")
                 presentacion = st.text_input("Presentación (ej: 20L, 50kg)")
@@ -2443,6 +2451,7 @@ def pagina_productos():
                         "nombre": nombre.strip(),
                         "presentacion": presentacion.strip(),
                         "unidad_medida": unidad,
+                        "subcategoria": subcategoria_prod_sel,
                         "activo": True
                     }).execute()
                     registrar_auditoria("producto_creado", {"nombre": nombre})
