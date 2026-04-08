@@ -1806,6 +1806,7 @@ def pagina_ingreso():
                         "proveedor_id": proveedor_id,
                         "observaciones": observaciones_full,
                         "usuario_id": st.session_state.get("user_id"),
+                        "usuario_nombre": st.session_state.get("perfil", {}).get("nombre", ""),
                         "fecha_vencimiento": fecha_vencimiento.isoformat() if fecha_vencimiento else None,
                     }
 
@@ -1977,6 +1978,7 @@ def pagina_egreso():
                         "fecha": now.isoformat(),
                         "observaciones": observaciones_full,
                         "usuario_id": st.session_state.get("user_id"),
+                        "usuario_nombre": st.session_state.get("perfil", {}).get("nombre", ""),
                     }
                     resultado = supabase.table("movimientos").insert(payload).execute()
                     movimiento_id = resultado.data[0]["id"] if resultado.data else None
@@ -2039,6 +2041,8 @@ def pagina_historial():
     )
     df["establecimiento_nombre"] = df["establecimientos"].apply(lambda x: x.get("nombre", "") if isinstance(x, dict) else "")
     df["fecha_str"] = df["fecha"].dt.strftime("%d/%m/%Y %H:%M")
+    df["usuario_nombre"] = df.get("usuario_nombre", pd.Series([""] * len(df))).fillna("").astype(str)
+    df["usuario_nombre"] = df["usuario_nombre"].replace("", "—")
 
     SUBCATS_AGRO = ["Herbicidas", "Insecticidas", "Fungicidas", "Coadyuvantes", "Fertilizantes foliares"]
     col_c1, col_c2, col_c3 = st.columns(3)
@@ -2106,8 +2110,8 @@ def pagina_historial():
             use_container_width=True
         )
 
-    display_df = df[["fecha_str", "tipo", "establecimiento_nombre", "producto_nombre", "cantidad", "remito_link", "observaciones"]].copy()
-    display_df.columns = ["Fecha", "Tipo", "Establecimiento", "Producto", "Cantidad", "Remito", "Observaciones"]
+    display_df = df[["fecha_str", "tipo", "establecimiento_nombre", "producto_nombre", "cantidad", "usuario_nombre", "remito_link", "observaciones"]].copy()
+    display_df.columns = ["Fecha", "Tipo", "Establecimiento", "Producto", "Cantidad", "Usuario", "Remito", "Observaciones"]
 
     filas_html = ""
     for _, row in display_df.iterrows():
@@ -2120,6 +2124,8 @@ def pagina_historial():
 
         obs_raw = row["Observaciones"]
         obs = html.escape(str(obs_raw)) if obs_raw and str(obs_raw) not in ["nan", "None", ""] else "—"
+        usr_raw = row.get("Usuario", "—")
+        usuario_cell = html.escape(str(usr_raw)) if usr_raw and str(usr_raw) not in ["nan", "None", ""] else "—"
         remito_val = row["Remito"]
         remito = str(remito_val) if remito_val and str(remito_val) not in ["nan", "None", "", "—"] else '<span style="color:#666;font-size:0.8rem;">—</span>'
         try:
@@ -2136,6 +2142,7 @@ def pagina_historial():
             <td style="padding:9px 13px;color:#d4c8a8;font-size:0.84rem;">{html.escape(str(row['Establecimiento']))}</td>
             <td style="padding:9px 13px;color:#f0f0f5;font-size:0.84rem;font-weight:600;">{html.escape(str(row['Producto']))}</td>
             <td style="padding:9px 13px;color:#d4a017;font-size:0.9rem;font-weight:700;text-align:right;">{cantidad_fmt}</td>
+            <td style="padding:9px 13px;color:#90cdf4;font-size:0.82rem;">{usuario_cell}</td>
             <td style="padding:9px 13px;text-align:center;">{remito}</td>
             <td style="padding:9px 13px;color:#a0a0b0;font-size:0.82rem;">{obs}</td>
         </tr>"""
@@ -2154,6 +2161,7 @@ def pagina_historial():
     <th style="text-align:left;">🏢 Establecimiento</th>
     <th style="text-align:left;">📦 Producto</th>
     <th style="text-align:right;">Cantidad</th>
+    <th style="text-align:left;">👤 Usuario</th>
     <th style="text-align:center;">📄 Remito</th>
     <th style="text-align:left;">📝 Observaciones</th>
   </tr></thead>
@@ -2173,7 +2181,7 @@ def pagina_historial():
         </div>
         """, unsafe_allow_html=True)
 
-        tab_edit, tab_del = st.tabs(["✏️ Modificar Registro", "🗑️ Eliminar Registro"])
+        tab_edit, tab_del, tab_audit = st.tabs(["✏️ Modificar Registro", "🗑️ Eliminar Registro", "🔍 Auditoría de Cambios"])
 
         # Construir opciones usando el df filtrado con id
         if "id" in df.columns:
@@ -2185,6 +2193,41 @@ def pagina_historial():
             opciones_dict = {}
 
         # ── TAB: MODIFICAR ─────────────────────────────────────
+        with tab_audit:
+            st.markdown("##### 🔍 Registro de modificaciones del Administrador")
+            try:
+                audit_data = supabase.table("audit_log").select("*").order("timestamp", desc=True).limit(200).execute()
+                if audit_data.data:
+                    df_audit = pd.DataFrame(audit_data.data)
+                    df_audit["timestamp"] = pd.to_datetime(df_audit["timestamp"]).dt.strftime("%d/%m/%Y %H:%M")
+                    # Mostrar tabla
+                    audit_filas = ""
+                    for _, ar in df_audit.iterrows():
+                        accion = html.escape(str(ar.get("accion", "")))
+                        datos = html.escape(str(ar.get("datos", "")))
+                        ts = html.escape(str(ar.get("timestamp", "")))
+                        uid = html.escape(str(ar.get("usuario_id", "") or ""))
+                        audit_filas += f"""<tr style="border-bottom:1px solid rgba(212,160,23,0.15);">
+                            <td style="padding:8px 12px;color:#e8e8f0;font-size:0.82rem;white-space:nowrap;">{ts}</td>
+                            <td style="padding:8px 12px;color:#d4a017;font-size:0.82rem;font-weight:600;">{accion}</td>
+                            <td style="padding:8px 12px;color:#a0a0b0;font-size:0.78rem;word-break:break-word;max-width:400px;">{datos}</td>
+                            <td style="padding:8px 12px;color:#90cdf4;font-size:0.78rem;">{uid[:8]}...</td>
+                        </tr>"""
+                    audit_html = f"""<div style="overflow-x:auto;border-radius:12px;border:1px solid rgba(212,160,23,0.3);margin-top:8px;">
+                    <table style="width:100%;border-collapse:collapse;background:rgba(22,22,28,0.97);font-family:sans-serif;">
+                    <thead><tr style="background:linear-gradient(135deg,#7c3aed,#4c1d95);">
+                        <th style="padding:10px 12px;color:#fff;font-size:0.78rem;text-align:left;">📅 Fecha</th>
+                        <th style="padding:10px 12px;color:#fff;font-size:0.78rem;text-align:left;">⚡ Acción</th>
+                        <th style="padding:10px 12px;color:#fff;font-size:0.78rem;text-align:left;">📋 Detalle</th>
+                        <th style="padding:10px 12px;color:#fff;font-size:0.78rem;text-align:left;">👤 Usuario ID</th>
+                    </tr></thead>
+                    <tbody>{audit_filas}</tbody></table></div>"""
+                    st.markdown(audit_html, unsafe_allow_html=True)
+                else:
+                    st.info("No hay registros de auditoría aún.")
+            except Exception as e:
+                st.warning(f"No se pudo cargar el log de auditoría: {e}")
+
         with tab_edit:
             if not opciones_dict:
                 st.info("Sin registros para modificar en el filtro actual.")
