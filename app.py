@@ -1208,7 +1208,7 @@ def get_movimientos_con_filtros(establecimiento_id=None, fecha_desde=None, fecha
 
     df = pd.DataFrame(movimientos)
     if "fecha" in df.columns:
-        df["fecha"] = pd.to_datetime(df["fecha"])
+        df["fecha"] = pd.to_datetime(df["fecha"], utc=True).dt.tz_convert("America/Argentina/Buenos_Aires").dt.tz_localize(None)
         if fecha_desde:
             df = df[df["fecha"] >= pd.Timestamp(fecha_desde)]
         if fecha_hasta:
@@ -1417,7 +1417,7 @@ def pagina_dashboard():
     movs_este_mes = 0
     if movs_mes:
         df_m = pd.DataFrame(movs_mes)
-        df_m["fecha"] = pd.to_datetime(df_m["fecha"])
+        df_m["fecha"] = pd.to_datetime(df_m["fecha"], utc=True).dt.tz_convert("America/Argentina/Buenos_Aires").dt.tz_localize(None)
         hoy = datetime.now()
         movs_este_mes = len(df_m[
             (df_m["fecha"].dt.month == hoy.month) & (df_m["fecha"].dt.year == hoy.year)
@@ -1472,7 +1472,7 @@ def pagina_dashboard():
     cant_hoy_eg = 0.0
     if movs_mes:
         df_hoy = pd.DataFrame(movs_mes)
-        df_hoy["fecha"] = pd.to_datetime(df_hoy["fecha"])
+        df_hoy["fecha"] = pd.to_datetime(df_hoy["fecha"], utc=True).dt.tz_convert("America/Argentina/Buenos_Aires").dt.tz_localize(None)
         df_hoy_filt = df_hoy[df_hoy["fecha"].dt.date == hoy_str]
         movs_hoy_ing = len(df_hoy_filt[df_hoy_filt["tipo"] == "ingreso"])
         movs_hoy_eg = len(df_hoy_filt[df_hoy_filt["tipo"] == "egreso"])
@@ -2517,7 +2517,7 @@ def pagina_reportes():
         return
 
     df = pd.DataFrame(movimientos)
-    df["fecha"] = pd.to_datetime(df["fecha"])
+    df["fecha"] = pd.to_datetime(df["fecha"], utc=True).dt.tz_convert("America/Argentina/Buenos_Aires").dt.tz_localize(None)
     df["mes"] = df["fecha"].dt.to_period("M").astype(str)
     df["producto_nombre"] = df["productos"].apply(lambda x: x.get("nombre", "") if isinstance(x, dict) else "")
 
@@ -2899,7 +2899,7 @@ def pagina_consolidado():
         movs_hist = get_movimientos(None, limit=10000)
         if movs_hist:
             df_hist = pd.DataFrame(movs_hist)
-            df_hist["fecha"] = pd.to_datetime(df_hist["fecha"])
+            df_hist["fecha"] = pd.to_datetime(df_hist["fecha"], utc=True).dt.tz_convert("America/Argentina/Buenos_Aires").dt.tz_localize(None)
             df_hist["mes"] = df_hist["fecha"].dt.to_period("M").dt.to_timestamp()
             df_hist["establecimiento_nombre"] = df_hist["establecimientos"].apply(
                 lambda x: x.get("nombre", "") if isinstance(x, dict) else ""
