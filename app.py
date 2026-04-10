@@ -826,6 +826,7 @@ def login():
                         res = supabase.auth.sign_in_with_password({"email": email, "password": password})
                         st.session_state["session"] = res.session
                         st.session_state["user_id"] = res.user.id
+                        st.session_state["user_email"] = email
                         st.session_state["last_activity"] = now_arg()
                         st.session_state.pop(_login_attempts_key(), None)
                         st.session_state.pop(_login_locked_until_key(), None)
@@ -1343,6 +1344,7 @@ def registrar_auditoria(accion: str, datos: dict = None):
         import json
         supabase.table("audit_log").insert({
             "usuario_id": st.session_state.get("user_id"),
+            "usuario_nombre": st.session_state.get("perfil", {}).get("nombre", "") or st.session_state.get("user_email", ""),
             "accion": accion,
             "datos": json.dumps(datos, ensure_ascii=False, default=str) if datos else None,
             "timestamp": now_arg().isoformat(),
@@ -2342,12 +2344,13 @@ def pagina_historial():
                         accion = html.escape(str(ar.get("accion", "")))
                         datos = html.escape(str(ar.get("datos", "")))
                         ts = html.escape(str(ar.get("timestamp", "")))
-                        uid = html.escape(str(ar.get("usuario_id", "") or ""))
+                        uid = html.escape(str(ar.get("usuario_nombre", "") or ar.get("usuario_id", "") or "—"))
+                        uid_display = uid if len(uid) <= 30 else uid[:8] + "..."
                         audit_filas += f"""<tr style="border-bottom:1px solid rgba(212,160,23,0.15);">
                             <td style="padding:8px 12px;color:#e8e8f0;font-size:0.82rem;white-space:nowrap;">{ts}</td>
                             <td style="padding:8px 12px;color:#d4a017;font-size:0.82rem;font-weight:600;">{accion}</td>
                             <td style="padding:8px 12px;color:#a0a0b0;font-size:0.78rem;word-break:break-word;max-width:400px;">{datos}</td>
-                            <td style="padding:8px 12px;color:#90cdf4;font-size:0.78rem;">{uid[:8]}...</td>
+                            <td style="padding:8px 12px;color:#90cdf4;font-size:0.78rem;">{uid_display}</td>
                         </tr>"""
                     audit_html = f"""<div style="overflow-x:auto;border-radius:12px;border:1px solid rgba(212,160,23,0.3);margin-top:8px;">
                     <table style="width:100%;border-collapse:collapse;background:rgba(22,22,28,0.97);font-family:sans-serif;">
@@ -2425,6 +2428,7 @@ def pagina_historial():
                                         "antes": datos_antes,
                                         "despues": datos_despues,
                                     })
+                                    get_movimientos.clear() if hasattr(get_movimientos, "clear") else None
                                     st.success("✅ Registro modificado correctamente. El cambio quedó registrado en el log de auditoría.")
                                     st.rerun()
                                 except Exception as e:
