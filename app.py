@@ -2259,8 +2259,15 @@ def pagina_historial():
             use_container_width=True
         )
 
-    display_df = df[["fecha_str", "tipo", "establecimiento_nombre", "producto_nombre", "cantidad", "usuario_nombre", "remito_link", "observaciones"]].copy()
-    display_df.columns = ["Fecha", "Tipo", "Establecimiento", "Producto", "Cantidad", "Usuario", "Remito", "Observaciones"]
+    # Agregar columnas de modificación si existen en el df
+    for col_mod in ["modificado_por", "modificado_en", "motivo_modificacion"]:
+        if col_mod not in df.columns:
+            df[col_mod] = ""
+        else:
+            df[col_mod] = df[col_mod].fillna("").astype(str).replace("None", "").replace("nan", "")
+
+    display_df = df[["fecha_str", "tipo", "establecimiento_nombre", "producto_nombre", "cantidad", "usuario_nombre", "remito_link", "observaciones", "modificado_por", "modificado_en", "motivo_modificacion"]].copy()
+    display_df.columns = ["Fecha", "Tipo", "Establecimiento", "Producto", "Cantidad", "Usuario", "Remito", "Observaciones", "ModPor", "ModEn", "ModMotivo"]
 
     filas_html = ""
     for _, row in display_df.iterrows():
@@ -2282,18 +2289,40 @@ def pagina_historial():
         except Exception:
             cantidad_fmt = html.escape(str(row["Cantidad"]))
 
+        # Badge y detalle de modificación
+        mod_por = str(row.get("ModPor", "") or "").strip()
+        mod_en = str(row.get("ModEn", "") or "").strip()
+        mod_motivo = str(row.get("ModMotivo", "") or "").strip()
+        fue_modificado = bool(mod_por and mod_por not in ["nan", "None", ""])
+        if fue_modificado:
+            try:
+                from datetime import datetime as _dt
+                mod_en_fmt = _dt.fromisoformat(mod_en).strftime("%d/%m/%Y %H:%M") if mod_en else ""
+            except Exception:
+                mod_en_fmt = mod_en
+            mod_badge = f'''<span style="background:#7c3aed;color:#fff;padding:2px 8px;border-radius:20px;font-size:0.72rem;font-weight:700;margin-left:6px;">✏️ Modificado</span>'''
+            mod_tooltip = html.escape(f"Por: {mod_por} | {mod_en_fmt} | Motivo: {mod_motivo}")
+            mod_info = f'''<div style="font-size:0.75rem;color:#c4b5fd;margin-top:3px;" title="{mod_tooltip}">✏️ {html.escape(mod_por)} · {mod_en_fmt}</div>'''
+            if mod_motivo:
+                mod_info += f'''<div style="font-size:0.72rem;color:#a78bfa;font-style:italic;">"{html.escape(mod_motivo)}"</div>'''
+        else:
+            mod_badge = ""
+            mod_info = ""
+
+        fecha_cell = html.escape(str(row["Fecha"])) + ('<br><span style="font-size:0.72rem;color:#c4b5fd;">✏️ editado</span>' if fue_modificado else "")
+
         filas_html += f"""
-        <tr style="background-color:{row_bg};border-bottom:1px solid rgba(212,160,23,0.15);"
+        <tr style="background-color:{row_bg};border-bottom:1px solid rgba(212,160,23,0.15);{'border-left:3px solid #7c3aed;' if fue_modificado else ''}"
             onmouseover="this.style.backgroundColor='rgba(212,160,23,0.12)'"
             onmouseout="this.style.backgroundColor='{row_bg}'">
-            <td style="padding:9px 13px;color:#e8e8f0;font-size:0.84rem;white-space:nowrap;">{html.escape(str(row['Fecha']))}</td>
+            <td style="padding:9px 13px;color:#e8e8f0;font-size:0.84rem;white-space:nowrap;">{fecha_cell}</td>
             <td style="padding:9px 13px;text-align:center;">{tipo_badge}</td>
             <td style="padding:9px 13px;color:#d4c8a8;font-size:0.84rem;">{html.escape(str(row['Establecimiento']))}</td>
             <td style="padding:9px 13px;color:#f0f0f5;font-size:0.84rem;font-weight:600;">{html.escape(str(row['Producto']))}</td>
             <td style="padding:9px 13px;color:#d4a017;font-size:0.9rem;font-weight:700;text-align:right;">{cantidad_fmt}</td>
             <td style="padding:9px 13px;color:#90cdf4;font-size:0.82rem;">{usuario_cell}</td>
             <td style="padding:9px 13px;text-align:center;">{remito}</td>
-            <td style="padding:9px 13px;color:#a0a0b0;font-size:0.82rem;">{obs}</td>
+            <td style="padding:9px 13px;color:#a0a0b0;font-size:0.82rem;">{obs}{mod_info}</td>
         </tr>"""
 
     tabla_html = f"""
@@ -2477,10 +2506,25 @@ def pagina_historial():
                                         "cantidad": nueva_cantidad,
                                         "observaciones": nueva_obs,
                                     }
-                                    supabase.table("movimientos").update({
+                                    usuario_nombre_mod = (
+                                        st.session_state.get("perfil", {}).get("nombre", "")
+                                        or st.session_state.get("user_email", "")
+                                        or "Admin"
+                                    )
+                                    update_payload = {
                                         "cantidad": nueva_cantidad,
                                         "observaciones": nueva_obs,
-                                    }).eq("id", mov_id_edit).execute()
+                                        "modificado_por": usuario_nombre_mod,
+                                        "modificado_en": now_arg().isoformat(),
+                                        "motivo_modificacion": motivo_edit.strip(),
+                                    }
+                                    try:
+                                        supabase.table("movimientos").update(update_payload).eq("id", mov_id_edit).execute()
+                                    except Exception:
+                                        supabase.table("movimientos").update({
+                                            "cantidad": nueva_cantidad,
+                                            "observaciones": nueva_obs,
+                                        }).eq("id", mov_id_edit).execute()
                                     registrar_auditoria("modificacion_registro", {
                                         "movimiento_id": mov_id_edit,
                                         "registro": sel_edit,
@@ -2489,7 +2533,7 @@ def pagina_historial():
                                         "despues": datos_despues,
                                     })
                                     get_movimientos.clear() if hasattr(get_movimientos, "clear") else None
-                                    st.success("✅ Registro modificado correctamente. El cambio quedó registrado en el log de auditoría.")
+                                    st.success("✅ Registro modificado correctamente.")
                                     st.rerun()
                                 except Exception as e:
                                     st.error(f"❌ Error al modificar: {e}")
