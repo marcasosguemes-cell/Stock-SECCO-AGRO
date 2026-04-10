@@ -216,6 +216,7 @@ st.markdown("""
     [data-testid="stTextInput"] label,
     [data-testid="stTextArea"] label,
     [data-testid="stFileUploader"] label,
+
     [data-testid="stMultiSelect"] label,
     [data-testid="stCheckbox"] label,
     [data-testid="stCheckbox"] span,
@@ -224,6 +225,47 @@ st.markdown("""
         color: #FFFFFF !important;
         font-weight: 600 !important;
         -webkit-text-fill-color: #FFFFFF !important;
+    }
+
+    /* Caption visible */
+    [data-testid="stCaptionContainer"] p,
+    [data-testid="stCaptionContainer"] span,
+    div[data-testid="stCaptionContainer"] {
+        color: #d4c8a8 !important;
+        -webkit-text-fill-color: #d4c8a8 !important;
+        font-size: 0.83rem !important;
+    }
+
+    /* File uploader: zona de drop y botón visibles */
+    [data-testid="stFileUploader"] section {
+        background: rgba(55,55,65,0.85) !important;
+        border: 1.5px dashed var(--gold-60) !important;
+        border-radius: 12px !important;
+    }
+    [data-testid="stFileUploader"] section:hover {
+        border-color: var(--gold) !important;
+        background: rgba(212,160,23,0.08) !important;
+    }
+    [data-testid="stFileUploader"] section p,
+    [data-testid="stFileUploader"] section span,
+    [data-testid="stFileUploader"] section div,
+    [data-testid="stFileUploader"] section small {
+        color: #FFFFFF !important;
+        -webkit-text-fill-color: #FFFFFF !important;
+    }
+    [data-testid="stFileUploader"] section button {
+        background: linear-gradient(135deg, var(--gold), var(--gold-dark)) !important;
+        color: #1a1a1f !important;
+        -webkit-text-fill-color: #1a1a1f !important;
+        border: none !important;
+        border-radius: 10px !important;
+        font-weight: 700 !important;
+        padding: 0.4rem 1.1rem !important;
+    }
+    [data-testid="stFileUploader"] section button:hover {
+        background: linear-gradient(135deg, var(--gold-light), #c98a1a) !important;
+        color: #000 !important;
+        -webkit-text-fill-color: #000 !important;
     }
 
     /* Tabs blancos y visibles */
