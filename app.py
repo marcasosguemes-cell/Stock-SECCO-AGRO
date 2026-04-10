@@ -1210,7 +1210,7 @@ def get_stock_por_producto(establecimiento_id=None):
             "unidad": unidad_map.get(pid, "unidad"),
             "stock": qty,
         }
-        for pid, qty in stock.items() if qty != 0
+        for pid, qty in stock.items() if qty != 0 and pid in nombre_map
     ]
 
     return pd.DataFrame(result).sort_values("stock", ascending=False)
