@@ -17,18 +17,18 @@ def now_arg():
 
 def parse_fecha(series):
     """Convierte columna fecha a datetime naive en hora Argentina.
-    Maneja strings con o sin timezone (ISO 8601 con +00:00 o sin tz)."""
+    - Si viene con timezone (ej: +00:00 UTC de Supabase): convierte a Argentina.
+    - Si viene sin timezone (naive): asume que ya está en hora Argentina, no convierte.
+    """
     try:
-        parsed = pd.to_datetime(series, errors="coerce", utc=True)
-        return parsed.dt.tz_convert("America/Argentina/Buenos_Aires").dt.tz_localize(None)
+        parsed = pd.to_datetime(series, errors="coerce")
+        # Si tiene timezone info → convertir a Argentina
+        if parsed.dt.tz is not None:
+            return parsed.dt.tz_convert("America/Argentina/Buenos_Aires").dt.tz_localize(None)
+        # Sin timezone → ya está en hora Argentina (guardado con now_arg())
+        return parsed
     except Exception:
-        try:
-            parsed = pd.to_datetime(series, errors="coerce")
-            if parsed.dt.tz is not None:
-                return parsed.dt.tz_convert("America/Argentina/Buenos_Aires").dt.tz_localize(None)
-            return parsed
-        except Exception:
-            return pd.to_datetime(series, errors="coerce")
+        return pd.to_datetime(series, errors="coerce")
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
