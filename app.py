@@ -216,7 +216,6 @@ st.markdown("""
     [data-testid="stTextInput"] label,
     [data-testid="stTextArea"] label,
     [data-testid="stFileUploader"] label,
-
     [data-testid="stMultiSelect"] label,
     [data-testid="stCheckbox"] label,
     [data-testid="stCheckbox"] span,
@@ -225,47 +224,6 @@ st.markdown("""
         color: #FFFFFF !important;
         font-weight: 600 !important;
         -webkit-text-fill-color: #FFFFFF !important;
-    }
-
-    /* Caption visible */
-    [data-testid="stCaptionContainer"] p,
-    [data-testid="stCaptionContainer"] span,
-    div[data-testid="stCaptionContainer"] {
-        color: #d4c8a8 !important;
-        -webkit-text-fill-color: #d4c8a8 !important;
-        font-size: 0.83rem !important;
-    }
-
-    /* File uploader: zona de drop y botón visibles */
-    [data-testid="stFileUploader"] section {
-        background: rgba(55,55,65,0.85) !important;
-        border: 1.5px dashed var(--gold-60) !important;
-        border-radius: 12px !important;
-    }
-    [data-testid="stFileUploader"] section:hover {
-        border-color: var(--gold) !important;
-        background: rgba(212,160,23,0.08) !important;
-    }
-    [data-testid="stFileUploader"] section p,
-    [data-testid="stFileUploader"] section span,
-    [data-testid="stFileUploader"] section div,
-    [data-testid="stFileUploader"] section small {
-        color: #FFFFFF !important;
-        -webkit-text-fill-color: #FFFFFF !important;
-    }
-    [data-testid="stFileUploader"] section button {
-        background: linear-gradient(135deg, var(--gold), var(--gold-dark)) !important;
-        color: #1a1a1f !important;
-        -webkit-text-fill-color: #1a1a1f !important;
-        border: none !important;
-        border-radius: 10px !important;
-        font-weight: 700 !important;
-        padding: 0.4rem 1.1rem !important;
-    }
-    [data-testid="stFileUploader"] section button:hover {
-        background: linear-gradient(135deg, var(--gold-light), #c98a1a) !important;
-        color: #000 !important;
-        -webkit-text-fill-color: #000 !important;
     }
 
     /* Tabs blancos y visibles */
@@ -1745,12 +1703,10 @@ def pagina_ingreso():
         estab_activo_id = st.session_state.get("estab_activo_id")
         estab_activo_nombre = st.session_state.get("estab_activo_nombre", "Consolidado")
         if estab_activo_id:
-            # Ya hay un establecimiento seleccionado en el sidebar
             establecimiento_id = estab_activo_id
             establecimiento_nombre = estab_activo_nombre
             st.info(f"📍 Establecimiento: **{establecimiento_nombre}**")
         else:
-            # Consolidado: mostrar selector
             estab_options = {e["nombre"]: e["id"] for e in establecimientos}
             estab_sel = st.selectbox("🏢 Establecimiento *", list(estab_options.keys()), key="ing_estab")
             establecimiento_id = estab_options[estab_sel]
@@ -1760,137 +1716,195 @@ def pagina_ingreso():
         establecimiento_nombre = st.session_state.get("establecimiento_nombre", "")
         st.info(f"📍 Establecimiento: {establecimiento_nombre}")
 
-    col1, col2 = st.columns(2)
-    with col1:
-        cat_options = {c["nombre"]: c["id"] for c in categorias}
-        cat_sel = st.selectbox("📁 Categoría *", list(cat_options.keys()), key="ing_cat")
-        cat_id = cat_options[cat_sel]
+    # ── Inicializar lista de líneas de ingreso ──────────────────
+    MAX_LINEAS = 5
+    if "ing_lineas" not in st.session_state or st.session_state.get("ing_reset"):
+        st.session_state["ing_lineas"] = 1
+        st.session_state.pop("ing_reset", None)
 
-    es_agroquimico_ing = "agroquimico" in cat_sel.lower() or "agroquímico" in cat_sel.lower()
-    subcategoria_ing = None
-    if es_agroquimico_ing:
-        subcategoria_ing = st.selectbox(
-            "🌿 Tipo de Agroquímico *",
-            ["Herbicidas", "Insecticidas", "Fungicidas", "Coadyuvantes", "Fertilizantes foliares"],
-            key="ing_subcategoria"
-        )
+    num_lineas = st.session_state["ing_lineas"]
 
-    with col2:
-        productos = get_productos(cat_id, subcategoria_ing if es_agroquimico_ing else None)
-        if not productos:
-            st.warning("⚠️ No hay productos en esta categoría.")
-            return
-        prod_options = {p["nombre"]: p["id"] for p in productos}
-        prod_sel = st.selectbox("🏷️ Producto *", list(prod_options.keys()), key="ing_prod")
-        producto_id = prod_options[prod_sel]
-
-    # Pre-cargar datos actuales del producto seleccionado
-    prod_actual = next((p for p in productos if p["id"] == producto_id), {})
-    marca_actual = prod_actual.get("marca", "") or ""
-    concentracion_actual = prod_actual.get("concentracion", "") or ""
-
+    # ── Campos globales (proveedor, tipo, observaciones, remito) ─
     _now_arg = datetime.now(ZoneInfo("America/Argentina/Buenos_Aires")).replace(tzinfo=None)
     st.caption(f"🕐 Fecha y hora del registro: **{_now_arg.strftime('%d/%m/%Y %H:%M')}**")
 
-    with st.form("form_ingreso", clear_on_submit=False):
-        col3, col4, col5 = st.columns(3)
-
-        with col3:
-            cantidad = st.number_input("📦 Cantidad *", min_value=0.001, step=0.5, format="%.3f")
-
-        with col4:
-            prov_options = {p["nombre"]: p["id"] for p in proveedores}
-            if prov_options:
-                prov_sel = st.selectbox("🏭 Proveedor", ["Sin proveedor"] + list(prov_options.keys()))
-                proveedor_id = prov_options[prov_sel] if prov_sel != "Sin proveedor" else None
-            else:
-                proveedor_id = None
-
-        with col5:
-            tipo_ingreso = st.selectbox("📌 Tipo de Ingreso", ["Compra", "Devolución", "Traslado", "Otro"])
-
-        col_mc1, col_mc2 = st.columns(2)
-        with col_mc1:
-            marca = st.text_input("🏷️ Marca", value=marca_actual, placeholder="Ej: Monsanto, Bayer...")
-        with col_mc2:
-            concentracion = st.text_input("⚗️ Concentración", value=concentracion_actual, placeholder="Ej: 48%, 500g/L")
-
-        fecha_vencimiento = st.date_input("📅 Fecha de vencimiento", value=None, min_value=None, format="DD/MM/YYYY", key="fecha_venc_ingreso", help="Opcional — dejá en blanco si no aplica")
-
-        observaciones = st.text_area("📝 Observaciones", placeholder="N° factura, lote, detalles adicionales...")
-
-        if not es_admin:
-            st.markdown("### 📎 Remito obligatorio")
-            st.info(f"Debés adjuntar el remito en PDF (máx. {cfg.MAX_PDF_SIZE_MB}MB).")
-            archivo_remito = st.file_uploader(
-                "Seleccionar archivo PDF del remito *",
-                type=["pdf"],
-                key="remito_ingreso"
-            )
-            if archivo_remito is not None:
-                ok, msg = _validar_pdf(archivo_remito)
-                if ok:
-                    st.success(f"✅ Archivo válido: {archivo_remito.name} ({len(archivo_remito.getvalue()) // 1024} KB)")
-                else:
-                    st.error(f"❌ {msg}")
-                    archivo_remito = None
+    col_g1, col_g2 = st.columns(2)
+    with col_g1:
+        prov_options = {p["nombre"]: p["id"] for p in proveedores}
+        if prov_options:
+            prov_sel = st.selectbox("🏭 Proveedor", ["Sin proveedor"] + list(prov_options.keys()), key="ing_proveedor")
+            proveedor_id = prov_options[prov_sel] if prov_sel != "Sin proveedor" else None
         else:
-            archivo_remito = None
-            st.caption("ℹ️ Como administrador, no es obligatorio adjuntar remito.")
+            proveedor_id = None
+    with col_g2:
+        tipo_ingreso = st.selectbox("📌 Tipo de Ingreso", ["Compra", "Devolución", "Traslado", "Otro"], key="ing_tipo")
 
-        submitted = st.form_submit_button("✅ Registrar Ingreso", use_container_width=True)
+    observaciones = st.text_area("📝 Observaciones", placeholder="N° factura, lote, detalles adicionales...", key="ing_obs")
 
-        if submitted:
-            if cantidad <= 0:
-                st.error("❌ La cantidad debe ser mayor a 0.")
-                return
+    # ── Líneas de productos ─────────────────────────────────────
+    st.markdown("---")
+    st.markdown("### 📦 Productos a ingresar")
 
-            if not es_admin and archivo_remito is None:
-                st.error("❌ Es obligatorio adjuntar el remito en PDF.")
-                return
+    cat_options = {c["nombre"]: c["id"] for c in categorias}
+    todos_los_productos = get_productos()
+    prod_nombre_a_obj = {p["nombre"]: p for p in todos_los_productos}
 
-            try:
-                with st.spinner("Registrando ingreso..."):
-                    observaciones_full = f"[{tipo_ingreso}] {observaciones}" if observaciones else f"[{tipo_ingreso}]"
-                    now = datetime.now(ZoneInfo("America/Argentina/Buenos_Aires")).replace(tzinfo=None)
+    lineas_validas = []
+    for i in range(num_lineas):
+        with st.container():
+            st.markdown(f"**Producto {i+1}**")
+            col_a, col_b, col_c = st.columns([2, 1, 1])
+            with col_a:
+                cat_sel_i = st.selectbox(
+                    f"Categoría", list(cat_options.keys()),
+                    key=f"ing_cat_{i}"
+                )
+                cat_id_i = cat_options[cat_sel_i]
+                es_agro_i = "agroquimico" in cat_sel_i.lower() or "agroquímico" in cat_sel_i.lower()
+                subcat_i = None
+                if es_agro_i:
+                    subcat_i = st.selectbox(
+                        "Tipo Agroquímico",
+                        ["Herbicidas", "Insecticidas", "Fungicidas", "Coadyuvantes", "Fertilizantes foliares"],
+                        key=f"ing_subcat_{i}"
+                    )
+                productos_i = get_productos(cat_id_i, subcat_i if es_agro_i else None)
+                prod_options_i = {p["nombre"]: p["id"] for p in productos_i} if productos_i else {}
+                if not prod_options_i:
+                    st.warning("Sin productos en esta categoría.")
+                    continue
+                prod_sel_i = st.selectbox("Producto", list(prod_options_i.keys()), key=f"ing_prod_{i}")
+                producto_id_i = prod_options_i[prod_sel_i]
+                prod_obj_i = next((p for p in productos_i if p["id"] == producto_id_i), {})
 
+            with col_b:
+                cantidad_i = st.number_input(
+                    "Cantidad *", min_value=0.001, step=0.5, format="%.3f",
+                    key=f"ing_cant_{i}"
+                )
+                fecha_venc_i = st.date_input(
+                    "Vencimiento", value=None, format="DD/MM/YYYY",
+                    key=f"ing_fvenc_{i}", help="Opcional"
+                )
+
+            with col_c:
+                marca_i = st.text_input(
+                    "Marca", value=prod_obj_i.get("marca", "") or "",
+                    placeholder="Ej: Bayer...", key=f"ing_marca_{i}"
+                )
+                concentracion_i = st.text_input(
+                    "Concentración", value=prod_obj_i.get("concentracion", "") or "",
+                    placeholder="Ej: 48%", key=f"ing_conc_{i}"
+                )
+
+            lineas_validas.append({
+                "producto_id": producto_id_i,
+                "prod_sel": prod_sel_i,
+                "prod_obj": prod_obj_i,
+                "cantidad": cantidad_i,
+                "fecha_vencimiento": fecha_venc_i,
+                "marca": marca_i,
+                "concentracion": concentracion_i,
+            })
+
+        if i < num_lineas - 1:
+            st.markdown("<hr style='border-color:rgba(212,160,23,0.2);margin:0.5rem 0'>", unsafe_allow_html=True)
+
+    # ── Botones agregar / quitar línea ──────────────────────────
+    col_btn1, col_btn2 = st.columns(2)
+    with col_btn1:
+        if num_lineas < MAX_LINEAS:
+            if st.button(f"➕ Agregar producto ({num_lineas}/{MAX_LINEAS})", key="ing_add"):
+                st.session_state["ing_lineas"] += 1
+                st.rerun()
+    with col_btn2:
+        if num_lineas > 1:
+            if st.button("➖ Quitar último producto", key="ing_rm"):
+                st.session_state["ing_lineas"] -= 1
+                st.rerun()
+
+    st.markdown("---")
+
+    # ── Remito ──────────────────────────────────────────────────
+    archivo_remito = None
+    if not es_admin:
+        st.markdown("### 📎 Remito obligatorio")
+        st.info(f"Debés adjuntar el remito en PDF (máx. {cfg.MAX_PDF_SIZE_MB}MB).")
+        archivo_remito = st.file_uploader(
+            "Seleccionar archivo PDF del remito *",
+            type=["pdf"],
+            key="remito_ingreso"
+        )
+        if archivo_remito is not None:
+            ok, msg = _validar_pdf(archivo_remito)
+            if ok:
+                st.success(f"✅ Archivo válido: {archivo_remito.name} ({len(archivo_remito.getvalue()) // 1024} KB)")
+            else:
+                st.error(f"❌ {msg}")
+                archivo_remito = None
+    else:
+        st.caption("ℹ️ Como administrador, no es obligatorio adjuntar remito.")
+
+    # ── Botón registrar ─────────────────────────────────────────
+    if st.button("✅ Registrar Ingreso", use_container_width=True, key="ing_submit"):
+        if not lineas_validas:
+            st.error("❌ Agregá al menos un producto.")
+            return
+        if not es_admin and archivo_remito is None:
+            st.error("❌ Es obligatorio adjuntar el remito en PDF.")
+            return
+        errores = [f"Producto {i+1}: la cantidad debe ser mayor a 0." for i, l in enumerate(lineas_validas) if l["cantidad"] <= 0]
+        if errores:
+            for e in errores:
+                st.error(f"❌ {e}")
+            return
+
+        try:
+            with st.spinner(f"Registrando {len(lineas_validas)} producto(s)..."):
+                now = datetime.now(ZoneInfo("America/Argentina/Buenos_Aires")).replace(tzinfo=None)
+                observaciones_full = f"[{tipo_ingreso}] {observaciones}" if observaciones else f"[{tipo_ingreso}]"
+                usuario_id = st.session_state.get("user_id")
+                usuario_nombre = st.session_state.get("perfil", {}).get("nombre", "")
+
+                primer_movimiento_id = None
+                for linea in lineas_validas:
                     payload = {
                         "tipo": "ingreso",
-                        "producto_id": producto_id,
+                        "producto_id": linea["producto_id"],
                         "establecimiento_id": establecimiento_id,
-                        "cantidad": float(cantidad),
+                        "cantidad": float(linea["cantidad"]),
                         "fecha": now.isoformat(),
                         "proveedor_id": proveedor_id,
                         "observaciones": observaciones_full,
-                        "usuario_id": st.session_state.get("user_id"),
-                        "usuario_nombre": st.session_state.get("perfil", {}).get("nombre", ""),
-                        "fecha_vencimiento": fecha_vencimiento.isoformat() if fecha_vencimiento else None,
+                        "usuario_id": usuario_id,
+                        "usuario_nombre": usuario_nombre,
+                        "fecha_vencimiento": linea["fecha_vencimiento"].isoformat() if linea["fecha_vencimiento"] else None,
                     }
-
-                    # Actualizar marca/concentración en catálogo global si cambiaron
-                    if marca.strip() != marca_actual or concentracion.strip() != concentracion_actual:
+                    prod_obj = linea["prod_obj"]
+                    if linea["marca"].strip() != (prod_obj.get("marca") or "") or \
+                       linea["concentracion"].strip() != (prod_obj.get("concentracion") or ""):
                         supabase.table("productos").update({
-                            "marca": marca.strip() or None,
-                            "concentracion": concentracion.strip() or None
-                        }).eq("id", producto_id).execute()
+                            "marca": linea["marca"].strip() or None,
+                            "concentracion": linea["concentracion"].strip() or None
+                        }).eq("id", linea["producto_id"]).execute()
                         get_productos.clear()
 
                     resultado = supabase.table("movimientos").insert(payload).execute()
-                    movimiento_id = resultado.data[0]["id"] if resultado.data else None
+                    mov_id = resultado.data[0]["id"] if resultado.data else None
+                    if primer_movimiento_id is None:
+                        primer_movimiento_id = mov_id
+                    registrar_auditoria("ingreso_registrado", {"movimiento_id": mov_id, "producto": linea["prod_sel"]})
 
-                    remito_subido = False
-                    if movimiento_id and archivo_remito is not None:
-                        url = subir_remito_pdf(archivo_remito, movimiento_id, st.session_state.get("user_id"), establecimiento_id)
-                        remito_subido = url is not None
+                if primer_movimiento_id and archivo_remito is not None:
+                    subir_remito_pdf(archivo_remito, primer_movimiento_id, usuario_id, establecimiento_id)
 
-                    registrar_auditoria("ingreso_registrado", {"movimiento_id": movimiento_id, "producto": prod_sel})
-                    get_movimientos.clear() if hasattr(get_movimientos, "clear") else None
-
-                    st.session_state["ingreso_ok"] = True
-                    st.rerun()
-            except Exception as e:
-                logger.error(f"Error al registrar ingreso: {e}")
-                st.error(f"❌ Error al guardar: {e}")
+                get_movimientos.clear() if hasattr(get_movimientos, "clear") else None
+                st.session_state["ing_reset"] = True
+                st.session_state["ingreso_ok"] = True
+                st.rerun()
+        except Exception as e:
+            logger.error(f"Error al registrar ingreso: {e}")
+            st.error(f"❌ Error al guardar: {e}")
 
 
 # ══════════════════════════════════════════════════════════════
@@ -1935,12 +1949,10 @@ def pagina_egreso():
         estab_activo_id = st.session_state.get("estab_activo_id")
         estab_activo_nombre = st.session_state.get("estab_activo_nombre", "Consolidado")
         if estab_activo_id:
-            # Ya hay un establecimiento seleccionado en el sidebar
             establecimiento_id = estab_activo_id
             establecimiento_nombre = estab_activo_nombre
             st.info(f"📍 Establecimiento: **{establecimiento_nombre}**")
         else:
-            # Consolidado: mostrar selector
             estab_options = {e["nombre"]: e["id"] for e in establecimientos}
             estab_sel = st.selectbox("🏢 Establecimiento *", list(estab_options.keys()), key="eg_estab")
             establecimiento_id = estab_options[estab_sel]
@@ -1950,108 +1962,175 @@ def pagina_egreso():
         establecimiento_nombre = st.session_state.get("establecimiento_nombre", "")
         st.info(f"📍 Establecimiento: {establecimiento_nombre}")
 
-    col1, col2 = st.columns(2)
-    with col1:
-        if not categorias:
-            st.warning("⚠️ No hay categorías cargadas.")
-            return
-        cat_options = {c["nombre"]: c["id"] for c in categorias}
-        cat_sel = st.selectbox("📁 Categoría *", list(cat_options.keys()), key="eg_cat")
-        cat_id = cat_options[cat_sel]
+    # ── Inicializar lista de líneas de egreso ───────────────────
+    MAX_LINEAS = 5
+    if "eg_lineas" not in st.session_state or st.session_state.get("eg_reset"):
+        st.session_state["eg_lineas"] = 1
+        st.session_state.pop("eg_reset", None)
 
-    es_agroquimico_eg = "agroquimico" in cat_sel.lower() or "agroquímico" in cat_sel.lower()
-    subcategoria_eg = None
-    if es_agroquimico_eg:
-        subcategoria_eg = st.selectbox(
-            "🌿 Tipo de Agroquímico *",
-            ["Herbicidas", "Insecticidas", "Fungicidas", "Coadyuvantes", "Fertilizantes foliares"],
-            key="eg_subcategoria"
-        )
+    num_lineas = st.session_state["eg_lineas"]
 
-    with col2:
-        productos = get_productos(cat_id, subcategoria_eg if es_agroquimico_eg else None)
-        if not productos:
-            st.warning("⚠️ No hay productos en esta categoría.")
-            return
-        prod_options = {p["nombre"]: p["id"] for p in productos}
-        prod_sel = st.selectbox("🏷️ Producto *", list(prod_options.keys()), key="eg_prod")
-        producto_id = prod_options[prod_sel]
-
+    # ── Campos globales ─────────────────────────────────────────
     _now_arg = datetime.now(ZoneInfo("America/Argentina/Buenos_Aires")).replace(tzinfo=None)
     st.caption(f"🕐 Fecha y hora del registro: **{_now_arg.strftime('%d/%m/%Y %H:%M')}**")
 
-    with st.form("form_egreso", clear_on_submit=False):
-        cantidad = st.number_input("📦 Cantidad *", min_value=0.001, step=0.5, format="%.3f")
-        tipo_egreso = st.selectbox("📌 Tipo de Egreso", ["Uso", "Venta", "Traslado", "Merma", "Otro"])
-        observaciones = st.text_area("📝 Observaciones", placeholder="Motivo del egreso, destino, responsable, etc.")
+    tipo_egreso = st.selectbox("📌 Tipo de Egreso", ["Uso", "Venta", "Traslado", "Merma", "Otro"], key="eg_tipo")
+    observaciones = st.text_area("📝 Observaciones", placeholder="Motivo del egreso, destino, responsable, etc.", key="eg_obs")
 
-        if not es_admin:
-            st.markdown("### 📎 Remito obligatorio")
-            st.info(f"Debés adjuntar el remito en PDF (máx. {cfg.MAX_PDF_SIZE_MB}MB).")
-            archivo_remito = st.file_uploader(
-                "Seleccionar archivo PDF del remito *",
-                type=["pdf"],
-                key="remito_egreso"
-            )
-            if archivo_remito is not None:
-                ok, msg = _validar_pdf(archivo_remito)
-                if ok:
-                    st.success(f"✅ Archivo válido: {archivo_remito.name} ({len(archivo_remito.getvalue()) // 1024} KB)")
+    # ── Líneas de productos ─────────────────────────────────────
+    st.markdown("---")
+    st.markdown("### 📦 Productos a egresar")
+
+    if not categorias:
+        st.warning("⚠️ No hay categorías cargadas.")
+        return
+
+    cat_options = {c["nombre"]: c["id"] for c in categorias}
+    stock_actual_df = get_stock_por_producto(establecimiento_id)
+
+    lineas_validas = []
+    for i in range(num_lineas):
+        with st.container():
+            st.markdown(f"**Producto {i+1}**")
+            col_a, col_b = st.columns([3, 1])
+            with col_a:
+                cat_sel_i = st.selectbox(
+                    "Categoría", list(cat_options.keys()),
+                    key=f"eg_cat_{i}"
+                )
+                cat_id_i = cat_options[cat_sel_i]
+                es_agro_i = "agroquimico" in cat_sel_i.lower() or "agroquímico" in cat_sel_i.lower()
+                subcat_i = None
+                if es_agro_i:
+                    subcat_i = st.selectbox(
+                        "Tipo Agroquímico",
+                        ["Herbicidas", "Insecticidas", "Fungicidas", "Coadyuvantes", "Fertilizantes foliares"],
+                        key=f"eg_subcat_{i}"
+                    )
+                productos_i = get_productos(cat_id_i, subcat_i if es_agro_i else None)
+                prod_options_i = {p["nombre"]: p["id"] for p in productos_i} if productos_i else {}
+                if not prod_options_i:
+                    st.warning("Sin productos en esta categoría.")
+                    continue
+                prod_sel_i = st.selectbox("Producto", list(prod_options_i.keys()), key=f"eg_prod_{i}")
+                producto_id_i = prod_options_i[prod_sel_i]
+
+                # Mostrar stock disponible
+                if not stock_actual_df.empty:
+                    fila_stock = stock_actual_df[stock_actual_df["producto_id"] == producto_id_i]
+                    stock_disp = fila_stock.iloc[0]["stock"] if not fila_stock.empty else 0
+                    color_stock = "#22c55e" if stock_disp >= 50 else ("#f59e0b" if stock_disp > 0 else "#ef4444")
+                    st.markdown(
+                        f"<small style='color:{color_stock}'>Stock disponible: <b>{stock_disp:.2f}</b></small>",
+                        unsafe_allow_html=True
+                    )
                 else:
-                    st.error(f"❌ {msg}")
-                    archivo_remito = None
-        else:
-            archivo_remito = None
+                    stock_disp = 0
 
-        submitted = st.form_submit_button("✅ Registrar Egreso", use_container_width=True)
+            with col_b:
+                cantidad_i = st.number_input(
+                    "Cantidad *", min_value=0.001, step=0.5, format="%.3f",
+                    key=f"eg_cant_{i}"
+                )
 
-        if submitted:
-            if cantidad <= 0:
-                st.error("❌ La cantidad debe ser mayor a 0.")
-                return
+            lineas_validas.append({
+                "producto_id": producto_id_i,
+                "prod_sel": prod_sel_i,
+                "cantidad": cantidad_i,
+                "stock_disp": stock_disp,
+            })
 
-            if not es_admin and archivo_remito is None:
-                st.error("❌ Es obligatorio adjuntar el remito en PDF.")
-                return
+        if i < num_lineas - 1:
+            st.markdown("<hr style='border-color:rgba(212,160,23,0.2);margin:0.5rem 0'>", unsafe_allow_html=True)
 
-            # Validar stock disponible
-            stock_actual_df = get_stock_por_producto(establecimiento_id)
-            if not stock_actual_df.empty:
-                prod_stock = stock_actual_df[stock_actual_df["producto_id"] == producto_id]
-                if not prod_stock.empty and prod_stock.iloc[0]["stock"] < cantidad:
-                    st.error(f"❌ Stock insuficiente. Disponible: {prod_stock.iloc[0]['stock']:.2f}")
-                    return
+    # ── Botones agregar / quitar línea ──────────────────────────
+    col_btn1, col_btn2 = st.columns(2)
+    with col_btn1:
+        if num_lineas < MAX_LINEAS:
+            if st.button(f"➕ Agregar producto ({num_lineas}/{MAX_LINEAS})", key="eg_add"):
+                st.session_state["eg_lineas"] += 1
+                st.rerun()
+    with col_btn2:
+        if num_lineas > 1:
+            if st.button("➖ Quitar último producto", key="eg_rm"):
+                st.session_state["eg_lineas"] -= 1
+                st.rerun()
 
-            try:
-                with st.spinner("Registrando egreso..."):
-                    observaciones_full = f"[{tipo_egreso}] {observaciones}" if observaciones else f"[{tipo_egreso}]"
-                    now = datetime.now(ZoneInfo("America/Argentina/Buenos_Aires")).replace(tzinfo=None)
+    st.markdown("---")
 
+    # ── Remito ──────────────────────────────────────────────────
+    archivo_remito = None
+    if not es_admin:
+        st.markdown("### 📎 Remito obligatorio")
+        st.info(f"Debés adjuntar el remito en PDF (máx. {cfg.MAX_PDF_SIZE_MB}MB).")
+        archivo_remito = st.file_uploader(
+            "Seleccionar archivo PDF del remito *",
+            type=["pdf"],
+            key="remito_egreso"
+        )
+        if archivo_remito is not None:
+            ok, msg = _validar_pdf(archivo_remito)
+            if ok:
+                st.success(f"✅ Archivo válido: {archivo_remito.name} ({len(archivo_remito.getvalue()) // 1024} KB)")
+            else:
+                st.error(f"❌ {msg}")
+                archivo_remito = None
+
+    # ── Botón registrar ─────────────────────────────────────────
+    if st.button("✅ Registrar Egreso", use_container_width=True, key="eg_submit"):
+        if not lineas_validas:
+            st.error("❌ Agregá al menos un producto.")
+            return
+        if not es_admin and archivo_remito is None:
+            st.error("❌ Es obligatorio adjuntar el remito en PDF.")
+            return
+
+        errores = []
+        for i, l in enumerate(lineas_validas):
+            if l["cantidad"] <= 0:
+                errores.append(f"Producto {i+1}: la cantidad debe ser mayor a 0.")
+            elif l["stock_disp"] < l["cantidad"]:
+                errores.append(f"Producto {i+1} ({l['prod_sel']}): stock insuficiente. Disponible: {l['stock_disp']:.2f}")
+        if errores:
+            for e in errores:
+                st.error(f"❌ {e}")
+            return
+
+        try:
+            with st.spinner(f"Registrando {len(lineas_validas)} producto(s)..."):
+                now = datetime.now(ZoneInfo("America/Argentina/Buenos_Aires")).replace(tzinfo=None)
+                observaciones_full = f"[{tipo_egreso}] {observaciones}" if observaciones else f"[{tipo_egreso}]"
+                usuario_id = st.session_state.get("user_id")
+                usuario_nombre = st.session_state.get("perfil", {}).get("nombre", "")
+
+                primer_movimiento_id = None
+                for linea in lineas_validas:
                     payload = {
                         "tipo": "egreso",
-                        "producto_id": producto_id,
+                        "producto_id": linea["producto_id"],
                         "establecimiento_id": establecimiento_id,
-                        "cantidad": float(cantidad),
+                        "cantidad": float(linea["cantidad"]),
                         "fecha": now.isoformat(),
                         "observaciones": observaciones_full,
-                        "usuario_id": st.session_state.get("user_id"),
-                        "usuario_nombre": st.session_state.get("perfil", {}).get("nombre", ""),
+                        "usuario_id": usuario_id,
+                        "usuario_nombre": usuario_nombre,
                     }
                     resultado = supabase.table("movimientos").insert(payload).execute()
-                    movimiento_id = resultado.data[0]["id"] if resultado.data else None
+                    mov_id = resultado.data[0]["id"] if resultado.data else None
+                    if primer_movimiento_id is None:
+                        primer_movimiento_id = mov_id
+                    registrar_auditoria("egreso_registrado", {"movimiento_id": mov_id, "producto": linea["prod_sel"]})
 
-                    remito_subido = False
-                    if movimiento_id and archivo_remito is not None:
-                        url = subir_remito_pdf(archivo_remito, movimiento_id, st.session_state.get("user_id"), establecimiento_id)
-                        remito_subido = url is not None
+                if primer_movimiento_id and archivo_remito is not None:
+                    subir_remito_pdf(archivo_remito, primer_movimiento_id, usuario_id, establecimiento_id)
 
-                    registrar_auditoria("egreso_registrado", {"movimiento_id": movimiento_id, "producto": prod_sel})
-
-                    st.session_state["egreso_ok"] = True
-                    st.rerun()
-            except Exception as e:
-                logger.error(f"Error al registrar egreso: {e}")
-                st.error(f"❌ Error al guardar: {e}")
+                get_movimientos.clear() if hasattr(get_movimientos, "clear") else None
+                st.session_state["eg_reset"] = True
+                st.session_state["egreso_ok"] = True
+                st.rerun()
+        except Exception as e:
+            logger.error(f"Error al registrar egreso: {e}")
+            st.error(f"❌ Error al guardar: {e}")
 
 
 # ══════════════════════════════════════════════════════════════
