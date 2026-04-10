@@ -1342,13 +1342,24 @@ def registrar_auditoria(accion: str, datos: dict = None):
     """Registra acciones de admin en la tabla audit_log (si existe)."""
     try:
         import json
-        supabase.table("audit_log").insert({
+        usuario_nombre = (
+            st.session_state.get("perfil", {}).get("nombre", "")
+            or st.session_state.get("user_email", "")
+            or "Admin"
+        )
+        payload = {
             "usuario_id": st.session_state.get("user_id"),
-            "usuario_nombre": st.session_state.get("perfil", {}).get("nombre", "") or st.session_state.get("user_email", ""),
+            "usuario_nombre": usuario_nombre,
             "accion": accion,
             "datos": json.dumps(datos, ensure_ascii=False, default=str) if datos else None,
             "timestamp": now_arg().isoformat(),
-        }).execute()
+        }
+        try:
+            supabase.table("audit_log").insert(payload).execute()
+        except Exception:
+            # Si falla (ej: columna usuario_nombre no existe aún), reintentar sin ella
+            payload_mini = {k: v for k, v in payload.items() if k != "usuario_nombre"}
+            supabase.table("audit_log").insert(payload_mini).execute()
     except Exception:
         pass  # La tabla puede no existir; no interrumpe el flujo
 
@@ -2334,23 +2345,40 @@ def pagina_historial():
         with tab_audit:
             st.markdown("##### 🔍 Registro de modificaciones del Administrador")
             try:
-                audit_data = supabase.table("audit_log").select("*").order("timestamp", desc=True).limit(200).execute()
+                # Seleccionar columnas explícitas para evitar que Supabase resuelva
+                # la FK usuario_id → auth.users (permission denied code 42501)
+                audit_data = supabase.table("audit_log").select(
+                    "id, timestamp, accion, datos, usuario_nombre"
+                ).order("timestamp", desc=True).limit(200).execute()
                 if audit_data.data:
                     df_audit = pd.DataFrame(audit_data.data)
-                    df_audit["timestamp"] = pd.to_datetime(df_audit["timestamp"]).dt.strftime("%d/%m/%Y %H:%M")
-                    # Mostrar tabla
+                    df_audit["timestamp"] = pd.to_datetime(df_audit["timestamp"], errors="coerce").dt.strftime("%d/%m/%Y %H:%M")
                     audit_filas = ""
                     for _, ar in df_audit.iterrows():
-                        accion = html.escape(str(ar.get("accion", "")))
-                        datos = html.escape(str(ar.get("datos", "")))
-                        ts = html.escape(str(ar.get("timestamp", "")))
-                        uid = html.escape(str(ar.get("usuario_nombre", "") or ar.get("usuario_id", "") or "—"))
-                        uid_display = uid if len(uid) <= 30 else uid[:8] + "..."
+                        accion = html.escape(str(ar.get("accion", "") or ""))
+                        datos_raw = ar.get("datos", "") or ""
+                        # Intentar parsear JSON para mostrarlo más legible
+                        try:
+                            import json as _json
+                            datos_dict = _json.loads(datos_raw) if isinstance(datos_raw, str) else datos_raw
+                            if isinstance(datos_dict, dict):
+                                datos_str = " | ".join(f"{k}: {v}" for k, v in datos_dict.items() if k not in ("antes", "despues"))
+                                antes = datos_dict.get("antes", {})
+                                despues = datos_dict.get("despues", {})
+                                if antes or despues:
+                                    datos_str += f" → antes: {antes} | después: {despues}"
+                            else:
+                                datos_str = str(datos_raw)
+                        except Exception:
+                            datos_str = str(datos_raw)
+                        datos = html.escape(datos_str[:300])
+                        ts = html.escape(str(ar.get("timestamp", "") or ""))
+                        usuario = html.escape(str(ar.get("usuario_nombre", "") or "Admin"))
                         audit_filas += f"""<tr style="border-bottom:1px solid rgba(212,160,23,0.15);">
                             <td style="padding:8px 12px;color:#e8e8f0;font-size:0.82rem;white-space:nowrap;">{ts}</td>
                             <td style="padding:8px 12px;color:#d4a017;font-size:0.82rem;font-weight:600;">{accion}</td>
-                            <td style="padding:8px 12px;color:#a0a0b0;font-size:0.78rem;word-break:break-word;max-width:400px;">{datos}</td>
-                            <td style="padding:8px 12px;color:#90cdf4;font-size:0.78rem;">{uid_display}</td>
+                            <td style="padding:8px 12px;color:#a0a0b0;font-size:0.78rem;word-break:break-word;max-width:420px;">{datos}</td>
+                            <td style="padding:8px 12px;color:#90cdf4;font-size:0.82rem;font-weight:500;">{usuario}</td>
                         </tr>"""
                     audit_html = f"""<div style="overflow-x:auto;border-radius:12px;border:1px solid rgba(212,160,23,0.3);margin-top:8px;">
                     <table style="width:100%;border-collapse:collapse;background:rgba(22,22,28,0.97);font-family:sans-serif;">
@@ -2358,14 +2386,46 @@ def pagina_historial():
                         <th style="padding:10px 12px;color:#fff;font-size:0.78rem;text-align:left;">📅 Fecha</th>
                         <th style="padding:10px 12px;color:#fff;font-size:0.78rem;text-align:left;">⚡ Acción</th>
                         <th style="padding:10px 12px;color:#fff;font-size:0.78rem;text-align:left;">📋 Detalle</th>
-                        <th style="padding:10px 12px;color:#fff;font-size:0.78rem;text-align:left;">👤 Usuario ID</th>
+                        <th style="padding:10px 12px;color:#fff;font-size:0.78rem;text-align:left;">👤 Usuario</th>
                     </tr></thead>
                     <tbody>{audit_filas}</tbody></table></div>"""
                     st.markdown(audit_html, unsafe_allow_html=True)
                 else:
                     st.info("No hay registros de auditoría aún.")
             except Exception as e:
-                st.warning(f"No se pudo cargar el log de auditoría: {e}")
+                # Si la columna usuario_nombre no existe, reintentar sin ella
+                try:
+                    audit_data2 = supabase.table("audit_log").select(
+                        "id, timestamp, accion, datos"
+                    ).order("timestamp", desc=True).limit(200).execute()
+                    if audit_data2.data:
+                        df_audit = pd.DataFrame(audit_data2.data)
+                        df_audit["timestamp"] = pd.to_datetime(df_audit["timestamp"], errors="coerce").dt.strftime("%d/%m/%Y %H:%M")
+                        audit_filas = ""
+                        for _, ar in df_audit.iterrows():
+                            accion = html.escape(str(ar.get("accion", "") or ""))
+                            datos = html.escape(str(ar.get("datos", "") or "")[:300])
+                            ts = html.escape(str(ar.get("timestamp", "") or ""))
+                            audit_filas += f"""<tr style="border-bottom:1px solid rgba(212,160,23,0.15);">
+                                <td style="padding:8px 12px;color:#e8e8f0;font-size:0.82rem;white-space:nowrap;">{ts}</td>
+                                <td style="padding:8px 12px;color:#d4a017;font-size:0.82rem;font-weight:600;">{accion}</td>
+                                <td style="padding:8px 12px;color:#a0a0b0;font-size:0.78rem;word-break:break-word;max-width:500px;">{datos}</td>
+                                <td style="padding:8px 12px;color:#90cdf4;font-size:0.82rem;">Admin</td>
+                            </tr>"""
+                        audit_html = f"""<div style="overflow-x:auto;border-radius:12px;border:1px solid rgba(212,160,23,0.3);margin-top:8px;">
+                        <table style="width:100%;border-collapse:collapse;background:rgba(22,22,28,0.97);font-family:sans-serif;">
+                        <thead><tr style="background:linear-gradient(135deg,#7c3aed,#4c1d95);">
+                            <th style="padding:10px 12px;color:#fff;font-size:0.78rem;text-align:left;">📅 Fecha</th>
+                            <th style="padding:10px 12px;color:#fff;font-size:0.78rem;text-align:left;">⚡ Acción</th>
+                            <th style="padding:10px 12px;color:#fff;font-size:0.78rem;text-align:left;">📋 Detalle</th>
+                            <th style="padding:10px 12px;color:#fff;font-size:0.78rem;text-align:left;">👤 Usuario</th>
+                        </tr></thead>
+                        <tbody>{audit_filas}</tbody></table></div>"""
+                        st.markdown(audit_html, unsafe_allow_html=True)
+                    else:
+                        st.info("No hay registros de auditoría aún.")
+                except Exception as e2:
+                    st.warning(f"No se pudo cargar el log de auditoría: {e2}")
 
         with tab_edit:
             if not opciones_dict:
