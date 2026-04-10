@@ -1141,7 +1141,7 @@ def get_proveedores():
 
 def get_movimientos(establecimiento_id=None, limit=5000):
     try:
-        q = supabase.table("movimientos").select("*").limit(limit)
+        q = supabase.table("movimientos").select("*").order("fecha", desc=True).limit(limit)
         if establecimiento_id:
             q = q.eq("establecimiento_id", establecimiento_id)
         movimientos = q.execute().data
