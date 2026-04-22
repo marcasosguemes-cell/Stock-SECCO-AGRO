@@ -1696,18 +1696,42 @@ def pagina_ingreso():
     </div>
     """, unsafe_allow_html=True)
 
-    # Banner de éxito
+    # Modal de éxito centrado en pantalla
     if st.session_state.pop("ingreso_ok", None):
         st.markdown("""
-        <div style="background:linear-gradient(135deg,rgba(34,197,94,0.25),rgba(34,197,94,0.10));
-                    border:1px solid rgba(34,197,94,0.6);border-radius:14px;padding:1rem 1.5rem;
-                    margin-bottom:1rem;display:flex;align-items:center;gap:12px;">
-            <span style="font-size:1.8rem;">✅</span>
-            <div>
-                <div style="color:#22c55e;font-weight:700;font-size:1rem;">¡Ingreso registrado exitosamente!</div>
-                <div style="color:#a0a0b0;font-size:0.82rem;">El movimiento quedó guardado en el historial.</div>
+        <div id="success-overlay-ing" style="
+            position:fixed;inset:0;z-index:99999;
+            background:rgba(0,0,0,0.72);backdrop-filter:blur(6px);
+            display:flex;align-items:center;justify-content:center;">
+          <div style="
+              background:linear-gradient(145deg,#1a2e1a,#162816);
+              border:2px solid rgba(34,197,94,0.7);
+              border-radius:24px;padding:3rem 3.5rem;
+              text-align:center;box-shadow:0 24px 80px rgba(0,0,0,0.6);
+              max-width:420px;width:90%;animation:popIn .35s cubic-bezier(.175,.885,.32,1.275);">
+            <div style="font-size:4rem;margin-bottom:1rem;">✅</div>
+            <div style="color:#22c55e;font-weight:800;font-size:1.4rem;margin-bottom:0.5rem;">
+              ¡Ingreso registrado!
             </div>
+            <div style="color:#a0c8a0;font-size:0.95rem;margin-bottom:2rem;">
+              El movimiento quedó guardado en el historial.<br>El formulario fue reiniciado.
+            </div>
+            <div style="color:#6a9a6a;font-size:0.8rem;">Cerrando automáticamente…</div>
+          </div>
         </div>
+        <style>
+          @keyframes popIn {
+            from { opacity:0; transform:scale(0.75); }
+            to   { opacity:1; transform:scale(1); }
+          }
+        </style>
+        <script>
+          setTimeout(function(){
+            var el = document.getElementById('success-overlay-ing');
+            if(el){ el.style.transition='opacity .4s'; el.style.opacity='0';
+              setTimeout(function(){ if(el) el.remove(); }, 420); }
+          }, 2200);
+        </script>
         """, unsafe_allow_html=True)
 
     rol = st.session_state.get("rol", "")
@@ -1926,6 +1950,16 @@ def pagina_ingreso():
                     subir_remito_pdf(archivo_remito, ids_movimientos, usuario_id, establecimiento_id)
 
                 get_movimientos.clear() if hasattr(get_movimientos, "clear") else None
+                # Limpiar todos los keys de campos del formulario
+                keys_a_limpiar = [
+                    "ing_proveedor", "ing_tipo", "ing_obs",
+                    "remito_ingreso", "ing_lineas",
+                ]
+                for k in keys_a_limpiar:
+                    st.session_state.pop(k, None)
+                for i in range(10):  # limpiar hasta 10 líneas posibles
+                    for sufijo in ("cat", "subcat", "prod", "cant", "fvenc", "marca", "conc"):
+                        st.session_state.pop(f"ing_{sufijo}_{i}", None)
                 st.session_state["ing_reset"] = True
                 st.session_state["ingreso_ok"] = True
                 st.rerun()
@@ -1948,18 +1982,42 @@ def pagina_egreso():
     </div>
     """, unsafe_allow_html=True)
 
-    # Banner de éxito
+    # Modal de éxito centrado en pantalla
     if st.session_state.pop("egreso_ok", None):
         st.markdown("""
-        <div style="background:linear-gradient(135deg,rgba(239,68,68,0.25),rgba(239,68,68,0.10));
-                    border:1px solid rgba(239,68,68,0.6);border-radius:14px;padding:1rem 1.5rem;
-                    margin-bottom:1rem;display:flex;align-items:center;gap:12px;">
-            <span style="font-size:1.8rem;">✅</span>
-            <div>
-                <div style="color:#ef4444;font-weight:700;font-size:1rem;">¡Egreso registrado exitosamente!</div>
-                <div style="color:#a0a0b0;font-size:0.82rem;">El movimiento quedó guardado en el historial.</div>
+        <div id="success-overlay-eg" style="
+            position:fixed;inset:0;z-index:99999;
+            background:rgba(0,0,0,0.72);backdrop-filter:blur(6px);
+            display:flex;align-items:center;justify-content:center;">
+          <div style="
+              background:linear-gradient(145deg,#2e1a1a,#281616);
+              border:2px solid rgba(239,68,68,0.7);
+              border-radius:24px;padding:3rem 3.5rem;
+              text-align:center;box-shadow:0 24px 80px rgba(0,0,0,0.6);
+              max-width:420px;width:90%;animation:popIn .35s cubic-bezier(.175,.885,.32,1.275);">
+            <div style="font-size:4rem;margin-bottom:1rem;">✅</div>
+            <div style="color:#ef4444;font-weight:800;font-size:1.4rem;margin-bottom:0.5rem;">
+              ¡Egreso registrado!
             </div>
+            <div style="color:#c8a0a0;font-size:0.95rem;margin-bottom:2rem;">
+              El movimiento quedó guardado en el historial.<br>El formulario fue reiniciado.
+            </div>
+            <div style="color:#9a6a6a;font-size:0.8rem;">Cerrando automáticamente…</div>
+          </div>
         </div>
+        <style>
+          @keyframes popIn {
+            from { opacity:0; transform:scale(0.75); }
+            to   { opacity:1; transform:scale(1); }
+          }
+        </style>
+        <script>
+          setTimeout(function(){
+            var el = document.getElementById('success-overlay-eg');
+            if(el){ el.style.transition='opacity .4s'; el.style.opacity='0';
+              setTimeout(function(){ if(el) el.remove(); }, 420); }
+          }, 2200);
+        </script>
         """, unsafe_allow_html=True)
 
     rol = st.session_state.get("rol", "")
@@ -2153,6 +2211,15 @@ def pagina_egreso():
                     subir_remito_pdf(archivo_remito, ids_movimientos, usuario_id, establecimiento_id)
 
                 get_movimientos.clear() if hasattr(get_movimientos, "clear") else None
+                # Limpiar todos los keys de campos del formulario
+                keys_a_limpiar = [
+                    "eg_tipo", "eg_obs", "remito_egreso", "eg_lineas",
+                ]
+                for k in keys_a_limpiar:
+                    st.session_state.pop(k, None)
+                for i in range(10):  # limpiar hasta 10 líneas posibles
+                    for sufijo in ("cat", "subcat", "prod", "cant"):
+                        st.session_state.pop(f"eg_{sufijo}_{i}", None)
                 st.session_state["eg_reset"] = True
                 st.session_state["egreso_ok"] = True
                 st.rerun()
