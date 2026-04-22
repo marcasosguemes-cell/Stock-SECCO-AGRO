@@ -1771,6 +1771,8 @@ def pagina_ingreso():
     if "ing_lineas" not in st.session_state or st.session_state.get("ing_reset"):
         st.session_state["ing_lineas"] = 1
         st.session_state.pop("ing_reset", None)
+    if "ing_remito_version" not in st.session_state:
+        st.session_state["ing_remito_version"] = 0
 
     num_lineas = st.session_state["ing_lineas"]
 
@@ -1883,7 +1885,7 @@ def pagina_ingreso():
         archivo_remito = st.file_uploader(
             "Seleccionar archivo PDF del remito *",
             type=["pdf"],
-            key="remito_ingreso"
+            key=f"remito_ingreso_{st.session_state['ing_remito_version']}"
         )
         if archivo_remito is not None:
             ok, msg = _validar_pdf(archivo_remito)
@@ -1952,14 +1954,15 @@ def pagina_ingreso():
                 get_movimientos.clear() if hasattr(get_movimientos, "clear") else None
                 # Limpiar todos los keys de campos del formulario
                 keys_a_limpiar = [
-                    "ing_proveedor", "ing_tipo", "ing_obs",
-                    "remito_ingreso", "ing_lineas",
+                    "ing_proveedor", "ing_tipo", "ing_obs", "ing_lineas",
                 ]
                 for k in keys_a_limpiar:
                     st.session_state.pop(k, None)
                 for i in range(10):  # limpiar hasta 10 líneas posibles
                     for sufijo in ("cat", "subcat", "prod", "cant", "fvenc", "marca", "conc"):
                         st.session_state.pop(f"ing_{sufijo}_{i}", None)
+                # Incrementar versión para forzar recreación del file_uploader
+                st.session_state["ing_remito_version"] = st.session_state.get("ing_remito_version", 0) + 1
                 st.session_state["ing_reset"] = True
                 st.session_state["ingreso_ok_ts"] = now_arg()
                 st.rerun()
@@ -2052,6 +2055,8 @@ def pagina_egreso():
     if "eg_lineas" not in st.session_state or st.session_state.get("eg_reset"):
         st.session_state["eg_lineas"] = 1
         st.session_state.pop("eg_reset", None)
+    if "eg_remito_version" not in st.session_state:
+        st.session_state["eg_remito_version"] = 0
 
     num_lineas = st.session_state["eg_lineas"]
 
@@ -2151,7 +2156,7 @@ def pagina_egreso():
         archivo_remito = st.file_uploader(
             "Seleccionar archivo PDF del remito *",
             type=["pdf"],
-            key="remito_egreso"
+            key=f"remito_egreso_{st.session_state['eg_remito_version']}"
         )
         if archivo_remito is not None:
             ok, msg = _validar_pdf(archivo_remito)
@@ -2213,13 +2218,15 @@ def pagina_egreso():
                 get_movimientos.clear() if hasattr(get_movimientos, "clear") else None
                 # Limpiar todos los keys de campos del formulario
                 keys_a_limpiar = [
-                    "eg_tipo", "eg_obs", "remito_egreso", "eg_lineas",
+                    "eg_tipo", "eg_obs", "eg_lineas",
                 ]
                 for k in keys_a_limpiar:
                     st.session_state.pop(k, None)
                 for i in range(10):  # limpiar hasta 10 líneas posibles
                     for sufijo in ("cat", "subcat", "prod", "cant"):
                         st.session_state.pop(f"eg_{sufijo}_{i}", None)
+                # Incrementar versión para forzar recreación del file_uploader
+                st.session_state["eg_remito_version"] = st.session_state.get("eg_remito_version", 0) + 1
                 st.session_state["eg_reset"] = True
                 st.session_state["egreso_ok_ts"] = now_arg()
                 st.rerun()
