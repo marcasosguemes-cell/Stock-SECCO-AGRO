@@ -1696,10 +1696,11 @@ def pagina_ingreso():
     </div>
     """, unsafe_allow_html=True)
 
-    # Modal de éxito centrado en pantalla
-    if st.session_state.pop("ingreso_ok", None):
+    # Modal de éxito centrado en pantalla (expira solo a los 3s via timestamp)
+    _ts_ing = st.session_state.get("ingreso_ok_ts")
+    if _ts_ing and (now_arg() - _ts_ing).total_seconds() < 3:
         st.markdown("""
-        <div id="success-overlay-ing" style="
+        <div style="
             position:fixed;inset:0;z-index:99999;
             background:rgba(0,0,0,0.72);backdrop-filter:blur(6px);
             display:flex;align-items:center;justify-content:center;">
@@ -1708,15 +1709,16 @@ def pagina_ingreso():
               border:2px solid rgba(34,197,94,0.7);
               border-radius:24px;padding:3rem 3.5rem;
               text-align:center;box-shadow:0 24px 80px rgba(0,0,0,0.6);
-              max-width:420px;width:90%;animation:popIn .35s cubic-bezier(.175,.885,.32,1.275);">
-            <div style="font-size:4rem;margin-bottom:1rem;">✅</div>
+              max-width:420px;width:90%;
+              animation:popIn .35s cubic-bezier(.175,.885,.32,1.275);">
+            <div style="font-size:4rem;margin-bottom:1rem;">&#x2705;</div>
             <div style="color:#22c55e;font-weight:800;font-size:1.4rem;margin-bottom:0.5rem;">
-              ¡Ingreso registrado!
+              Ingreso registrado!
             </div>
             <div style="color:#a0c8a0;font-size:0.95rem;margin-bottom:2rem;">
-              El movimiento quedó guardado en el historial.<br>El formulario fue reiniciado.
+              El movimiento quedo guardado en el historial.<br>El formulario fue reiniciado.
             </div>
-            <div style="color:#6a9a6a;font-size:0.8rem;">Cerrando automáticamente…</div>
+            <div style="color:#6a9a6a;font-size:0.8rem;">Cerrando automaticamente...</div>
           </div>
         </div>
         <style>
@@ -1725,14 +1727,12 @@ def pagina_ingreso():
             to   { opacity:1; transform:scale(1); }
           }
         </style>
-        <script>
-          setTimeout(function(){
-            var el = document.getElementById('success-overlay-ing');
-            if(el){ el.style.transition='opacity .4s'; el.style.opacity='0';
-              setTimeout(function(){ if(el) el.remove(); }, 420); }
-          }, 2200);
-        </script>
         """, unsafe_allow_html=True)
+        import time; time.sleep(3)
+        st.session_state.pop("ingreso_ok_ts", None)
+        st.rerun()
+    elif _ts_ing:
+        st.session_state.pop("ingreso_ok_ts", None)
 
     rol = st.session_state.get("rol", "")
     es_admin = (rol == "admin")
@@ -1961,7 +1961,7 @@ def pagina_ingreso():
                     for sufijo in ("cat", "subcat", "prod", "cant", "fvenc", "marca", "conc"):
                         st.session_state.pop(f"ing_{sufijo}_{i}", None)
                 st.session_state["ing_reset"] = True
-                st.session_state["ingreso_ok"] = True
+                st.session_state["ingreso_ok_ts"] = now_arg()
                 st.rerun()
         except Exception as e:
             logger.error(f"Error al registrar ingreso: {e}")
@@ -1982,10 +1982,11 @@ def pagina_egreso():
     </div>
     """, unsafe_allow_html=True)
 
-    # Modal de éxito centrado en pantalla
-    if st.session_state.pop("egreso_ok", None):
+    # Modal de éxito centrado en pantalla (expira solo a los 3s via timestamp)
+    _ts_eg = st.session_state.get("egreso_ok_ts")
+    if _ts_eg and (now_arg() - _ts_eg).total_seconds() < 3:
         st.markdown("""
-        <div id="success-overlay-eg" style="
+        <div style="
             position:fixed;inset:0;z-index:99999;
             background:rgba(0,0,0,0.72);backdrop-filter:blur(6px);
             display:flex;align-items:center;justify-content:center;">
@@ -1994,15 +1995,16 @@ def pagina_egreso():
               border:2px solid rgba(239,68,68,0.7);
               border-radius:24px;padding:3rem 3.5rem;
               text-align:center;box-shadow:0 24px 80px rgba(0,0,0,0.6);
-              max-width:420px;width:90%;animation:popIn .35s cubic-bezier(.175,.885,.32,1.275);">
-            <div style="font-size:4rem;margin-bottom:1rem;">✅</div>
+              max-width:420px;width:90%;
+              animation:popIn .35s cubic-bezier(.175,.885,.32,1.275);">
+            <div style="font-size:4rem;margin-bottom:1rem;">&#x2705;</div>
             <div style="color:#ef4444;font-weight:800;font-size:1.4rem;margin-bottom:0.5rem;">
-              ¡Egreso registrado!
+              Egreso registrado!
             </div>
             <div style="color:#c8a0a0;font-size:0.95rem;margin-bottom:2rem;">
-              El movimiento quedó guardado en el historial.<br>El formulario fue reiniciado.
+              El movimiento quedo guardado en el historial.<br>El formulario fue reiniciado.
             </div>
-            <div style="color:#9a6a6a;font-size:0.8rem;">Cerrando automáticamente…</div>
+            <div style="color:#9a6a6a;font-size:0.8rem;">Cerrando automaticamente...</div>
           </div>
         </div>
         <style>
@@ -2011,14 +2013,12 @@ def pagina_egreso():
             to   { opacity:1; transform:scale(1); }
           }
         </style>
-        <script>
-          setTimeout(function(){
-            var el = document.getElementById('success-overlay-eg');
-            if(el){ el.style.transition='opacity .4s'; el.style.opacity='0';
-              setTimeout(function(){ if(el) el.remove(); }, 420); }
-          }, 2200);
-        </script>
         """, unsafe_allow_html=True)
+        import time; time.sleep(3)
+        st.session_state.pop("egreso_ok_ts", None)
+        st.rerun()
+    elif _ts_eg:
+        st.session_state.pop("egreso_ok_ts", None)
 
     rol = st.session_state.get("rol", "")
     es_admin = (rol == "admin")
@@ -2221,7 +2221,7 @@ def pagina_egreso():
                     for sufijo in ("cat", "subcat", "prod", "cant"):
                         st.session_state.pop(f"eg_{sufijo}_{i}", None)
                 st.session_state["eg_reset"] = True
-                st.session_state["egreso_ok"] = True
+                st.session_state["egreso_ok_ts"] = now_arg()
                 st.rerun()
         except Exception as e:
             logger.error(f"Error al registrar egreso: {e}")
