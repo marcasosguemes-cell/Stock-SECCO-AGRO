@@ -1734,6 +1734,10 @@ def pagina_ingreso():
     elif _ts_ing:
         st.session_state.pop("ingreso_ok_ts", None)
 
+    # Banner visible luego del modal: confirma que el formulario fue reiniciado
+    if st.session_state.pop("ing_just_reset", False):
+        st.success("✅ Formulario reiniciado — listo para registrar un nuevo ingreso.")
+
     rol = st.session_state.get("rol", "")
     es_admin = (rol == "admin")
 
@@ -1768,11 +1772,12 @@ def pagina_ingreso():
 
     # ── Inicializar lista de líneas de ingreso ──────────────────
     MAX_LINEAS = 5
-    if "ing_lineas" not in st.session_state or st.session_state.get("ing_reset"):
+    if "ing_lineas" not in st.session_state:
         st.session_state["ing_lineas"] = 1
-        st.session_state.pop("ing_reset", None)
-    if "ing_remito_version" not in st.session_state:
-        st.session_state["ing_remito_version"] = 0
+    # Contador de versión: al incrementarse fuerza recreación de todos los widgets
+    if "ing_v" not in st.session_state:
+        st.session_state["ing_v"] = 0
+    ing_v = st.session_state["ing_v"]
 
     num_lineas = st.session_state["ing_lineas"]
 
@@ -1784,14 +1789,14 @@ def pagina_ingreso():
     with col_g1:
         prov_options = {p["nombre"]: p["id"] for p in proveedores}
         if prov_options:
-            prov_sel = st.selectbox("🏭 Proveedor", ["Sin proveedor"] + list(prov_options.keys()), key="ing_proveedor")
+            prov_sel = st.selectbox("🏭 Proveedor", ["Sin proveedor"] + list(prov_options.keys()), key=f"ing_proveedor_{ing_v}")
             proveedor_id = prov_options[prov_sel] if prov_sel != "Sin proveedor" else None
         else:
             proveedor_id = None
     with col_g2:
-        tipo_ingreso = st.selectbox("📌 Tipo de Ingreso", ["Compra", "Devolución", "Traslado", "Otro"], key="ing_tipo")
+        tipo_ingreso = st.selectbox("📌 Tipo de Ingreso", ["Compra", "Devolución", "Traslado", "Otro"], key=f"ing_tipo_{ing_v}")
 
-    observaciones = st.text_area("📝 Observaciones", placeholder="N° factura, lote, detalles adicionales...", key="ing_obs")
+    observaciones = st.text_area("📝 Observaciones", placeholder="N° factura, lote, detalles adicionales...", key=f"ing_obs_{ing_v}")
 
     # ── Líneas de productos ─────────────────────────────────────
     st.markdown("---")
@@ -1809,7 +1814,7 @@ def pagina_ingreso():
             with col_a:
                 cat_sel_i = st.selectbox(
                     f"Categoría", list(cat_options.keys()),
-                    key=f"ing_cat_{i}"
+                    key=f"ing_cat_{i}_{ing_v}"
                 )
                 cat_id_i = cat_options[cat_sel_i]
                 es_agro_i = "agroquimico" in cat_sel_i.lower() or "agroquímico" in cat_sel_i.lower()
@@ -1818,35 +1823,35 @@ def pagina_ingreso():
                     subcat_i = st.selectbox(
                         "Tipo Agroquímico",
                         ["Herbicidas", "Insecticidas", "Fungicidas", "Coadyuvantes", "Fertilizantes foliares"],
-                        key=f"ing_subcat_{i}"
+                        key=f"ing_subcat_{i}_{ing_v}"
                     )
                 productos_i = get_productos(cat_id_i, subcat_i if es_agro_i else None)
                 prod_options_i = {p["nombre"]: p["id"] for p in productos_i} if productos_i else {}
                 if not prod_options_i:
                     st.warning("Sin productos en esta categoría.")
                     continue
-                prod_sel_i = st.selectbox("Producto", list(prod_options_i.keys()), key=f"ing_prod_{i}")
+                prod_sel_i = st.selectbox("Producto", list(prod_options_i.keys()), key=f"ing_prod_{i}_{ing_v}")
                 producto_id_i = prod_options_i[prod_sel_i]
                 prod_obj_i = next((p for p in productos_i if p["id"] == producto_id_i), {})
 
             with col_b:
                 cantidad_i = st.number_input(
                     "Cantidad *", min_value=0.001, step=0.5, format="%.3f",
-                    key=f"ing_cant_{i}"
+                    key=f"ing_cant_{i}_{ing_v}"
                 )
                 fecha_venc_i = st.date_input(
                     "Vencimiento", value=None, format="DD/MM/YYYY",
-                    key=f"ing_fvenc_{i}", help="Opcional"
+                    key=f"ing_fvenc_{i}_{ing_v}", help="Opcional"
                 )
 
             with col_c:
                 marca_i = st.text_input(
                     "Marca", value=prod_obj_i.get("marca", "") or "",
-                    placeholder="Ej: Bayer...", key=f"ing_marca_{i}"
+                    placeholder="Ej: Bayer...", key=f"ing_marca_{i}_{ing_v}"
                 )
                 concentracion_i = st.text_input(
                     "Concentración", value=prod_obj_i.get("concentracion", "") or "",
-                    placeholder="Ej: 48%", key=f"ing_conc_{i}"
+                    placeholder="Ej: 48%", key=f"ing_conc_{i}_{ing_v}"
                 )
 
             lineas_validas.append({
@@ -1885,7 +1890,7 @@ def pagina_ingreso():
         archivo_remito = st.file_uploader(
             "Seleccionar archivo PDF del remito *",
             type=["pdf"],
-            key=f"remito_ingreso_{st.session_state['ing_remito_version']}"
+            key=f"remito_ingreso_{ing_v}"
         )
         if archivo_remito is not None:
             ok, msg = _validar_pdf(archivo_remito)
@@ -1952,18 +1957,10 @@ def pagina_ingreso():
                     subir_remito_pdf(archivo_remito, ids_movimientos, usuario_id, establecimiento_id)
 
                 get_movimientos.clear() if hasattr(get_movimientos, "clear") else None
-                # Limpiar todos los keys de campos del formulario
-                keys_a_limpiar = [
-                    "ing_proveedor", "ing_tipo", "ing_obs", "ing_lineas",
-                ]
-                for k in keys_a_limpiar:
-                    st.session_state.pop(k, None)
-                for i in range(10):  # limpiar hasta 10 líneas posibles
-                    for sufijo in ("cat", "subcat", "prod", "cant", "fvenc", "marca", "conc"):
-                        st.session_state.pop(f"ing_{sufijo}_{i}", None)
-                # Incrementar versión para forzar recreación del file_uploader
-                st.session_state["ing_remito_version"] = st.session_state.get("ing_remito_version", 0) + 1
-                st.session_state["ing_reset"] = True
+                # Incrementar versión: fuerza recreación completa de todos los widgets del formulario
+                st.session_state["ing_v"] = st.session_state.get("ing_v", 0) + 1
+                st.session_state["ing_lineas"] = 1
+                st.session_state["ing_just_reset"] = True
                 st.session_state["ingreso_ok_ts"] = now_arg()
                 st.rerun()
         except Exception as e:
@@ -2023,6 +2020,10 @@ def pagina_egreso():
     elif _ts_eg:
         st.session_state.pop("egreso_ok_ts", None)
 
+    # Banner visible luego del modal: confirma que el formulario fue reiniciado
+    if st.session_state.pop("eg_just_reset", False):
+        st.success("✅ Formulario reiniciado — listo para registrar un nuevo egreso.")
+
     rol = st.session_state.get("rol", "")
     es_admin = (rol == "admin")
 
@@ -2052,11 +2053,12 @@ def pagina_egreso():
 
     # ── Inicializar lista de líneas de egreso ───────────────────
     MAX_LINEAS = 5
-    if "eg_lineas" not in st.session_state or st.session_state.get("eg_reset"):
+    if "eg_lineas" not in st.session_state:
         st.session_state["eg_lineas"] = 1
-        st.session_state.pop("eg_reset", None)
-    if "eg_remito_version" not in st.session_state:
-        st.session_state["eg_remito_version"] = 0
+    # Contador de versión: al incrementarse fuerza recreación de todos los widgets
+    if "eg_v" not in st.session_state:
+        st.session_state["eg_v"] = 0
+    eg_v = st.session_state["eg_v"]
 
     num_lineas = st.session_state["eg_lineas"]
 
@@ -2064,8 +2066,8 @@ def pagina_egreso():
     _now_arg = datetime.now(ZoneInfo("America/Argentina/Buenos_Aires")).replace(tzinfo=None)
     st.caption(f"🕐 Fecha y hora del registro: **{_now_arg.strftime('%d/%m/%Y %H:%M')}**")
 
-    tipo_egreso = st.selectbox("📌 Tipo de Egreso", ["Uso", "Venta", "Traslado", "Merma", "Otro"], key="eg_tipo")
-    observaciones = st.text_area("📝 Observaciones", placeholder="Motivo del egreso, destino, responsable, etc.", key="eg_obs")
+    tipo_egreso = st.selectbox("📌 Tipo de Egreso", ["Uso", "Venta", "Traslado", "Merma", "Otro"], key=f"eg_tipo_{eg_v}")
+    observaciones = st.text_area("📝 Observaciones", placeholder="Motivo del egreso, destino, responsable, etc.", key=f"eg_obs_{eg_v}")
 
     # ── Líneas de productos ─────────────────────────────────────
     st.markdown("---")
@@ -2086,7 +2088,7 @@ def pagina_egreso():
             with col_a:
                 cat_sel_i = st.selectbox(
                     "Categoría", list(cat_options.keys()),
-                    key=f"eg_cat_{i}"
+                    key=f"eg_cat_{i}_{eg_v}"
                 )
                 cat_id_i = cat_options[cat_sel_i]
                 es_agro_i = "agroquimico" in cat_sel_i.lower() or "agroquímico" in cat_sel_i.lower()
@@ -2095,14 +2097,14 @@ def pagina_egreso():
                     subcat_i = st.selectbox(
                         "Tipo Agroquímico",
                         ["Herbicidas", "Insecticidas", "Fungicidas", "Coadyuvantes", "Fertilizantes foliares"],
-                        key=f"eg_subcat_{i}"
+                        key=f"eg_subcat_{i}_{eg_v}"
                     )
                 productos_i = get_productos(cat_id_i, subcat_i if es_agro_i else None)
                 prod_options_i = {p["nombre"]: p["id"] for p in productos_i} if productos_i else {}
                 if not prod_options_i:
                     st.warning("Sin productos en esta categoría.")
                     continue
-                prod_sel_i = st.selectbox("Producto", list(prod_options_i.keys()), key=f"eg_prod_{i}")
+                prod_sel_i = st.selectbox("Producto", list(prod_options_i.keys()), key=f"eg_prod_{i}_{eg_v}")
                 producto_id_i = prod_options_i[prod_sel_i]
 
                 # Mostrar stock disponible
@@ -2120,7 +2122,7 @@ def pagina_egreso():
             with col_b:
                 cantidad_i = st.number_input(
                     "Cantidad *", min_value=0.001, step=0.5, format="%.3f",
-                    key=f"eg_cant_{i}"
+                    key=f"eg_cant_{i}_{eg_v}"
                 )
 
             lineas_validas.append({
@@ -2156,7 +2158,7 @@ def pagina_egreso():
         archivo_remito = st.file_uploader(
             "Seleccionar archivo PDF del remito *",
             type=["pdf"],
-            key=f"remito_egreso_{st.session_state['eg_remito_version']}"
+            key=f"remito_egreso_{eg_v}"
         )
         if archivo_remito is not None:
             ok, msg = _validar_pdf(archivo_remito)
@@ -2216,18 +2218,10 @@ def pagina_egreso():
                     subir_remito_pdf(archivo_remito, ids_movimientos, usuario_id, establecimiento_id)
 
                 get_movimientos.clear() if hasattr(get_movimientos, "clear") else None
-                # Limpiar todos los keys de campos del formulario
-                keys_a_limpiar = [
-                    "eg_tipo", "eg_obs", "eg_lineas",
-                ]
-                for k in keys_a_limpiar:
-                    st.session_state.pop(k, None)
-                for i in range(10):  # limpiar hasta 10 líneas posibles
-                    for sufijo in ("cat", "subcat", "prod", "cant"):
-                        st.session_state.pop(f"eg_{sufijo}_{i}", None)
-                # Incrementar versión para forzar recreación del file_uploader
-                st.session_state["eg_remito_version"] = st.session_state.get("eg_remito_version", 0) + 1
-                st.session_state["eg_reset"] = True
+                # Incrementar versión: fuerza recreación completa de todos los widgets del formulario
+                st.session_state["eg_v"] = st.session_state.get("eg_v", 0) + 1
+                st.session_state["eg_lineas"] = 1
+                st.session_state["eg_just_reset"] = True
                 st.session_state["egreso_ok_ts"] = now_arg()
                 st.rerun()
         except Exception as e:
