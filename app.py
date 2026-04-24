@@ -3277,8 +3277,7 @@ def main():
         return
 
     if (
-        st.session_state.get("rol") != "admin"
-        and not st.session_state.get("password_changed", False)
+        not st.session_state.get("password_changed", False)
         and not st.session_state.get("skip_password_check", False)
     ):
         mostrar_cambio_password()
