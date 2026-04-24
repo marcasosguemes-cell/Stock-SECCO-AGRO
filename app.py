@@ -603,12 +603,6 @@ def check_auth():
                     return False
             st.session_state["last_activity"] = now_arg()
             return True
-        session = supabase.auth.get_session()
-        if session:
-            st.session_state["session"] = session
-            st.session_state["user_id"] = session.user.id
-            st.session_state["last_activity"] = now_arg()
-            return True
         return False
     except Exception:
         return False
