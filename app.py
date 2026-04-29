@@ -3310,15 +3310,17 @@ def pantalla_hub():
         justify-content: center;
         align-items: stretch;
         flex-wrap: nowrap;
+        width: 100%;
         margin: 0 auto;
-        width: fit-content;
     }
     /* Tarjetas +30%: 290px → 377px */
     .hub-slot {
         display: flex;
         flex-direction: column;
         align-items: stretch;
-        width: 377px;
+        flex: 1;
+        max-width: 400px;
+        min-width: 280px;
     }
     .hub-card {
         background: linear-gradient(160deg, rgba(60,60,70,0.97) 0%, rgba(40,40,52,0.99) 100%);
@@ -3464,23 +3466,24 @@ def pantalla_hub():
                 border-radius: 22px;
                 padding: 2.4rem 3rem;
                 text-align: center;
-                min-width: 320px;
+                min-width: 420px;
+                max-width: 520px;
                 box-shadow: 0 20px 60px rgba(0,0,0,0.7);
                 animation: fadeInOut 5s ease forwards;
                 pointer-events: none;
             }
-            .hub-overlay-icon { font-size: 3rem; margin-bottom: 0.6rem; }
+            .hub-overlay-icon { font-size: 4rem; margin-bottom: 0.8rem; }
             .hub-overlay-title {
                 font-family: 'Playfair Display', serif;
-                font-size: 1.3rem;
+                font-size: 1.8rem;
                 font-weight: 700;
                 color: #d4a017;
-                margin-bottom: 0.4rem;
+                margin-bottom: 0.5rem;
             }
             .hub-overlay-desc {
-                font-size: 0.82rem;
+                font-size: 1.05rem;
                 color: #a0a0b0;
-                line-height: 1.6;
+                line-height: 1.65;
             }
             </style>
             <div class="hub-overlay">
