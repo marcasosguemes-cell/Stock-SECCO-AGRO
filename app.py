@@ -3335,6 +3335,8 @@ def pantalla_hub():
     .hub-logo {{ width:100%; height:100%; object-fit:contain; padding:15px; }}
     .hub-cards {{
         display:flex; gap:2.4rem; justify-content:center;
+        width:100%;
+        max-width:760px;
     }}
     .hub-card {{
         background:linear-gradient(160deg,rgba(60,60,70,0.97),rgba(40,40,52,0.99));
@@ -3345,7 +3347,7 @@ def pantalla_hub():
         box-shadow:0 8px 24px rgba(0,0,0,0.4);
         display:flex; flex-direction:column;
         align-items:center; justify-content:center;
-        width:340px; min-height:260px; box-sizing:border-box;
+        flex:1; min-height:260px; box-sizing:border-box;
     }}
     .hub-card-dev {{
         background:linear-gradient(160deg,rgba(32,32,40,0.97),rgba(22,22,30,0.99));
@@ -3369,16 +3371,20 @@ def pantalla_hub():
     div[data-testid="stHorizontalBlock"] {{
         display:flex !important;
         justify-content:center !important;
-        gap:2.4rem !important;
+        gap:0 !important;
         margin-top:-12px !important;
         padding:0 !important;
+        max-width:760px !important;
+        margin-left:auto !important;
+        margin-right:auto !important;
     }}
     div[data-testid="stHorizontalBlock"] > div[data-testid="column"] {{
-        flex:0 0 340px !important;
-        width:340px !important;
-        min-width:340px !important;
-        max-width:340px !important;
+        flex:1 !important;
         padding:0 !important;
+        min-width:0 !important;
+    }}
+    div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:first-child {{
+        margin-right:2.4rem !important;
     }}
     div[data-testid="stHorizontalBlock"] .stButton > button {{
         border-radius:0 0 22px 22px !important;
@@ -3413,7 +3419,7 @@ def pantalla_hub():
     </div>
     """, unsafe_allow_html=True)
 
-    _, c1, c2, _ = st.columns([1, 3.4, 3.4, 1])
+    c1, c2 = st.columns(2)
     with c1:
         if st.button("Ver Módulo", key="btn_hub_stock", use_container_width=True):
             st.session_state["modulo"] = "stock"
