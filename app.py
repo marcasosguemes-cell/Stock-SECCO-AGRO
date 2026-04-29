@@ -3272,54 +3272,69 @@ def pantalla_hub():
     """Pantalla de inicio con acceso a Gestión de Stock y Gestión de Maquinaria."""
     rol = st.session_state.get("rol", "")
     mostrar_overlay = st.session_state.pop("hub_maq_clicked", False)
+
+    if mostrar_overlay and rol != "admin":
+        st.toast("🔧 **Sistema en Desarrollo** — Este módulo estará disponible próximamente.", icon="⚙️")
+
     maq_badge = '<div class="dev-badge">&#9881; En Desarrollo</div>' if rol != "admin" else ""
     maq_cls   = "hub-card hub-card-dev" if rol != "admin" else "hub-card"
 
-    # ── HTML visual (logo + tarjetas sin botones) ──────────────
     st.markdown(f"""
     <style>
+    /* ── Reset Streamlit padding ── */
+    [data-testid="stAppViewContainer"] > section > div:first-child {{
+        padding-top: 0 !important;
+    }}
+    .block-container {{
+        padding-top: 1rem !important;
+        padding-bottom: 0 !important;
+        max-width: 100% !important;
+    }}
+    /* ── Hub layout ── */
     .hub-page {{
-        display:flex; flex-direction:column;
-        align-items:center; justify-content:center;
-        padding:2rem 1rem 0 1rem;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 2rem 1rem 0 1rem;
     }}
     .hub-logo-wrap {{
-        background:#f7f3e8;
-        border:2px solid rgba(212,160,23,0.6);
-        border-radius:50%;
-        width:460px; height:276px;
-        display:flex; align-items:center; justify-content:center;
-        overflow:hidden;
-        box-shadow:0 8px 32px rgba(0,0,0,0.45);
-        margin-bottom:2.2rem;
+        background: #f7f3e8;
+        border: 2px solid rgba(212,160,23,0.6);
+        border-radius: 50%;
+        width: 460px; height: 276px;
+        display: flex; align-items: center; justify-content: center;
+        overflow: hidden;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.45);
+        margin-bottom: 2.2rem;
     }}
     .hub-logo {{ width:100%; height:100%; object-fit:contain; padding:15px; }}
     .hub-cards {{
-        display:flex; gap:2.4rem;
-        justify-content:center; align-items:stretch;
+        display: flex;
+        gap: 2.4rem;
+        justify-content: center;
     }}
     .hub-card {{
-        background:linear-gradient(160deg,rgba(60,60,70,0.97),rgba(40,40,52,0.99));
-        border:1px solid rgba(212,160,23,0.42);
-        border-radius:22px 22px 0 0;
-        padding:2.4rem 2rem 2rem 2rem;
-        text-align:center;
-        box-shadow:0 8px 24px rgba(0,0,0,0.4);
-        display:flex; flex-direction:column;
-        align-items:center; justify-content:center;
-        width:380px; min-height:260px; box-sizing:border-box;
+        background: linear-gradient(160deg,rgba(60,60,70,0.97),rgba(40,40,52,0.99));
+        border: 1px solid rgba(212,160,23,0.42);
+        border-radius: 22px 22px 0 0;
+        padding: 2.4rem 2rem 2rem 2rem;
+        text-align: center;
+        box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+        display: flex; flex-direction: column;
+        align-items: center; justify-content: center;
+        width: 340px; min-height: 260px; box-sizing: border-box;
     }}
     .hub-card-dev {{
-        background:linear-gradient(160deg,rgba(32,32,40,0.97),rgba(22,22,30,0.99));
-        border-color:rgba(212,160,23,0.22); opacity:0.85;
+        background: linear-gradient(160deg,rgba(32,32,40,0.97),rgba(22,22,30,0.99));
+        border-color: rgba(212,160,23,0.22); opacity: 0.85;
     }}
     .hub-card-icon {{ font-size:3.5rem; margin-bottom:0.85rem; line-height:1; }}
     .hub-card-title {{
         font-family:'Playfair Display',serif;
-        font-size:1.65rem; font-weight:700;
+        font-size:1.55rem; font-weight:700;
         color:#f0f0f5; margin:0 0 0.5rem 0;
     }}
-    .hub-card-desc {{ font-size:0.98rem; color:#9090a8; line-height:1.55; }}
+    .hub-card-desc {{ font-size:0.95rem; color:#9090a8; line-height:1.55; }}
     .dev-badge {{
         display:inline-flex; align-items:center; gap:5px;
         background:rgba(212,160,23,0.13);
@@ -3328,25 +3343,23 @@ def pantalla_hub():
         font-size:0.82rem; color:#d4a017;
         font-weight:700; margin-top:1rem;
     }}
-    /* Botones Streamlit: pegados bajo tarjetas, sin gap */
+    /* ── Botones: sin margen, pegados a las tarjetas ── */
     div[data-testid="stHorizontalBlock"] {{
-        margin-top: -8px !important;
-        padding: 0 !important;
-        gap: 0 !important;
+        display: flex !important;
         justify-content: center !important;
-    }}
-    div[data-testid="stHorizontalBlock"] > div {{
+        gap: 2.4rem !important;
+        margin-top: 0 !important;
         padding: 0 !important;
-        flex: 0 0 380px !important;
-        max-width: 380px !important;
-        min-width: 380px !important;
     }}
-    div[data-testid="stHorizontalBlock"] > div:nth-child(2) {{
-        margin-left: 2.4rem !important;
+    div[data-testid="stHorizontalBlock"] > div[data-testid="column"] {{
+        flex: 0 0 340px !important;
+        max-width: 340px !important;
+        min-width: 340px !important;
+        padding: 0 !important;
     }}
     div[data-testid="stHorizontalBlock"] .stButton > button {{
         border-radius: 0 0 22px 22px !important;
-        height: 58px !important;
+        height: 54px !important;
         font-size: 1rem !important;
         font-weight: 700 !important;
         margin: 0 !important;
@@ -3354,6 +3367,12 @@ def pantalla_hub():
         width: 100% !important;
         letter-spacing: 0.03em !important;
         box-shadow: 0 6px 18px rgba(0,0,0,0.3) !important;
+    }}
+    /* ── Toast styling ── */
+    div[data-testid="stToast"] {{
+        min-width: 420px !important;
+        font-size: 1.05rem !important;
+        padding: 1.2rem 1.8rem !important;
     }}
     </style>
     <div class="hub-page">
@@ -3377,14 +3396,14 @@ def pantalla_hub():
     </div>
     """, unsafe_allow_html=True)
 
-    # ── Botones Streamlit reales pegados bajo las tarjetas ─────
-    _, col1, _, col2, _ = st.columns([1, 3.8, 0.5, 3.8, 1])
-    with col1:
+    # Botones nativos Streamlit — columnas de ancho fijo 340px cada una
+    c1, c2 = st.columns(2)
+    with c1:
         if st.button("Ver Módulo", key="btn_hub_stock", use_container_width=True):
             st.session_state["modulo"] = "stock"
             st.session_state["pagina"] = "Dashboard"
             st.rerun()
-    with col2:
+    with c2:
         if rol == "admin":
             if st.button("Ver Módulo", key="btn_hub_maq", use_container_width=True):
                 st.session_state["modulo"] = "maquinaria"
@@ -3393,56 +3412,6 @@ def pantalla_hub():
             if st.button("Ver Módulo", key="btn_hub_maq_dev", use_container_width=True):
                 st.session_state["hub_maq_clicked"] = True
                 st.rerun()
-
-    # ── Overlay "Sistema en Desarrollo" via st_components ─────
-    if mostrar_overlay and rol != "admin":
-        # Inyectar overlay en el DOM padre via JS — evita el iframe limitado
-        st.markdown("""
-        <style>
-        @keyframes hubFadeInOut {
-            0%   { opacity:0; transform:translate(-50%,-50%) scale(0.88); }
-            10%  { opacity:1; transform:translate(-50%,-50%) scale(1); }
-            80%  { opacity:1; transform:translate(-50%,-50%) scale(1); }
-            100% { opacity:0; transform:translate(-50%,-50%) scale(0.96); }
-        }
-        #hub-dev-overlay {
-            position: fixed;
-            top: 50%; left: 50%;
-            transform: translate(-50%,-50%);
-            z-index: 999999;
-            background: linear-gradient(135deg,#0e0e18,#1c1808);
-            border: 1.5px solid rgba(212,160,23,0.75);
-            border-radius: 26px;
-            padding: 3rem 4rem;
-            text-align: center;
-            min-width: 440px;
-            box-shadow: 0 28px 70px rgba(0,0,0,0.92);
-            animation: hubFadeInOut 5s ease forwards;
-            pointer-events: none;
-        }
-        #hub-dev-bg {
-            position: fixed;
-            top:0; left:0; right:0; bottom:0;
-            background: rgba(0,0,0,0.6);
-            z-index: 999998;
-            animation: hubFadeInOut 5s ease forwards;
-            pointer-events: none;
-        }
-        .hub-ov-icon  { font-size:4rem; margin-bottom:0.6rem; }
-        .hub-ov-title { font-family:'Playfair Display',serif; font-size:2rem;
-                        font-weight:700; color:#d4a017; margin-bottom:0.4rem; }
-        .hub-ov-desc  { font-size:1rem; color:#a0a0b8; line-height:1.65; }
-        </style>
-        <div id="hub-dev-bg"></div>
-        <div id="hub-dev-overlay">
-            <div class="hub-ov-icon">🔧</div>
-            <div class="hub-ov-title">Sistema en Desarrollo</div>
-            <div class="hub-ov-desc">
-                Este módulo estará disponible próximamente.<br>
-                Contactá al administrador para más información.
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
 def pagina_maquinaria():
     """Módulo de Gestión de Maquinaria — solo admin (placeholder)."""
     if st.button("← Volver al Inicio", key="btn_back_hub_maq"):
