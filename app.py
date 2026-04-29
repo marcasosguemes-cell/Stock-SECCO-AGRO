@@ -3270,11 +3270,47 @@ def pagina_consolidado():
 
 def pantalla_hub():
     """Pantalla de inicio con acceso a Gestión de Stock y Gestión de Maquinaria."""
+    import time
     rol = st.session_state.get("rol", "")
 
-    # Toast para no-admin que clickea maquinaria
-    if st.session_state.pop("hub_maq_clicked", False) and rol != "admin":
-        st.toast("⚙️  Sistema en Desarrollo — Módulo disponible próximamente.", icon="🔧")
+    # ── Overlay "Sistema en Desarrollo" — mismo patrón que ingreso/egreso ──
+    _ts_maq = st.session_state.get("hub_maq_ts")
+    if _ts_maq and (now_arg() - _ts_maq).total_seconds() < 4:
+        st.markdown("""
+        <div style="
+            position:fixed;inset:0;z-index:99999;
+            background:rgba(0,0,0,0.75);backdrop-filter:blur(6px);
+            display:flex;align-items:center;justify-content:center;">
+          <div style="
+              background:linear-gradient(145deg,#1a1a10,#1c1808);
+              border:2px solid rgba(212,160,23,0.75);
+              border-radius:24px;padding:3rem 3.5rem;
+              text-align:center;box-shadow:0 24px 80px rgba(0,0,0,0.7);
+              max-width:480px;width:90%;
+              animation:popIn .35s cubic-bezier(.175,.885,.32,1.275);">
+            <div style="font-size:4rem;margin-bottom:1rem;">🔧</div>
+            <div style="color:#d4a017;font-weight:800;font-size:1.5rem;margin-bottom:0.5rem;">
+              Sistema en Desarrollo
+            </div>
+            <div style="color:#a09060;font-size:0.98rem;margin-bottom:1.5rem;">
+              Este módulo estará disponible próximamente.<br>
+              Contactá al administrador para más información.
+            </div>
+            <div style="color:#706040;font-size:0.8rem;">Cerrando automáticamente...</div>
+          </div>
+        </div>
+        <style>
+          @keyframes popIn {
+            from { opacity:0; transform:scale(0.75); }
+            to   { opacity:1; transform:scale(1); }
+          }
+        </style>
+        """, unsafe_allow_html=True)
+        time.sleep(3)
+        st.session_state.pop("hub_maq_ts", None)
+        st.rerun()
+    elif _ts_maq:
+        st.session_state.pop("hub_maq_ts", None)
 
     maq_badge = '<div class="dev-badge">&#9881; En Desarrollo</div>' if rol != "admin" else ""
     maq_cls   = "hub-card hub-card-dev" if rol != "admin" else "hub-card"
@@ -3330,14 +3366,12 @@ def pantalla_hub():
         font-size:0.82rem; color:#d4a017;
         font-weight:700; margin-top:1rem;
     }}
-    /* Botones pegados exactamente bajo cada tarjeta */
     div[data-testid="stHorizontalBlock"] {{
         display:flex !important;
         justify-content:center !important;
         gap:2.4rem !important;
         margin-top:0 !important;
         padding:0 !important;
-        width:100% !important;
     }}
     div[data-testid="stHorizontalBlock"] > div[data-testid="column"] {{
         flex:0 0 340px !important;
@@ -3353,7 +3387,7 @@ def pantalla_hub():
         font-weight:700 !important;
         margin:0 !important;
         padding:0 !important;
-        width:340px !important;
+        width:100% !important;
         letter-spacing:0.03em !important;
         box-shadow:0 6px 18px rgba(0,0,0,0.3) !important;
     }}
@@ -3392,7 +3426,7 @@ def pantalla_hub():
                 st.rerun()
         else:
             if st.button("Ver Módulo", key="btn_hub_maq_dev", use_container_width=True):
-                st.session_state["hub_maq_clicked"] = True
+                st.session_state["hub_maq_ts"] = now_arg()
                 st.rerun()
 def pagina_maquinaria():
     """Módulo de Gestión de Maquinaria — solo admin (placeholder)."""
