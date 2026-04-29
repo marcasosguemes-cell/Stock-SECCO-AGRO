@@ -3280,76 +3280,81 @@ def pantalla_hub():
         flex-direction: column;
         align-items: center;
         width: 100%;
-        padding: 2.5rem 0 1rem 0;
+        padding: 2.2rem 0 1rem 0;
     }
+    /* Óvalo igual al login: 420×252 escalado +30% = 546×328 */
     .hub-logo-wrap {
         background: #f7f3e8;
-        border: 3px solid rgba(212,160,23,0.7);
+        border: 2px solid rgba(212,160,23,0.55);
         border-radius: 50%;
-        width: 220px;
-        height: 220px;
+        width: 546px;
+        height: 328px;
         display: flex;
         align-items: center;
         justify-content: center;
         overflow: hidden;
-        box-shadow: 0 10px 40px rgba(0,0,0,0.55);
-        margin-bottom: 2.2rem;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.35);
+        margin-bottom: 2rem;
         flex-shrink: 0;
     }
     .hub-logo {
         width: 100%;
         height: 100%;
         object-fit: contain;
-        transform: scale(1.85);
-        transform-origin: center;
+        display: block;
+        padding: 15px;
     }
     .hub-cards-wrap {
         display: flex;
-        gap: 2rem;
+        gap: 2.6rem;
         justify-content: center;
         align-items: flex-start;
         flex-wrap: nowrap;
         margin-bottom: 0;
     }
+    /* Tarjetas +30%: 290px → 377px */
     .hub-slot {
         display: flex;
         flex-direction: column;
         align-items: stretch;
-        width: 290px;
+        width: 377px;
     }
     .hub-card {
         background: linear-gradient(160deg, rgba(60,60,70,0.97) 0%, rgba(40,40,52,0.99) 100%);
         border: 1px solid rgba(212,160,23,0.42);
-        border-radius: 20px;
-        padding: 2rem 1.8rem 1.6rem 1.8rem;
+        border-radius: 24px;
+        padding: 2.6rem 2.3rem 2rem 2.3rem;
         text-align: center;
         box-shadow: 0 8px 30px rgba(0,0,0,0.45);
         display: flex;
         flex-direction: column;
         align-items: center;
         box-sizing: border-box;
-        min-height: 210px;
-        margin-bottom: 0.8rem;
+        min-height: 273px;
+        margin-bottom: 1rem;
     }
     .hub-card-dev {
         background: linear-gradient(160deg, rgba(32,32,40,0.97) 0%, rgba(22,22,30,0.99) 100%);
         border-color: rgba(212,160,23,0.2);
         opacity: 0.82;
     }
+    /* Ícono +30%: 2.6 → 3.4rem */
     .hub-card-icon {
-        font-size: 2.6rem;
-        margin-bottom: 0.75rem;
+        font-size: 3.4rem;
+        margin-bottom: 1rem;
         line-height: 1;
     }
+    /* Título +30%: 1.15 → 1.5rem */
     .hub-card-title {
         font-family: 'Playfair Display', serif;
-        font-size: 1.15rem;
+        font-size: 1.5rem;
         font-weight: 700;
         color: #f0f0f5;
-        margin: 0 0 0.45rem 0;
+        margin: 0 0 0.55rem 0;
     }
+    /* Descripción +30%: 0.77 → 1rem */
     .hub-card-desc {
-        font-size: 0.77rem;
+        font-size: 1rem;
         color: #9090a8;
         line-height: 1.55;
         margin: 0;
@@ -3361,24 +3366,13 @@ def pantalla_hub():
         background: rgba(212,160,23,0.13);
         border: 1px solid rgba(212,160,23,0.42);
         border-radius: 20px;
-        padding: 3px 13px;
-        font-size: 0.68rem;
+        padding: 4px 16px;
+        font-size: 0.88rem;
         color: #d4a017;
         letter-spacing: 0.07em;
         font-weight: 700;
-        margin-top: 0.9rem;
+        margin-top: 1.1rem;
         white-space: nowrap;
-    }
-    /* Botones hub: ancho exacto de la tarjeta, altura compacta */
-    .hub-btn-wrap {
-        width: 290px;
-    }
-    .hub-btn-wrap > div[data-testid="stButton"] > button {
-        width: 100% !important;
-        padding: 0.52rem 1rem !important;
-        font-size: 0.85rem !important;
-        border-radius: 12px !important;
-        font-weight: 600 !important;
     }
     /* Mensaje en desarrollo */
     .hub-dev-msg {
@@ -3388,16 +3382,16 @@ def pantalla_hub():
         padding: 1.1rem 1.5rem;
         text-align: center;
         margin-top: 0.5rem;
-        width: 290px;
+        width: 377px;
     }
     </style>
     """, unsafe_allow_html=True)
 
     # ── Columna central única ──────────────────────────────────
-    _, centro, _ = st.columns([1, 2.2, 1])
+    _, centro, _ = st.columns([0.3, 3.4, 0.3])
     with centro:
 
-        # Logo centrado
+        # Logo óvalo (igual al login: ancho > alto)
         st.markdown("""
         <div class="hub-outer">
             <div class="hub-logo-wrap">
