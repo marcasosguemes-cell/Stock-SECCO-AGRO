@@ -3271,104 +3271,76 @@ def pagina_consolidado():
 def pantalla_hub():
     """Pantalla de inicio con acceso a Gestión de Stock y Gestión de Maquinaria."""
     rol = st.session_state.get("rol", "")
-
-    # ── Mostrar overlay si no-admin clickeó maquinaria ────────
     mostrar_overlay = st.session_state.pop("hub_maq_clicked", False)
 
     maq_badge = '<div class="dev-badge">&#9881; En Desarrollo</div>' if rol != "admin" else ""
     maq_cls   = "hub-card hub-card-dev" if rol != "admin" else "hub-card"
 
-    # ── CSS + HTML del hub ────────────────────────────────────
     st.markdown(f"""
     <style>
     .hub-page {{
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        min-height: 88vh;
-        padding: 2rem 1rem;
-        box-sizing: border-box;
+        display: flex; flex-direction: column;
+        align-items: center; justify-content: center;
+        min-height: 88vh; padding: 2rem 1rem; box-sizing: border-box;
     }}
     .hub-logo-wrap {{
         background: #f7f3e8;
         border: 2px solid rgba(212,160,23,0.55);
         border-radius: 50%;
-        width: 460px;
-        height: 276px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
+        width: 460px; height: 276px;
+        display: flex; align-items: center; justify-content: center;
         overflow: hidden;
         box-shadow: 0 8px 32px rgba(0,0,0,0.35);
-        margin-bottom: 2.4rem;
-        flex-shrink: 0;
+        margin-bottom: 2.4rem; flex-shrink: 0;
     }}
-    .hub-logo {{
-        width: 100%;
-        height: 100%;
-        object-fit: contain;
-        display: block;
-        padding: 15px;
-    }}
+    .hub-logo {{ width:100%; height:100%; object-fit:contain; display:block; padding:15px; }}
     .hub-grid {{
         display: grid;
         grid-template-columns: 380px 380px;
-        grid-template-rows: auto auto;
         column-gap: 2.4rem;
-        row-gap: 0;
         justify-content: center;
     }}
     .hub-card {{
-        background: linear-gradient(160deg, rgba(60,60,70,0.97) 0%, rgba(40,40,52,0.99) 100%);
+        background: linear-gradient(160deg,rgba(60,60,70,0.97) 0%,rgba(40,40,52,0.99) 100%);
         border: 1px solid rgba(212,160,23,0.42);
-        border-radius: 22px 22px 0 0;
-        padding: 2.4rem 2rem 2rem 2rem;
+        border-radius: 22px; padding: 2.4rem 2rem 2rem 2rem;
         text-align: center;
         box-shadow: 0 8px 24px rgba(0,0,0,0.4);
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        min-height: 260px;
-        box-sizing: border-box;
+        display: flex; flex-direction: column;
+        align-items: center; justify-content: center;
+        min-height: 260px; box-sizing: border-box;
     }}
     .hub-card-dev {{
-        background: linear-gradient(160deg, rgba(32,32,40,0.97) 0%, rgba(22,22,30,0.99) 100%);
-        border-color: rgba(212,160,23,0.22);
-        opacity: 0.84;
+        background: linear-gradient(160deg,rgba(32,32,40,0.97) 0%,rgba(22,22,30,0.99) 100%);
+        border-color: rgba(212,160,23,0.22); opacity: 0.84;
     }}
-    .hub-card-icon {{ font-size: 3.6rem; margin-bottom: 0.9rem; line-height: 1; }}
+    .hub-card-icon {{ font-size:3.6rem; margin-bottom:0.9rem; line-height:1; }}
     .hub-card-title {{
-        font-family: 'Playfair Display', serif;
-        font-size: 1.65rem; font-weight: 700;
-        color: #f0f0f5; margin: 0 0 0.5rem 0;
+        font-family:'Playfair Display',serif; font-size:1.65rem;
+        font-weight:700; color:#f0f0f5; margin:0 0 0.5rem 0;
     }}
-    .hub-card-desc {{ font-size: 1rem; color: #9090a8; line-height: 1.55; margin: 0; }}
+    .hub-card-desc {{ font-size:1rem; color:#9090a8; line-height:1.55; margin:0; }}
     .dev-badge {{
-        display: inline-flex; align-items: center; gap: 5px;
-        background: rgba(212,160,23,0.13);
-        border: 1px solid rgba(212,160,23,0.42);
-        border-radius: 20px; padding: 4px 16px;
-        font-size: 0.85rem; color: #d4a017;
-        letter-spacing: 0.07em; font-weight: 700; margin-top: 1rem;
+        display:inline-flex; align-items:center; gap:5px;
+        background:rgba(212,160,23,0.13); border:1px solid rgba(212,160,23,0.42);
+        border-radius:20px; padding:4px 16px; font-size:0.85rem;
+        color:#d4a017; letter-spacing:0.07em; font-weight:700; margin-top:1rem;
     }}
-    .hub-btn {{
-        width: 100%; padding: 0.85rem 1rem;
-        background: linear-gradient(135deg, #d4a017, #b87a0c);
-        color: #1a1a1f; border: none;
-        border-radius: 0 0 22px 22px;
-        font-size: 1rem; font-weight: 700;
-        font-family: 'DM Sans', sans-serif;
-        cursor: pointer;
-        box-shadow: 0 6px 18px rgba(0,0,0,0.3);
-        transition: all 0.22s ease;
-        box-sizing: border-box;
-        letter-spacing: 0.02em;
+    /* Botones Streamlit pegados abajo de las tarjetas */
+    div[data-testid="stHorizontalBlock"] {{
+        margin-top: -2px !important;
+        padding: 0 !important;
     }}
-    .hub-btn:hover {{
-        background: linear-gradient(135deg, #e5b52a, #c98a1a);
-        box-shadow: 0 8px 22px rgba(0,0,0,0.4);
+    div[data-testid="stHorizontalBlock"] > div {{
+        padding: 0 !important;
+    }}
+    div[data-testid="stHorizontalBlock"] button {{
+        border-radius: 0 0 22px 22px !important;
+        padding: 0.85rem 1rem !important;
+        font-size: 1rem !important;
+        margin: 0 !important;
+        width: 100% !important;
+        display: block !important;
     }}
     </style>
     <div class="hub-page">
@@ -3388,17 +3360,11 @@ def pantalla_hub():
                 <div class="hub-card-desc">Seguimiento de mantenimiento preventivo y correctivo de equipos.</div>
                 {maq_badge}
             </div>
-            <form id="f1" style="margin:0">
-              <button class="hub-btn" type="submit" form="f1">Ver Módulo</button>
-            </form>
-            <form id="f2" style="margin:0">
-              <button class="hub-btn" type="submit" form="f2">Ver Módulo</button>
-            </form>
         </div>
     </div>
     """, unsafe_allow_html=True)
 
-    # ── Botones reales de Streamlit (visibles, alineados bajo el grid HTML) ──
+    # Botones Streamlit — uno solo por módulo, alineados bajo las tarjetas
     _, col1, col2, _ = st.columns([0.55, 1, 1, 0.55])
     with col1:
         if st.button("Ver Módulo", key="btn_hub_stock", use_container_width=True):
@@ -3415,76 +3381,56 @@ def pantalla_hub():
                 st.session_state["hub_maq_clicked"] = True
                 st.rerun()
 
-    # CSS para ocultar los formularios HTML (usamos solo los botones Streamlit)
-    st.markdown("""
-    <style>
-    /* Ocultar los form/button HTML del grid — solo son placeholders visuales */
-    .hub-grid form { pointer-events: none; }
-    /* Superponer botones Streamlit sobre los placeholder HTML */
-    div[data-testid="stHorizontalBlock"] {
-        margin-top: -54px !important;
-        position: relative !important;
-        z-index: 10 !important;
-    }
-    div[data-testid="stHorizontalBlock"] > div:first-child { padding-left: 0 !important; }
-    div[data-testid="stHorizontalBlock"] > div:last-child  { padding-right: 0 !important; }
-    div[data-testid="stHorizontalBlock"] button {
-        border-radius: 0 0 22px 22px !important;
-        padding: 0.85rem 1rem !important;
-        font-size: 1rem !important;
-        margin-top: 0 !important;
-    }
-    </style>
-    """, unsafe_allow_html=True)
-
-    # ── Overlay "Sistema en Desarrollo" con st.components ────
+    # Overlay "Sistema en Desarrollo" — se muestra centrado en pantalla via st.components
     if mostrar_overlay and rol != "admin":
         st_components.html("""
-        <!DOCTYPE html>
-        <html>
-        <head>
+        <!DOCTYPE html><html><head>
         <style>
-            body { margin:0; background:transparent; overflow:hidden; }
-            @keyframes fadeInOut {
-                0%   { opacity:0; transform:translate(-50%,-50%) scale(0.92); }
-                8%   { opacity:1; transform:translate(-50%,-50%) scale(1); }
-                82%  { opacity:1; transform:translate(-50%,-50%) scale(1); }
-                100% { opacity:0; transform:translate(-50%,-50%) scale(0.96); }
-            }
-            .overlay {
-                position: fixed;
-                top: 50%; left: 50%;
-                transform: translate(-50%,-50%);
-                z-index: 99999;
-                background: linear-gradient(135deg,rgba(14,14,20,0.98),rgba(24,20,10,0.98));
-                border: 1.5px solid rgba(212,160,23,0.65);
-                border-radius: 26px;
-                padding: 3rem 4rem;
-                text-align: center;
-                min-width: 460px;
-                box-shadow: 0 28px 70px rgba(0,0,0,0.85);
-                animation: fadeInOut 5s ease forwards;
-                pointer-events: none;
-                font-family: Georgia, serif;
-            }
-            .ov-icon  { font-size: 4.5rem; margin-bottom: 0.7rem; }
-            .ov-title { font-size: 2rem; font-weight: 700; color: #d4a017; margin-bottom: 0.5rem; }
-            .ov-desc  { font-size: 1.1rem; color: #a0a0b8; line-height: 1.65; }
+        * { margin:0; padding:0; box-sizing:border-box; }
+        html, body { background:transparent; overflow:hidden; width:100%; height:100%; }
+        @keyframes fadeInOut {
+            0%   { opacity:0; transform:scale(0.90); }
+            10%  { opacity:1; transform:scale(1); }
+            80%  { opacity:1; transform:scale(1); }
+            100% { opacity:0; transform:scale(0.96); }
+        }
+        .overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            display: flex; align-items: center; justify-content: center;
+            background: rgba(0,0,0,0.55);
+            z-index: 99999;
+            animation: fadeInOut 5s ease forwards;
+            pointer-events: none;
+        }
+        .box {
+            background: linear-gradient(135deg,#0e0e18,#1c1808);
+            border: 1.5px solid rgba(212,160,23,0.7);
+            border-radius: 26px;
+            padding: 3rem 4rem;
+            text-align: center;
+            min-width: 420px;
+            box-shadow: 0 28px 70px rgba(0,0,0,0.9);
+        }
+        .icon  { font-size:4rem; margin-bottom:0.7rem; }
+        .title { font-family:Georgia,serif; font-size:2rem; font-weight:700;
+                 color:#d4a017; margin-bottom:0.5rem; }
+        .desc  { font-family:Arial,sans-serif; font-size:1.05rem;
+                 color:#a0a0b8; line-height:1.65; }
         </style>
-        </head>
-        <body>
-            <div class="overlay">
-                <div class="ov-icon">🔧</div>
-                <div class="ov-title">Sistema en Desarrollo</div>
-                <div class="ov-desc">
+        </head><body>
+        <div class="overlay">
+            <div class="box">
+                <div class="icon">🔧</div>
+                <div class="title">Sistema en Desarrollo</div>
+                <div class="desc">
                     Este módulo estará disponible próximamente.<br>
                     Contactá al administrador para más información.
                 </div>
             </div>
-        </body>
-        </html>
-        """, height=300, scrolling=False)
-
+        </div>
+        </body></html>
+        """, height=400, scrolling=False)
 def pagina_maquinaria():
     """Módulo de Gestión de Maquinaria — solo admin (placeholder)."""
     if st.button("← Volver al Inicio", key="btn_back_hub_maq"):
