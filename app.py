@@ -3273,7 +3273,7 @@ def pantalla_hub():
     import time
     rol = st.session_state.get("rol", "")
 
-    # ── Overlay "Sistema en Desarrollo" — mismo patrón que ingreso/egreso ──
+    # Overlay "Sistema en Desarrollo" — mismo patrón que ingreso/egreso
     _ts_maq = st.session_state.get("hub_maq_ts")
     if _ts_maq and (now_arg() - _ts_maq).total_seconds() < 4:
         st.markdown("""
@@ -3319,9 +3319,8 @@ def pantalla_hub():
     <style>
     .hub-page {{
         display:flex; flex-direction:column;
-        align-items:center; justify-content:center;
+        align-items:center;
         padding:2rem 1rem 0 1rem;
-        width:100%;
     }}
     .hub-logo-wrap {{
         background:#f7f3e8;
@@ -3335,11 +3334,9 @@ def pantalla_hub():
     }}
     .hub-logo {{ width:100%; height:100%; object-fit:contain; padding:15px; }}
     .hub-cards {{
-        display:flex; gap:2.4rem; justify-content:center;
-        width:100%;
-        max-width:760px;
-        margin-left:auto;
-        margin-right:auto;
+        display:grid;
+        grid-template-columns: 340px 340px;
+        gap:2.4rem;
     }}
     .hub-card {{
         background:linear-gradient(160deg,rgba(60,60,70,0.97),rgba(40,40,52,0.99));
@@ -3350,7 +3347,7 @@ def pantalla_hub():
         box-shadow:0 8px 24px rgba(0,0,0,0.4);
         display:flex; flex-direction:column;
         align-items:center; justify-content:center;
-        flex:1; min-height:260px; box-sizing:border-box;
+        min-height:260px; box-sizing:border-box;
     }}
     .hub-card-dev {{
         background:linear-gradient(160deg,rgba(32,32,40,0.97),rgba(22,22,30,0.99));
@@ -3371,18 +3368,19 @@ def pantalla_hub():
         font-size:0.82rem; color:#d4a017;
         font-weight:700; margin-top:1rem;
     }}
+    /* Botones: exactamente 340px cada uno, gap 2.4rem, centrados */
     div[data-testid="stHorizontalBlock"] {{
-        display:flex !important;
-        justify-content:center !important;
+        display:grid !important;
+        grid-template-columns: 340px 340px !important;
         gap:2.4rem !important;
         margin-top:-12px !important;
         padding:0 !important;
-        max-width:760px !important;
+        width:fit-content !important;
         margin-left:auto !important;
         margin-right:auto !important;
     }}
     div[data-testid="stHorizontalBlock"] > div[data-testid="column"] {{
-        flex:1 !important;
+        width:340px !important;
         padding:0 !important;
         min-width:0 !important;
     }}
@@ -3393,7 +3391,7 @@ def pantalla_hub():
         font-weight:700 !important;
         margin:0 !important;
         padding:0 !important;
-        width:100% !important;
+        width:340px !important;
         letter-spacing:0.03em !important;
         box-shadow:0 6px 18px rgba(0,0,0,0.3) !important;
     }}
@@ -3419,6 +3417,7 @@ def pantalla_hub():
     </div>
     """, unsafe_allow_html=True)
 
+    # Botones Streamlit — dos columnas simétricas
     c1, c2 = st.columns(2)
     with c1:
         if st.button("Ver Módulo", key="btn_hub_stock", use_container_width=True):
