@@ -3271,12 +3271,44 @@ def pagina_consolidado():
 def pantalla_hub():
     """Pantalla de inicio con acceso a Gestión de Stock y Gestión de Maquinaria."""
     rol = st.session_state.get("rol", "")
-    mostrar_overlay = st.session_state.pop("hub_maq_clicked", False)
 
+    # Leer acción desde query_params (señal del iframe → Streamlit)
+    params = st.query_params
+    hub_action = params.get("hub", None)
+    if hub_action == "stock":
+        st.query_params.clear()
+        st.session_state["modulo"] = "stock"
+        st.session_state["pagina"] = "Dashboard"
+        st.rerun()
+    elif hub_action == "maquinaria":
+        st.query_params.clear()
+        if rol == "admin":
+            st.session_state["modulo"] = "maquinaria"
+            st.rerun()
+        else:
+            st.session_state["hub_maq_clicked"] = True
+            st.rerun()
+
+    mostrar_overlay = st.session_state.pop("hub_maq_clicked", False)
     maq_badge = '<div class="dev-badge">&#9881; En Desarrollo</div>' if rol != "admin" else ""
     maq_cls   = "hub-card hub-card-dev" if rol != "admin" else "hub-card"
 
-    # Todo el hub en un solo st_components.html — control total del layout
+    # Obtener URL base para construir los links
+    try:
+        base_url = st.context.headers.get("origin", "")
+    except Exception:
+        base_url = ""
+
+    overlay_js = ""
+    if mostrar_overlay:
+        overlay_js = """
+        window.addEventListener('load', function() {
+            var ov = document.getElementById('ov');
+            ov.style.display = 'flex';
+            ov.classList.add('show');
+            setTimeout(function(){ ov.style.display='none'; }, 5200);
+        });"""
+
     html_hub = f"""<!DOCTYPE html>
 <html>
 <head>
@@ -3287,7 +3319,7 @@ html, body {{ background:transparent; overflow-x:hidden; font-family:'DM Sans',s
 .hub-page {{
     display:flex; flex-direction:column;
     align-items:center; justify-content:center;
-    min-height:95vh; padding:2rem 1rem;
+    min-height:92vh; padding:2rem 1rem;
 }}
 .hub-logo-wrap {{
     background:#f7f3e8;
@@ -3346,35 +3378,30 @@ html, body {{ background:transparent; overflow-x:hidden; font-family:'DM Sans',s
     font-family:'DM Sans',sans-serif;
     cursor:pointer; letter-spacing:0.03em;
     box-shadow:0 6px 18px rgba(0,0,0,0.3);
-    transition:background 0.2s ease, transform 0.15s ease;
+    transition:background 0.2s ease;
+    text-decoration:none; display:flex;
+    align-items:center; justify-content:center;
 }}
-.hub-btn:hover {{
-    background:linear-gradient(135deg,#e5b52a,#c98a1a);
-    transform:translateY(-1px);
-}}
-/* OVERLAY */
+.hub-btn:hover {{ background:linear-gradient(135deg,#e5b52a,#c98a1a); }}
 @keyframes fadeInOut {{
     0%   {{ opacity:0; transform:scale(0.90); }}
     10%  {{ opacity:1; transform:scale(1); }}
     80%  {{ opacity:1; transform:scale(1); }}
     100% {{ opacity:0; transform:scale(0.96); }}
 }}
-.overlay-bg {{
+#ov {{
     display:none; position:fixed;
     top:0; left:0; right:0; bottom:0;
-    background:rgba(0,0,0,0.6);
+    background:rgba(0,0,0,0.65);
     align-items:center; justify-content:center;
     z-index:9999; pointer-events:none;
 }}
-.overlay-bg.show {{
-    display:flex;
-    animation:fadeInOut 5s ease forwards;
-}}
-.overlay-box {{
+#ov.show {{ animation:fadeInOut 5.2s ease forwards; }}
+.ov-box {{
     background:linear-gradient(135deg,#0e0e18,#1c1808);
     border:1.5px solid rgba(212,160,23,0.7);
     border-radius:26px; padding:3rem 4rem;
-    text-align:center; min-width:400px;
+    text-align:center; min-width:420px;
     box-shadow:0 28px 70px rgba(0,0,0,0.9);
 }}
 .ov-icon  {{ font-size:4rem; margin-bottom:0.6rem; }}
@@ -3390,7 +3417,6 @@ html, body {{ background:transparent; overflow-x:hidden; font-family:'DM Sans',s
              class="hub-logo" alt="Logo">
     </div>
     <div class="hub-grid">
-        <!-- Tarjetas -->
         <div class="hub-card">
             <div class="hub-card-icon">📦</div>
             <div class="hub-card-title">Gestión de Stock</div>
@@ -3402,40 +3428,24 @@ html, body {{ background:transparent; overflow-x:hidden; font-family:'DM Sans',s
             <div class="hub-card-desc">Seguimiento de mantenimiento preventivo y correctivo de equipos.</div>
             {maq_badge}
         </div>
-        <!-- Botones pegados -->
-        <button class="hub-btn" onclick="goStock()">Ver Módulo</button>
-        <button class="hub-btn" onclick="goMaq()">Ver Módulo</button>
+        <a class="hub-btn" href="?hub=stock" target="_parent">Ver Módulo</a>
+        <a class="hub-btn" href="?hub=maquinaria" target="_parent">Ver Módulo</a>
     </div>
 </div>
-<!-- Overlay -->
-<div class="overlay-bg" id="ov"></div>
-<script>
-function goStock() {{
-    window.parent.postMessage({{type:'streamlit:setComponentValue', value:'stock'}}, '*');
-}}
-function goMaq() {{
-    window.parent.postMessage({{type:'streamlit:setComponentValue', value:'maquinaria'}}, '*');
-}}
-{'// Auto-show overlay' if mostrar_overlay else ''}
-{'document.getElementById("ov").innerHTML = \'<div class="overlay-box"><div class="ov-icon">🔧</div><div class="ov-title">Sistema en Desarrollo</div><div class="ov-desc">Este módulo estará disponible próximamente.<br>Contactá al administrador para más información.</div></div>\'; document.getElementById("ov").classList.add("show"); setTimeout(function(){{document.getElementById("ov").classList.remove("show");}}, 5100);' if mostrar_overlay else ''}
-</script>
+<div id="ov">
+    <div class="ov-box">
+        <div class="ov-icon">🔧</div>
+        <div class="ov-title">Sistema en Desarrollo</div>
+        <div class="ov-desc">
+            Este módulo estará disponible próximamente.<br>
+            Contactá al administrador para más información.
+        </div>
+    </div>
+</div>
+<script>{overlay_js}</script>
 </body></html>"""
 
-    # st_components.html con key para capturar clicks de los botones HTML
-    click = st_components.html(html_hub, height=700, scrolling=False)
-
-    # Procesar el valor devuelto por postMessage → setComponentValue
-    if click == "stock":
-        st.session_state["modulo"] = "stock"
-        st.session_state["pagina"] = "Dashboard"
-        st.rerun()
-    elif click == "maquinaria":
-        if rol == "admin":
-            st.session_state["modulo"] = "maquinaria"
-            st.rerun()
-        else:
-            st.session_state["hub_maq_clicked"] = True
-            st.rerun()
+    st_components.html(html_hub, height=700, scrolling=False)
 def pagina_maquinaria():
     """Módulo de Gestión de Maquinaria — solo admin (placeholder)."""
     if st.button("← Volver al Inicio", key="btn_back_hub_maq"):
