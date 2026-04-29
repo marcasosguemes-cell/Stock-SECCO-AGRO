@@ -3271,182 +3271,182 @@ def pantalla_hub():
     """Pantalla de inicio con acceso a Gestión de Stock y Gestión de Maquinaria."""
     rol = st.session_state.get("rol", "")
 
-    # Determinar contenido tarjeta maquinaria según rol
-    if rol == "admin":
-        maq_card_extra = ""
-        maq_card_class = "hub-card"
-    else:
-        maq_card_extra = """
-        <div class="dev-badge">
-            <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 100 100"
-                 style="display:inline-block;vertical-align:middle;margin-right:4px;">
-              <circle cx="28" cy="52" r="16" fill="none" stroke="currentColor" stroke-width="7"/>
-              <circle cx="28" cy="52" r="6"  fill="none" stroke="currentColor" stroke-width="5"/>
-              <circle cx="28" cy="52" r="2.5" fill="currentColor"/>
-              <circle cx="72" cy="52" r="11" fill="none" stroke="currentColor" stroke-width="7"/>
-              <circle cx="72" cy="52" r="4"  fill="none" stroke="currentColor" stroke-width="5"/>
-              <circle cx="72" cy="52" r="2"  fill="currentColor"/>
-              <line x1="28" y1="36" x2="72" y2="41" stroke="currentColor" stroke-width="6" stroke-linecap="round"/>
-              <line x1="28" y1="68" x2="72" y2="63" stroke="currentColor" stroke-width="6" stroke-linecap="round"/>
-            </svg>
-            En Desarrollo
-        </div>
-        <div class="dev-soon">PRÓXIMAMENTE</div>
-        """
-        maq_card_class = "hub-card hub-card-dev"
+    # Manejar click en maquinaria para no-admin
+    if st.session_state.get("hub_maq_clicked") and rol != "admin":
+        st.session_state.pop("hub_maq_clicked", None)
 
-    st.markdown(f"""
+    st.markdown("""
     <style>
-    .hub-page {{
+    .hub-page {
         display: flex;
         flex-direction: column;
         align-items: center;
-        padding: 2.5rem 1rem 3rem 1rem;
-    }}
-    .hub-logo-wrap {{
+        padding: 2rem 1rem 2rem 1rem;
+    }
+    .hub-logo-wrap {
         background: #f7f3e8;
         border: 2.5px solid rgba(212,160,23,0.65);
         border-radius: 50%;
-        width: 210px;
-        height: 210px;
+        width: 180px;
+        height: 180px;
         display: flex;
         align-items: center;
         justify-content: center;
         overflow: hidden;
         box-shadow: 0 8px 40px rgba(0,0,0,0.5);
-        margin-bottom: 1.4rem;
+        margin-bottom: 1.8rem;
         flex-shrink: 0;
-    }}
-    .hub-logo {{
+    }
+    .hub-logo {
         width: 100%;
         height: 100%;
         object-fit: contain;
         transform: scale(1.85);
         transform-origin: center;
-    }}
-    .hub-title {{
-        font-family: 'Playfair Display', serif;
-        font-size: 1.9rem;
-        font-weight: 700;
-        color: #d4a017;
-        letter-spacing: 0.05em;
-        margin: 0 0 0.2rem 0;
-        text-align: center;
-    }}
-    .hub-subtitle {{
-        font-size: 0.82rem;
-        color: #a0a0b0;
-        letter-spacing: 0.1em;
-        margin: 0 0 2.5rem 0;
-        text-align: center;
-    }}
-    .hub-cards-row {{
+    }
+    .hub-cards-row {
         display: flex;
-        gap: 2.2rem;
+        gap: 1.8rem;
         justify-content: center;
         align-items: stretch;
         flex-wrap: wrap;
         width: 100%;
-        max-width: 720px;
-    }}
-    .hub-card {{
+        max-width: 620px;
+    }
+    .hub-card {
         background: linear-gradient(160deg, rgba(58,58,68,0.96) 0%, rgba(38,38,48,0.98) 100%);
         border: 1px solid rgba(212,160,23,0.38);
-        border-radius: 22px;
-        padding: 2.4rem 2rem 1.6rem 2rem;
-        width: 300px;
-        min-height: 260px;
+        border-radius: 18px;
+        padding: 1.8rem 1.5rem 1.4rem 1.5rem;
+        width: 260px;
         text-align: center;
         box-shadow: 0 8px 32px rgba(0,0,0,0.4);
         display: flex;
         flex-direction: column;
         align-items: center;
-        justify-content: flex-start;
         box-sizing: border-box;
-    }}
-    .hub-card-dev {{
+    }
+    .hub-card-dev {
         background: linear-gradient(160deg, rgba(34,34,42,0.96) 0%, rgba(25,25,32,0.98) 100%);
         border-color: rgba(212,160,23,0.18);
-        opacity: 0.82;
-    }}
-    .hub-card-icon {{
-        font-size: 3.2rem;
-        margin-bottom: 1rem;
+        opacity: 0.80;
+    }
+    .hub-card-icon {
+        font-size: 2.4rem;
+        margin-bottom: 0.7rem;
         line-height: 1;
-    }}
-    .hub-card-title {{
+    }
+    .hub-card-title {
         font-family: 'Playfair Display', serif;
-        font-size: 1.25rem;
+        font-size: 1.1rem;
         font-weight: 700;
         color: #f0f0f5;
-        margin: 0 0 0.55rem 0;
-    }}
-    .hub-card-desc {{
-        font-size: 0.8rem;
+        margin: 0 0 0.4rem 0;
+    }
+    .hub-card-desc {
+        font-size: 0.76rem;
         color: #a0a0b0;
-        line-height: 1.6;
-        margin: 0 0 auto 0;
-    }}
-    .dev-badge {{
+        line-height: 1.5;
+        margin: 0;
+    }
+    .dev-badge {
         display: inline-flex;
         align-items: center;
         gap: 5px;
         background: rgba(212,160,23,0.15);
         border: 1px solid rgba(212,160,23,0.45);
         border-radius: 20px;
-        padding: 4px 14px;
-        font-size: 0.72rem;
+        padding: 3px 12px;
+        font-size: 0.68rem;
         color: #d4a017;
         letter-spacing: 0.07em;
         font-weight: 700;
-        margin-top: 1.2rem;
-    }}
-    .dev-soon {{
-        font-size: 0.68rem;
-        color: rgba(212,160,23,0.4);
-        letter-spacing: 0.14em;
-        font-weight: 600;
-        margin-top: 0.5rem;
-    }}
+        margin-top: 0.9rem;
+    }
+    /* Achicar botones hub */
+    div[data-testid="stHorizontalBlock"] div[data-testid="stButton"] > button {
+        padding: 0.4rem 1rem !important;
+        font-size: 0.82rem !important;
+        border-radius: 10px !important;
+    }
     </style>
+    """, unsafe_allow_html=True)
 
-    <div class="hub-page">
-        <div class="hub-logo-wrap">
-            <img src="https://raw.githubusercontent.com/marcasosguemes-cell/Stock-SECCO-AGRO/main/Logo.png"
-                 class="hub-logo" alt="Logo SECCO AGRO">
+    # Logo sin título
+    _, col_logo, _ = st.columns([1, 1, 1])
+    with col_logo:
+        st.markdown("""
+        <div class="hub-page">
+            <div class="hub-logo-wrap">
+                <img src="https://raw.githubusercontent.com/marcasosguemes-cell/Stock-SECCO-AGRO/main/Logo.png"
+                     class="hub-logo" alt="Logo SECCO AGRO">
+            </div>
         </div>
-        <div class="hub-title">SECCO AGRO</div>
-        <div class="hub-subtitle">LA SONIA &nbsp;·&nbsp; SAN GUILLERMO &nbsp;·&nbsp; CAMBA PORA</div>
-        <div class="hub-cards-row">
+        """, unsafe_allow_html=True)
+
+    # Tarjetas
+    _, cc, _ = st.columns([0.4, 3, 0.4])
+    with cc:
+        st.markdown("""
+        <div style="display:flex;gap:1.8rem;justify-content:center;flex-wrap:wrap;margin-bottom:0.8rem;">
             <div class="hub-card">
                 <div class="hub-card-icon">📦</div>
                 <div class="hub-card-title">Gestión de Stock</div>
                 <div class="hub-card-desc">Control de ingresos, egresos, inventario y reportes por establecimiento.</div>
             </div>
-            <div class="{maq_card_class}">
+            <div class="hub-card hub-card-dev">
                 <div class="hub-card-icon">⚙️</div>
                 <div class="hub-card-title">Gestión de Maquinaria</div>
                 <div class="hub-card-desc">Seguimiento de mantenimiento preventivo y correctivo de equipos.</div>
-                {maq_card_extra}
+                <div class="dev-badge">&#9881; En Desarrollo</div>
             </div>
         </div>
-    </div>
-    """, unsafe_allow_html=True)
+        """, unsafe_allow_html=True)
 
-    # Botones Streamlit alineados bajo las tarjetas
-    _, col1, col2, _ = st.columns([0.7, 1.5, 1.5, 0.7])
-    with col1:
-        if st.button("Ingresar →", key="btn_hub_stock", use_container_width=True):
-            st.session_state["modulo"] = "stock"
-            st.session_state["pagina"] = "Dashboard"
-            st.rerun()
-    with col2:
-        if rol == "admin":
-            if st.button("Ingresar →", key="btn_hub_maquinaria", use_container_width=True):
-                st.session_state["modulo"] = "maquinaria"
+        # Botones debajo de cada tarjeta
+        b1, b2 = st.columns(2)
+        with b1:
+            if st.button("Ingresar →", key="btn_hub_stock", use_container_width=True):
+                st.session_state["modulo"] = "stock"
+                st.session_state["pagina"] = "Dashboard"
                 st.rerun()
-        else:
-            st.button("En Desarrollo", key="btn_hub_maq_disabled", disabled=True, use_container_width=True)
+        with b2:
+            if rol == "admin":
+                if st.button("Ingresar →", key="btn_hub_maquinaria", use_container_width=True):
+                    st.session_state["modulo"] = "maquinaria"
+                    st.rerun()
+            else:
+                if st.button("⚙️ Maquinaria", key="btn_hub_maq_dev", use_container_width=True):
+                    st.session_state["hub_maq_clicked"] = True
+                    st.rerun()
+
+    # Mensaje para no-admin si clickeó maquinaria
+    if st.session_state.get("hub_maq_clicked") and rol != "admin":
+        _, msg_col, _ = st.columns([0.4, 3, 0.4])
+        with msg_col:
+            st.markdown("""
+            <div style="
+                background: linear-gradient(135deg,rgba(212,160,23,0.12),rgba(180,120,10,0.08));
+                border: 1px solid rgba(212,160,23,0.45);
+                border-radius: 14px;
+                padding: 1.2rem 1.8rem;
+                text-align: center;
+                margin-top: 0.5rem;
+            ">
+                <div style="font-size:2rem;margin-bottom:0.4rem;">🔧</div>
+                <div style="font-family:'Playfair Display',serif;font-size:1.1rem;
+                            color:#d4a017;font-weight:700;margin-bottom:0.3rem;">
+                    Sistema en Desarrollo
+                </div>
+                <div style="font-size:0.82rem;color:#a0a0b0;line-height:1.5;">
+                    Este módulo estará disponible próximamente.<br>
+                    Contactá al administrador para más información.
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+            if st.button("✕ Cerrar", key="btn_hub_maq_cerrar"):
+                st.session_state.pop("hub_maq_clicked", None)
+                st.rerun()
 
 
 def pagina_maquinaria():
@@ -3458,7 +3458,7 @@ def pagina_maquinaria():
     <div style="text-align:center;padding:3rem 1rem;">
         <div style="font-size:4rem;margin-bottom:1rem;">⚙️</div>
         <h2 style="font-family:'Playfair Display',serif;color:var(--gold);">Gestión de Maquinaria</h2>
-        <p style="color:var(--text-secondary);">Este módulo está en construcción. Pronto disponible.</p>
+        <p style="color:var(--text-secondary);">Módulo en construcción — próximamente disponible.</p>
     </div>
     """, unsafe_allow_html=True)
 
