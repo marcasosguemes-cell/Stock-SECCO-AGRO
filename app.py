@@ -3370,7 +3370,7 @@ def pantalla_hub():
         display:flex !important;
         justify-content:center !important;
         gap:2.4rem !important;
-        margin-top:0 !important;
+        margin-top:-12px !important;
         padding:0 !important;
     }}
     div[data-testid="stHorizontalBlock"] > div[data-testid="column"] {{
@@ -3413,7 +3413,7 @@ def pantalla_hub():
     </div>
     """, unsafe_allow_html=True)
 
-    _, c1, c2, _ = st.columns([0.83, 3.4, 3.4, 0.83])
+    _, c1, c2, _ = st.columns([1, 3.4, 3.4, 1])
     with c1:
         if st.button("Ver Módulo", key="btn_hub_stock", use_container_width=True):
             st.session_state["modulo"] = "stock"
