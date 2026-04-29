@@ -3378,7 +3378,7 @@ def pantalla_hub():
     """, unsafe_allow_html=True)
 
     # ── Botones Streamlit reales pegados bajo las tarjetas ─────
-    col_gap_l, col1, col_mid, col2, col_gap_r = st.columns([1.05, 3.8, 0.24, 3.8, 1.05])
+    _, col1, _, col2, _ = st.columns([1, 3.8, 0.5, 3.8, 1])
     with col1:
         if st.button("Ver Módulo", key="btn_hub_stock", use_container_width=True):
             st.session_state["modulo"] = "stock"
