@@ -3271,181 +3271,168 @@ def pagina_consolidado():
 def pantalla_hub():
     """Pantalla de inicio con acceso a Gestión de Stock y Gestión de Maquinaria."""
     rol = st.session_state.get("rol", "")
-
-    # Leer acción desde query_params (señal del iframe → Streamlit)
-    params = st.query_params
-    hub_action = params.get("hub", None)
-    if hub_action == "stock":
-        st.query_params.clear()
-        st.session_state["modulo"] = "stock"
-        st.session_state["pagina"] = "Dashboard"
-        st.rerun()
-    elif hub_action == "maquinaria":
-        st.query_params.clear()
-        if rol == "admin":
-            st.session_state["modulo"] = "maquinaria"
-            st.rerun()
-        else:
-            st.session_state["hub_maq_clicked"] = True
-            st.rerun()
-
     mostrar_overlay = st.session_state.pop("hub_maq_clicked", False)
     maq_badge = '<div class="dev-badge">&#9881; En Desarrollo</div>' if rol != "admin" else ""
     maq_cls   = "hub-card hub-card-dev" if rol != "admin" else "hub-card"
 
-    # Obtener URL base para construir los links
-    try:
-        base_url = st.context.headers.get("origin", "")
-    except Exception:
-        base_url = ""
+    # ── HTML visual (logo + tarjetas sin botones) ──────────────
+    st.markdown(f"""
+    <style>
+    .hub-page {{
+        display:flex; flex-direction:column;
+        align-items:center; justify-content:center;
+        padding:2rem 1rem 0 1rem;
+    }}
+    .hub-logo-wrap {{
+        background:#f7f3e8;
+        border:2px solid rgba(212,160,23,0.6);
+        border-radius:50%;
+        width:460px; height:276px;
+        display:flex; align-items:center; justify-content:center;
+        overflow:hidden;
+        box-shadow:0 8px 32px rgba(0,0,0,0.45);
+        margin-bottom:2.2rem;
+    }}
+    .hub-logo {{ width:100%; height:100%; object-fit:contain; padding:15px; }}
+    .hub-cards {{
+        display:flex; gap:2.4rem;
+        justify-content:center; align-items:stretch;
+    }}
+    .hub-card {{
+        background:linear-gradient(160deg,rgba(60,60,70,0.97),rgba(40,40,52,0.99));
+        border:1px solid rgba(212,160,23,0.42);
+        border-radius:22px 22px 0 0;
+        padding:2.4rem 2rem 2rem 2rem;
+        text-align:center;
+        box-shadow:0 8px 24px rgba(0,0,0,0.4);
+        display:flex; flex-direction:column;
+        align-items:center; justify-content:center;
+        width:380px; min-height:260px; box-sizing:border-box;
+    }}
+    .hub-card-dev {{
+        background:linear-gradient(160deg,rgba(32,32,40,0.97),rgba(22,22,30,0.99));
+        border-color:rgba(212,160,23,0.22); opacity:0.85;
+    }}
+    .hub-card-icon {{ font-size:3.5rem; margin-bottom:0.85rem; line-height:1; }}
+    .hub-card-title {{
+        font-family:'Playfair Display',serif;
+        font-size:1.65rem; font-weight:700;
+        color:#f0f0f5; margin:0 0 0.5rem 0;
+    }}
+    .hub-card-desc {{ font-size:0.98rem; color:#9090a8; line-height:1.55; }}
+    .dev-badge {{
+        display:inline-flex; align-items:center; gap:5px;
+        background:rgba(212,160,23,0.13);
+        border:1px solid rgba(212,160,23,0.42);
+        border-radius:20px; padding:4px 16px;
+        font-size:0.82rem; color:#d4a017;
+        font-weight:700; margin-top:1rem;
+    }}
+    /* Botones Streamlit: sin margen superior, radio solo abajo */
+    div[data-testid="stHorizontalBlock"] {{
+        margin-top:0 !important;
+        padding:0 !important;
+        gap:0 !important;
+    }}
+    div[data-testid="stHorizontalBlock"] > div {{
+        padding:0 !important;
+        flex:0 0 380px !important;
+        max-width:380px !important;
+    }}
+    div[data-testid="stHorizontalBlock"] > div:first-child {{
+        margin-right: 2.4rem !important;
+    }}
+    div[data-testid="stHorizontalBlock"] .stButton > button {{
+        border-radius:0 0 22px 22px !important;
+        height:58px !important;
+        font-size:1rem !important;
+        font-weight:700 !important;
+        margin:0 !important;
+        padding:0 !important;
+        width:100% !important;
+        display:block !important;
+        letter-spacing:0.03em !important;
+    }}
+    </style>
+    <div class="hub-page">
+        <div class="hub-logo-wrap">
+            <img src="https://raw.githubusercontent.com/marcasosguemes-cell/Stock-SECCO-AGRO/main/Logo.png"
+                 class="hub-logo" alt="Logo">
+        </div>
+        <div class="hub-cards">
+            <div class="hub-card">
+                <div class="hub-card-icon">📦</div>
+                <div class="hub-card-title">Gestión de Stock</div>
+                <div class="hub-card-desc">Control de ingresos, egresos, inventario y reportes por establecimiento.</div>
+            </div>
+            <div class="{maq_cls}">
+                <div class="hub-card-icon">⚙️</div>
+                <div class="hub-card-title">Gestión de Maquinaria</div>
+                <div class="hub-card-desc">Seguimiento de mantenimiento preventivo y correctivo de equipos.</div>
+                {maq_badge}
+            </div>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
 
-    overlay_js = ""
-    if mostrar_overlay:
-        overlay_js = """
-        window.addEventListener('load', function() {
-            var ov = document.getElementById('ov');
-            ov.style.display = 'flex';
-            ov.classList.add('show');
-            setTimeout(function(){ ov.style.display='none'; }, 5200);
-        });"""
+    # ── Botones Streamlit reales pegados bajo las tarjetas ─────
+    col_gap_l, col1, col_mid, col2, col_gap_r = st.columns([1.05, 3.8, 0.24, 3.8, 1.05])
+    with col1:
+        if st.button("Ver Módulo", key="btn_hub_stock", use_container_width=True):
+            st.session_state["modulo"] = "stock"
+            st.session_state["pagina"] = "Dashboard"
+            st.rerun()
+    with col2:
+        if rol == "admin":
+            if st.button("Ver Módulo", key="btn_hub_maq", use_container_width=True):
+                st.session_state["modulo"] = "maquinaria"
+                st.rerun()
+        else:
+            if st.button("Ver Módulo", key="btn_hub_maq_dev", use_container_width=True):
+                st.session_state["hub_maq_clicked"] = True
+                st.rerun()
 
-    html_hub = f"""<!DOCTYPE html>
-<html>
-<head>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=DM+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+    # ── Overlay "Sistema en Desarrollo" via st_components ─────
+    if mostrar_overlay and rol != "admin":
+        st_components.html("""<!DOCTYPE html>
+<html><head>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
 <style>
-* {{ margin:0; padding:0; box-sizing:border-box; }}
-html, body {{ background:transparent; overflow-x:hidden; font-family:'DM Sans',sans-serif; }}
-.hub-page {{
-    display:flex; flex-direction:column;
-    align-items:center; justify-content:center;
-    min-height:92vh; padding:2rem 1rem;
-}}
-.hub-logo-wrap {{
-    background:#f7f3e8;
-    border:2px solid rgba(212,160,23,0.6);
-    border-radius:50%;
-    width:460px; height:276px;
-    display:flex; align-items:center; justify-content:center;
-    overflow:hidden;
-    box-shadow:0 8px 32px rgba(0,0,0,0.45);
-    margin-bottom:2.2rem;
-}}
-.hub-logo {{ width:100%; height:100%; object-fit:contain; padding:15px; }}
-.hub-grid {{
-    display:grid;
-    grid-template-columns:380px 380px;
-    grid-template-rows:auto 58px;
-    column-gap:2.4rem; row-gap:0;
-    justify-content:center;
-}}
-.hub-card {{
-    background:linear-gradient(160deg,rgba(60,60,70,0.97),rgba(40,40,52,0.99));
-    border:1px solid rgba(212,160,23,0.42);
-    border-radius:22px 22px 0 0;
-    padding:2.4rem 2rem 2rem 2rem;
-    text-align:center;
-    box-shadow:0 8px 24px rgba(0,0,0,0.4);
-    display:flex; flex-direction:column;
-    align-items:center; justify-content:center;
-    min-height:260px;
-}}
-.hub-card-dev {{
-    background:linear-gradient(160deg,rgba(32,32,40,0.97),rgba(22,22,30,0.99));
-    border-color:rgba(212,160,23,0.22); opacity:0.85;
-}}
-.hub-card-icon {{ font-size:3.5rem; margin-bottom:0.85rem; line-height:1; }}
-.hub-card-title {{
-    font-family:'Playfair Display',serif;
-    font-size:1.65rem; font-weight:700;
-    color:#f0f0f5; margin:0 0 0.5rem 0;
-}}
-.hub-card-desc {{ font-size:0.98rem; color:#9090a8; line-height:1.55; }}
-.dev-badge {{
-    display:inline-flex; align-items:center; gap:5px;
-    background:rgba(212,160,23,0.13);
-    border:1px solid rgba(212,160,23,0.42);
-    border-radius:20px; padding:4px 16px;
-    font-size:0.82rem; color:#d4a017;
-    font-weight:700; margin-top:1rem;
-}}
-.hub-btn {{
-    width:100%; height:58px;
-    background:linear-gradient(135deg,#d4a017,#b87a0c);
-    color:#1a1a1f; border:none;
-    border-radius:0 0 22px 22px;
-    font-size:1rem; font-weight:700;
-    font-family:'DM Sans',sans-serif;
-    cursor:pointer; letter-spacing:0.03em;
-    box-shadow:0 6px 18px rgba(0,0,0,0.3);
-    transition:background 0.2s ease;
-    text-decoration:none; display:flex;
-    align-items:center; justify-content:center;
-}}
-.hub-btn:hover {{ background:linear-gradient(135deg,#e5b52a,#c98a1a); }}
-@keyframes fadeInOut {{
-    0%   {{ opacity:0; transform:scale(0.90); }}
-    10%  {{ opacity:1; transform:scale(1); }}
-    80%  {{ opacity:1; transform:scale(1); }}
-    100% {{ opacity:0; transform:scale(0.96); }}
-}}
-#ov {{
-    display:none; position:fixed;
-    top:0; left:0; right:0; bottom:0;
+* { margin:0; padding:0; box-sizing:border-box; }
+html, body { background:transparent; overflow:hidden; }
+@keyframes fadeInOut {
+    0%   { opacity:0; transform:scale(0.90); }
+    10%  { opacity:1; transform:scale(1); }
+    80%  { opacity:1; transform:scale(1); }
+    100% { opacity:0; transform:scale(0.96); }
+}
+.bg {
+    position:fixed; top:0; left:0; right:0; bottom:0;
     background:rgba(0,0,0,0.65);
-    align-items:center; justify-content:center;
-    z-index:9999; pointer-events:none;
-}}
-#ov.show {{ animation:fadeInOut 5.2s ease forwards; }}
-.ov-box {{
+    display:flex; align-items:center; justify-content:center;
+    animation:fadeInOut 5s ease forwards;
+    pointer-events:none; z-index:9999;
+}
+.box {
     background:linear-gradient(135deg,#0e0e18,#1c1808);
     border:1.5px solid rgba(212,160,23,0.7);
     border-radius:26px; padding:3rem 4rem;
     text-align:center; min-width:420px;
     box-shadow:0 28px 70px rgba(0,0,0,0.9);
-}}
-.ov-icon  {{ font-size:4rem; margin-bottom:0.6rem; }}
-.ov-title {{ font-family:'Playfair Display',serif; font-size:2rem;
-             font-weight:700; color:#d4a017; margin-bottom:0.4rem; }}
-.ov-desc  {{ font-size:1rem; color:#a0a0b8; line-height:1.65; }}
-</style>
-</head>
-<body>
-<div class="hub-page">
-    <div class="hub-logo-wrap">
-        <img src="https://raw.githubusercontent.com/marcasosguemes-cell/Stock-SECCO-AGRO/main/Logo.png"
-             class="hub-logo" alt="Logo">
-    </div>
-    <div class="hub-grid">
-        <div class="hub-card">
-            <div class="hub-card-icon">📦</div>
-            <div class="hub-card-title">Gestión de Stock</div>
-            <div class="hub-card-desc">Control de ingresos, egresos, inventario y reportes por establecimiento.</div>
-        </div>
-        <div class="{maq_cls}">
-            <div class="hub-card-icon">⚙️</div>
-            <div class="hub-card-title">Gestión de Maquinaria</div>
-            <div class="hub-card-desc">Seguimiento de mantenimiento preventivo y correctivo de equipos.</div>
-            {maq_badge}
-        </div>
-        <a class="hub-btn" href="?hub=stock" target="_parent">Ver Módulo</a>
-        <a class="hub-btn" href="?hub=maquinaria" target="_parent">Ver Módulo</a>
-    </div>
-</div>
-<div id="ov">
-    <div class="ov-box">
-        <div class="ov-icon">🔧</div>
-        <div class="ov-title">Sistema en Desarrollo</div>
-        <div class="ov-desc">
-            Este módulo estará disponible próximamente.<br>
-            Contactá al administrador para más información.
-        </div>
-    </div>
-</div>
-<script>{overlay_js}</script>
-</body></html>"""
-
-    st_components.html(html_hub, height=700, scrolling=False)
+}
+.icon  { font-size:4rem; margin-bottom:0.6rem; }
+.title { font-family:'Playfair Display',serif; font-size:2rem;
+         font-weight:700; color:#d4a017; margin-bottom:0.4rem; }
+.desc  { font-family:Arial,sans-serif; font-size:1rem;
+         color:#a0a0b8; line-height:1.65; }
+</style></head><body>
+<div class="bg"><div class="box">
+    <div class="icon">🔧</div>
+    <div class="title">Sistema en Desarrollo</div>
+    <div class="desc">Este módulo estará disponible próximamente.<br>
+    Contactá al administrador para más información.</div>
+</div></div>
+</body></html>""", height=400, scrolling=False)
 def pagina_maquinaria():
     """Módulo de Gestión de Maquinaria — solo admin (placeholder)."""
     if st.button("← Volver al Inicio", key="btn_back_hub_maq"):
