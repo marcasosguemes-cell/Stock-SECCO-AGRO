@@ -3435,30 +3435,65 @@ def pantalla_hub():
         # Botones en 2 columnas iguales, sin gap extra
         b1, b2 = st.columns(2)
         with b1:
-            if st.button("Ingresar →", key="btn_hub_stock", use_container_width=True):
+            if st.button("Ver Módulo", key="btn_hub_stock", use_container_width=True):
                 st.session_state["modulo"] = "stock"
                 st.session_state["pagina"] = "Dashboard"
                 st.rerun()
         with b2:
             if rol == "admin":
-                if st.button("Ingresar →", key="btn_hub_maquinaria", use_container_width=True):
+                if st.button("Ver Módulo", key="btn_hub_maquinaria", use_container_width=True):
                     st.session_state["modulo"] = "maquinaria"
                     st.rerun()
             else:
-                if st.button("Ver módulo", key="btn_hub_maq_dev", use_container_width=True):
-                    st.session_state["hub_maq_clicked"] = not st.session_state.get("hub_maq_clicked", False)
+                if st.button("Ver Módulo", key="btn_hub_maq_dev", use_container_width=True):
+                    st.session_state["hub_maq_clicked"] = True
                     st.rerun()
 
-        # Mensaje en desarrollo (toggle)
+        # Overlay centrado con auto-dismiss para no-admin
         if st.session_state.get("hub_maq_clicked") and rol != "admin":
+            st.session_state.pop("hub_maq_clicked", None)
             st.markdown("""
-            <div class="hub-dev-msg">
-                <div style="font-size:1.8rem;margin-bottom:0.35rem;">🔧</div>
-                <div style="font-family:'Playfair Display',serif;font-size:1rem;
-                            color:#d4a017;font-weight:700;margin-bottom:0.25rem;">
-                    Sistema en Desarrollo
-                </div>
-                <div style="font-size:0.78rem;color:#9090a8;line-height:1.5;">
+            <style>
+            @keyframes fadeInOut {
+                0%   { opacity: 0; transform: translate(-50%,-50%) scale(0.92); }
+                12%  { opacity: 1; transform: translate(-50%,-50%) scale(1); }
+                75%  { opacity: 1; transform: translate(-50%,-50%) scale(1); }
+                100% { opacity: 0; transform: translate(-50%,-50%) scale(0.95); }
+            }
+            .hub-overlay {
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                z-index: 9999;
+                background: linear-gradient(135deg, rgba(22,22,28,0.97), rgba(30,28,20,0.97));
+                border: 1px solid rgba(212,160,23,0.55);
+                border-radius: 22px;
+                padding: 2.4rem 3rem;
+                text-align: center;
+                min-width: 320px;
+                box-shadow: 0 20px 60px rgba(0,0,0,0.7);
+                animation: fadeInOut 3.2s ease forwards;
+                pointer-events: none;
+            }
+            .hub-overlay-icon { font-size: 3rem; margin-bottom: 0.6rem; }
+            .hub-overlay-title {
+                font-family: 'Playfair Display', serif;
+                font-size: 1.3rem;
+                font-weight: 700;
+                color: #d4a017;
+                margin-bottom: 0.4rem;
+            }
+            .hub-overlay-desc {
+                font-size: 0.82rem;
+                color: #a0a0b0;
+                line-height: 1.6;
+            }
+            </style>
+            <div class="hub-overlay">
+                <div class="hub-overlay-icon">🔧</div>
+                <div class="hub-overlay-title">Sistema en Desarrollo</div>
+                <div class="hub-overlay-desc">
                     Este módulo estará disponible próximamente.<br>
                     Contactá al administrador para más información.
                 </div>
