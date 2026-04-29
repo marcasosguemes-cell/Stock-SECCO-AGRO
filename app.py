@@ -3318,8 +3318,8 @@ def pantalla_hub():
         background: #f7f3e8;
         border: 2px solid rgba(212,160,23,0.55);
         border-radius: 50%;
-        width: 520px;
-        height: 312px;
+        width: 460px;
+        height: 276px;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -3484,7 +3484,28 @@ def pantalla_hub():
     </div>
 
     <!-- Overlay "en desarrollo" (oculto por defecto) -->
-    <div class="hub-overlay" id="hub-overlay" style="display:none;animation:none;opacity:0;"></div>
+    <div id="hub-overlay" style="
+        display:none;
+        position:fixed;
+        top:50%; left:50%;
+        transform:translate(-50%,-50%);
+        z-index:9999;
+        background:linear-gradient(135deg,rgba(18,18,24,0.98),rgba(28,24,14,0.98));
+        border:1px solid rgba(212,160,23,0.6);
+        border-radius:24px;
+        padding:2.8rem 3.5rem;
+        text-align:center;
+        min-width:440px;
+        box-shadow:0 24px 64px rgba(0,0,0,0.75);
+        pointer-events:none;
+    ">
+        <div style="font-size:4rem;margin-bottom:0.8rem;">🔧</div>
+        <div style="font-family:'Playfair Display',serif;font-size:1.9rem;font-weight:700;color:#d4a017;margin-bottom:0.5rem;">Sistema en Desarrollo</div>
+        <div style="font-size:1.05rem;color:#a0a0b0;line-height:1.65;">
+            Este módulo estará disponible próximamente.<br>
+            Contactá al administrador para más información.
+        </div>
+    </div>
 
     <script>
     function hubAction(modulo) {{
@@ -3550,19 +3571,7 @@ def pantalla_hub():
     </style>
     """, unsafe_allow_html=True)
 
-    # Overlay via session_state (fallback para no-admin)
-    if st.session_state.get("hub_maq_clicked") and rol != "admin":
-        st.session_state.pop("hub_maq_clicked", None)
-        st.markdown("""
-        <div class="hub-overlay" style="display:block;">
-            <div class="hub-overlay-icon">🔧</div>
-            <div class="hub-overlay-title">Sistema en Desarrollo</div>
-            <div class="hub-overlay-desc">
-                Este módulo estará disponible próximamente.<br>
-                Contactá al administrador para más información.
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
+    # No extra overlay needed - handled entirely by JS in the HTML block above
 
 
 def pagina_maquinaria():
