@@ -805,10 +805,6 @@ def login():
             <div class="logo-oval-wrap">
                 <img src="https://raw.githubusercontent.com/marcasosguemes-cell/Stock-SECCO-AGRO/main/Logo.png" class="title-logo" alt="Logo">
             </div>
-            <div class="title-bubble-login">
-                <h1 class="main-title-with-logo">Stock Agrícola</h1>
-                <p class="login-subtitle">La Sonia · San Guillermo · Camba Pora</p>
-            </div>
         </div>
         """, unsafe_allow_html=True)
 
@@ -3275,180 +3271,182 @@ def pantalla_hub():
     """Pantalla de inicio con acceso a Gestión de Stock y Gestión de Maquinaria."""
     rol = st.session_state.get("rol", "")
 
-    st.markdown("""
+    # Determinar contenido tarjeta maquinaria según rol
+    if rol == "admin":
+        maq_card_extra = ""
+        maq_card_class = "hub-card"
+    else:
+        maq_card_extra = """
+        <div class="dev-badge">
+            <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 100 100"
+                 style="display:inline-block;vertical-align:middle;margin-right:4px;">
+              <circle cx="28" cy="52" r="16" fill="none" stroke="currentColor" stroke-width="7"/>
+              <circle cx="28" cy="52" r="6"  fill="none" stroke="currentColor" stroke-width="5"/>
+              <circle cx="28" cy="52" r="2.5" fill="currentColor"/>
+              <circle cx="72" cy="52" r="11" fill="none" stroke="currentColor" stroke-width="7"/>
+              <circle cx="72" cy="52" r="4"  fill="none" stroke="currentColor" stroke-width="5"/>
+              <circle cx="72" cy="52" r="2"  fill="currentColor"/>
+              <line x1="28" y1="36" x2="72" y2="41" stroke="currentColor" stroke-width="6" stroke-linecap="round"/>
+              <line x1="28" y1="68" x2="72" y2="63" stroke="currentColor" stroke-width="6" stroke-linecap="round"/>
+            </svg>
+            En Desarrollo
+        </div>
+        <div class="dev-soon">PRÓXIMAMENTE</div>
+        """
+        maq_card_class = "hub-card hub-card-dev"
+
+    st.markdown(f"""
     <style>
-    .hub-container {
+    .hub-page {{
         display: flex;
         flex-direction: column;
         align-items: center;
-        justify-content: center;
-        min-height: 80vh;
-        padding: 2rem 1rem;
-    }
-    .hub-logo-wrap {
+        padding: 2.5rem 1rem 3rem 1rem;
+    }}
+    .hub-logo-wrap {{
         background: #f7f3e8;
-        border: 2px solid rgba(212,160,23,0.6);
+        border: 2.5px solid rgba(212,160,23,0.65);
         border-radius: 50%;
-        width: 260px;
-        height: 260px;
+        width: 210px;
+        height: 210px;
         display: flex;
         align-items: center;
         justify-content: center;
         overflow: hidden;
-        box-shadow: 0 8px 40px rgba(0,0,0,0.45);
-        margin-bottom: 2rem;
-    }
-    .hub-logo {
+        box-shadow: 0 8px 40px rgba(0,0,0,0.5);
+        margin-bottom: 1.4rem;
+        flex-shrink: 0;
+    }}
+    .hub-logo {{
         width: 100%;
         height: 100%;
         object-fit: contain;
-        padding: 20px;
         transform: scale(1.85);
         transform-origin: center;
-    }
-    .hub-title {
-        font-family: 'Playfair Display', serif !important;
-        font-size: 2rem !important;
-        font-weight: 700 !important;
-        color: var(--gold) !important;
-        letter-spacing: 0.04em;
-        margin-bottom: 0.3rem;
+    }}
+    .hub-title {{
+        font-family: 'Playfair Display', serif;
+        font-size: 1.9rem;
+        font-weight: 700;
+        color: #d4a017;
+        letter-spacing: 0.05em;
+        margin: 0 0 0.2rem 0;
         text-align: center;
-    }
-    .hub-subtitle {
-        font-size: 0.9rem;
-        color: var(--text-muted);
-        margin-bottom: 2.5rem;
-        text-align: center;
-        letter-spacing: 0.06em;
-    }
-    .hub-cards {
-        display: flex;
-        gap: 2rem;
-        flex-wrap: wrap;
-        justify-content: center;
-    }
-    .hub-card {
-        background: linear-gradient(145deg,rgba(55,55,62,0.92) 0%,rgba(40,40,50,0.97) 100%);
-        border: 1px solid rgba(212,160,23,0.35);
-        border-radius: 24px;
-        padding: 2.2rem 2.5rem;
-        width: 280px;
-        text-align: center;
-        cursor: pointer;
-        box-shadow: 0 6px 28px rgba(0,0,0,0.35);
-        transition: all 0.28s cubic-bezier(.4,0,.2,1);
-    }
-    .hub-card:hover {
-        transform: translateY(-8px);
-        box-shadow: 0 16px 40px rgba(0,0,0,0.5);
-        border-color: rgba(212,160,23,0.7);
-    }
-    .hub-card-icon {
-        font-size: 3.5rem;
-        margin-bottom: 1rem;
-        display: block;
-    }
-    .hub-card-title {
-        font-family: 'Playfair Display', serif !important;
-        font-size: 1.3rem !important;
-        font-weight: 700 !important;
-        color: #f0f0f5 !important;
-        margin-bottom: 0.5rem;
-    }
-    .hub-card-desc {
+    }}
+    .hub-subtitle {{
         font-size: 0.82rem;
-        color: var(--text-muted);
-        line-height: 1.5;
-    }
-    .hub-card-maq-dev {
-        background: linear-gradient(145deg,rgba(35,35,42,0.92) 0%,rgba(28,28,36,0.97) 100%);
-        border: 1px solid rgba(212,160,23,0.18);
-        opacity: 0.75;
-    }
-    .dev-badge {
-        display: inline-block;
-        background: rgba(212,160,23,0.18);
-        border: 1px solid rgba(212,160,23,0.4);
+        color: #a0a0b0;
+        letter-spacing: 0.1em;
+        margin: 0 0 2.5rem 0;
+        text-align: center;
+    }}
+    .hub-cards-row {{
+        display: flex;
+        gap: 2.2rem;
+        justify-content: center;
+        align-items: stretch;
+        flex-wrap: wrap;
+        width: 100%;
+        max-width: 720px;
+    }}
+    .hub-card {{
+        background: linear-gradient(160deg, rgba(58,58,68,0.96) 0%, rgba(38,38,48,0.98) 100%);
+        border: 1px solid rgba(212,160,23,0.38);
+        border-radius: 22px;
+        padding: 2.4rem 2rem 1.6rem 2rem;
+        width: 300px;
+        min-height: 260px;
+        text-align: center;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: flex-start;
+        box-sizing: border-box;
+    }}
+    .hub-card-dev {{
+        background: linear-gradient(160deg, rgba(34,34,42,0.96) 0%, rgba(25,25,32,0.98) 100%);
+        border-color: rgba(212,160,23,0.18);
+        opacity: 0.82;
+    }}
+    .hub-card-icon {{
+        font-size: 3.2rem;
+        margin-bottom: 1rem;
+        line-height: 1;
+    }}
+    .hub-card-title {{
+        font-family: 'Playfair Display', serif;
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: #f0f0f5;
+        margin: 0 0 0.55rem 0;
+    }}
+    .hub-card-desc {{
+        font-size: 0.8rem;
+        color: #a0a0b0;
+        line-height: 1.6;
+        margin: 0 0 auto 0;
+    }}
+    .dev-badge {{
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        background: rgba(212,160,23,0.15);
+        border: 1px solid rgba(212,160,23,0.45);
         border-radius: 20px;
-        padding: 3px 14px;
+        padding: 4px 14px;
         font-size: 0.72rem;
-        color: var(--gold);
-        letter-spacing: 0.08em;
+        color: #d4a017;
+        letter-spacing: 0.07em;
+        font-weight: 700;
+        margin-top: 1.2rem;
+    }}
+    .dev-soon {{
+        font-size: 0.68rem;
+        color: rgba(212,160,23,0.4);
+        letter-spacing: 0.14em;
         font-weight: 600;
-        margin-top: 0.8rem;
-    }
+        margin-top: 0.5rem;
+    }}
     </style>
-    """, unsafe_allow_html=True)
 
-    col_l, col_c, col_r = st.columns([1, 3, 1])
-    with col_c:
-        st.markdown("""
-        <div class="hub-container">
-            <div class="hub-logo-wrap">
-                <img src="https://raw.githubusercontent.com/marcasosguemes-cell/Stock-SECCO-AGRO/main/Logo.png"
-                     class="hub-logo" alt="Logo SECCO AGRO">
-            </div>
-            <div class="hub-title">SECCO AGRO</div>
-            <div class="hub-subtitle">LA SONIA · SAN GUILLERMO · CAMBA PORA</div>
+    <div class="hub-page">
+        <div class="hub-logo-wrap">
+            <img src="https://raw.githubusercontent.com/marcasosguemes-cell/Stock-SECCO-AGRO/main/Logo.png"
+                 class="hub-logo" alt="Logo SECCO AGRO">
         </div>
-        """, unsafe_allow_html=True)
-
-        c1, c2 = st.columns(2)
-        with c1:
-            st.markdown("""
+        <div class="hub-title">SECCO AGRO</div>
+        <div class="hub-subtitle">LA SONIA &nbsp;·&nbsp; SAN GUILLERMO &nbsp;·&nbsp; CAMBA PORA</div>
+        <div class="hub-cards-row">
             <div class="hub-card">
-                <span class="hub-card-icon">📦</span>
+                <div class="hub-card-icon">📦</div>
                 <div class="hub-card-title">Gestión de Stock</div>
                 <div class="hub-card-desc">Control de ingresos, egresos, inventario y reportes por establecimiento.</div>
             </div>
-            """, unsafe_allow_html=True)
-            if st.button("Ingresar →", key="btn_hub_stock", use_container_width=True):
-                st.session_state["modulo"] = "stock"
-                st.session_state["pagina"] = "Dashboard"
-                st.rerun()
+            <div class="{maq_card_class}">
+                <div class="hub-card-icon">⚙️</div>
+                <div class="hub-card-title">Gestión de Maquinaria</div>
+                <div class="hub-card-desc">Seguimiento de mantenimiento preventivo y correctivo de equipos.</div>
+                {maq_card_extra}
+            </div>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
 
-        with c2:
-            if rol == "admin":
-                st.markdown("""
-                <div class="hub-card">
-                    <span class="hub-card-icon">⚙️</span>
-                    <div class="hub-card-title">Gestión de Maquinaria</div>
-                    <div class="hub-card-desc">Seguimiento de mantenimiento preventivo y correctivo de equipos.</div>
-                </div>
-                """, unsafe_allow_html=True)
-                if st.button("Ingresar →", key="btn_hub_maquinaria", use_container_width=True):
-                    st.session_state["modulo"] = "maquinaria"
-                    st.rerun()
-            else:
-                st.markdown("""
-                <div class="hub-card hub-card-maq-dev">
-                    <span class="hub-card-icon">🔧</span>
-                    <div class="hub-card-title">Gestión de Maquinaria</div>
-                    <div class="hub-card-desc">Módulo de mantenimiento y seguimiento de equipos agrícolas.</div>
-                    <div class="dev-badge">🔩 En Desarrollo</div>
-                </div>
-                """, unsafe_allow_html=True)
-                st.markdown("""
-                <div style="text-align:center;margin-top:-0.5rem;">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 100 100" style="opacity:0.35;margin-top:0.5rem;">
-                      <!-- Polea izquierda -->
-                      <circle cx="28" cy="55" r="18" fill="none" stroke="#d4a017" stroke-width="4"/>
-                      <circle cx="28" cy="55" r="8" fill="none" stroke="#d4a017" stroke-width="3"/>
-                      <circle cx="28" cy="55" r="3" fill="#d4a017"/>
-                      <!-- Polea derecha -->
-                      <circle cx="72" cy="55" r="12" fill="none" stroke="#d4a017" stroke-width="4"/>
-                      <circle cx="72" cy="55" r="5" fill="none" stroke="#d4a017" stroke-width="3"/>
-                      <circle cx="72" cy="55" r="2.5" fill="#d4a017"/>
-                      <!-- Correa superior -->
-                      <line x1="28" y1="37" x2="72" y2="43" stroke="#d4a017" stroke-width="3.5" stroke-linecap="round"/>
-                      <!-- Correa inferior -->
-                      <line x1="28" y1="73" x2="72" y2="67" stroke="#d4a017" stroke-width="3.5" stroke-linecap="round"/>
-                    </svg>
-                    <div style="color:rgba(212,160,23,0.55);font-size:0.75rem;margin-top:4px;letter-spacing:0.08em;">PRÓXIMAMENTE</div>
-                </div>
-                """, unsafe_allow_html=True)
-                st.button("En Desarrollo", key="btn_hub_maq_disabled", disabled=True, use_container_width=True)
+    # Botones Streamlit alineados bajo las tarjetas
+    _, col1, col2, _ = st.columns([0.7, 1.5, 1.5, 0.7])
+    with col1:
+        if st.button("Ingresar →", key="btn_hub_stock", use_container_width=True):
+            st.session_state["modulo"] = "stock"
+            st.session_state["pagina"] = "Dashboard"
+            st.rerun()
+    with col2:
+        if rol == "admin":
+            if st.button("Ingresar →", key="btn_hub_maquinaria", use_container_width=True):
+                st.session_state["modulo"] = "maquinaria"
+                st.rerun()
+        else:
+            st.button("En Desarrollo", key="btn_hub_maq_disabled", disabled=True, use_container_width=True)
 
 
 def pagina_maquinaria():
