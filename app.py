@@ -3276,161 +3276,166 @@ def pantalla_hub():
     maq_badge = '<div class="dev-badge">&#9881; En Desarrollo</div>' if rol != "admin" else ""
     maq_cls   = "hub-card hub-card-dev" if rol != "admin" else "hub-card"
 
-    st.markdown(f"""
-    <style>
-    .hub-page {{
-        display: flex; flex-direction: column;
-        align-items: center; justify-content: center;
-        min-height: 88vh; padding: 2rem 1rem; box-sizing: border-box;
-    }}
-    .hub-logo-wrap {{
-        background: #f7f3e8;
-        border: 2px solid rgba(212,160,23,0.55);
-        border-radius: 50%;
-        width: 460px; height: 276px;
-        display: flex; align-items: center; justify-content: center;
-        overflow: hidden;
-        box-shadow: 0 8px 32px rgba(0,0,0,0.35);
-        margin-bottom: 2.4rem; flex-shrink: 0;
-    }}
-    .hub-logo {{ width:100%; height:100%; object-fit:contain; display:block; padding:15px; }}
-    .hub-grid {{
-        display: grid;
-        grid-template-columns: 380px 380px;
-        column-gap: 2.4rem;
-        justify-content: center;
-    }}
-    .hub-card {{
-        background: linear-gradient(160deg,rgba(60,60,70,0.97) 0%,rgba(40,40,52,0.99) 100%);
-        border: 1px solid rgba(212,160,23,0.42);
-        border-radius: 22px; padding: 2.4rem 2rem 2rem 2rem;
-        text-align: center;
-        box-shadow: 0 8px 24px rgba(0,0,0,0.4);
-        display: flex; flex-direction: column;
-        align-items: center; justify-content: center;
-        min-height: 260px; box-sizing: border-box;
-    }}
-    .hub-card-dev {{
-        background: linear-gradient(160deg,rgba(32,32,40,0.97) 0%,rgba(22,22,30,0.99) 100%);
-        border-color: rgba(212,160,23,0.22); opacity: 0.84;
-    }}
-    .hub-card-icon {{ font-size:3.6rem; margin-bottom:0.9rem; line-height:1; }}
-    .hub-card-title {{
-        font-family:'Playfair Display',serif; font-size:1.65rem;
-        font-weight:700; color:#f0f0f5; margin:0 0 0.5rem 0;
-    }}
-    .hub-card-desc {{ font-size:1rem; color:#9090a8; line-height:1.55; margin:0; }}
-    .dev-badge {{
-        display:inline-flex; align-items:center; gap:5px;
-        background:rgba(212,160,23,0.13); border:1px solid rgba(212,160,23,0.42);
-        border-radius:20px; padding:4px 16px; font-size:0.85rem;
-        color:#d4a017; letter-spacing:0.07em; font-weight:700; margin-top:1rem;
-    }}
-    /* Botones Streamlit pegados abajo de las tarjetas */
-    div[data-testid="stHorizontalBlock"] {{
-        margin-top: -2px !important;
-        padding: 0 !important;
-    }}
-    div[data-testid="stHorizontalBlock"] > div {{
-        padding: 0 !important;
-    }}
-    div[data-testid="stHorizontalBlock"] button {{
-        border-radius: 0 0 22px 22px !important;
-        padding: 0.85rem 1rem !important;
-        font-size: 1rem !important;
-        margin: 0 !important;
-        width: 100% !important;
-        display: block !important;
-    }}
-    </style>
-    <div class="hub-page">
-        <div class="hub-logo-wrap">
-            <img src="https://raw.githubusercontent.com/marcasosguemes-cell/Stock-SECCO-AGRO/main/Logo.png"
-                 class="hub-logo" alt="Logo SECCO AGRO">
-        </div>
-        <div class="hub-grid">
-            <div class="hub-card">
-                <div class="hub-card-icon">📦</div>
-                <div class="hub-card-title">Gestión de Stock</div>
-                <div class="hub-card-desc">Control de ingresos, egresos, inventario y reportes por establecimiento.</div>
-            </div>
-            <div class="{maq_cls}">
-                <div class="hub-card-icon">⚙️</div>
-                <div class="hub-card-title">Gestión de Maquinaria</div>
-                <div class="hub-card-desc">Seguimiento de mantenimiento preventivo y correctivo de equipos.</div>
-                {maq_badge}
-            </div>
-        </div>
+    # Todo el hub en un solo st_components.html — control total del layout
+    html_hub = f"""<!DOCTYPE html>
+<html>
+<head>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=DM+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+* {{ margin:0; padding:0; box-sizing:border-box; }}
+html, body {{ background:transparent; overflow-x:hidden; font-family:'DM Sans',sans-serif; }}
+.hub-page {{
+    display:flex; flex-direction:column;
+    align-items:center; justify-content:center;
+    min-height:95vh; padding:2rem 1rem;
+}}
+.hub-logo-wrap {{
+    background:#f7f3e8;
+    border:2px solid rgba(212,160,23,0.6);
+    border-radius:50%;
+    width:460px; height:276px;
+    display:flex; align-items:center; justify-content:center;
+    overflow:hidden;
+    box-shadow:0 8px 32px rgba(0,0,0,0.45);
+    margin-bottom:2.2rem;
+}}
+.hub-logo {{ width:100%; height:100%; object-fit:contain; padding:15px; }}
+.hub-grid {{
+    display:grid;
+    grid-template-columns:380px 380px;
+    grid-template-rows:auto 58px;
+    column-gap:2.4rem; row-gap:0;
+    justify-content:center;
+}}
+.hub-card {{
+    background:linear-gradient(160deg,rgba(60,60,70,0.97),rgba(40,40,52,0.99));
+    border:1px solid rgba(212,160,23,0.42);
+    border-radius:22px 22px 0 0;
+    padding:2.4rem 2rem 2rem 2rem;
+    text-align:center;
+    box-shadow:0 8px 24px rgba(0,0,0,0.4);
+    display:flex; flex-direction:column;
+    align-items:center; justify-content:center;
+    min-height:260px;
+}}
+.hub-card-dev {{
+    background:linear-gradient(160deg,rgba(32,32,40,0.97),rgba(22,22,30,0.99));
+    border-color:rgba(212,160,23,0.22); opacity:0.85;
+}}
+.hub-card-icon {{ font-size:3.5rem; margin-bottom:0.85rem; line-height:1; }}
+.hub-card-title {{
+    font-family:'Playfair Display',serif;
+    font-size:1.65rem; font-weight:700;
+    color:#f0f0f5; margin:0 0 0.5rem 0;
+}}
+.hub-card-desc {{ font-size:0.98rem; color:#9090a8; line-height:1.55; }}
+.dev-badge {{
+    display:inline-flex; align-items:center; gap:5px;
+    background:rgba(212,160,23,0.13);
+    border:1px solid rgba(212,160,23,0.42);
+    border-radius:20px; padding:4px 16px;
+    font-size:0.82rem; color:#d4a017;
+    font-weight:700; margin-top:1rem;
+}}
+.hub-btn {{
+    width:100%; height:58px;
+    background:linear-gradient(135deg,#d4a017,#b87a0c);
+    color:#1a1a1f; border:none;
+    border-radius:0 0 22px 22px;
+    font-size:1rem; font-weight:700;
+    font-family:'DM Sans',sans-serif;
+    cursor:pointer; letter-spacing:0.03em;
+    box-shadow:0 6px 18px rgba(0,0,0,0.3);
+    transition:background 0.2s ease, transform 0.15s ease;
+}}
+.hub-btn:hover {{
+    background:linear-gradient(135deg,#e5b52a,#c98a1a);
+    transform:translateY(-1px);
+}}
+/* OVERLAY */
+@keyframes fadeInOut {{
+    0%   {{ opacity:0; transform:scale(0.90); }}
+    10%  {{ opacity:1; transform:scale(1); }}
+    80%  {{ opacity:1; transform:scale(1); }}
+    100% {{ opacity:0; transform:scale(0.96); }}
+}}
+.overlay-bg {{
+    display:none; position:fixed;
+    top:0; left:0; right:0; bottom:0;
+    background:rgba(0,0,0,0.6);
+    align-items:center; justify-content:center;
+    z-index:9999; pointer-events:none;
+}}
+.overlay-bg.show {{
+    display:flex;
+    animation:fadeInOut 5s ease forwards;
+}}
+.overlay-box {{
+    background:linear-gradient(135deg,#0e0e18,#1c1808);
+    border:1.5px solid rgba(212,160,23,0.7);
+    border-radius:26px; padding:3rem 4rem;
+    text-align:center; min-width:400px;
+    box-shadow:0 28px 70px rgba(0,0,0,0.9);
+}}
+.ov-icon  {{ font-size:4rem; margin-bottom:0.6rem; }}
+.ov-title {{ font-family:'Playfair Display',serif; font-size:2rem;
+             font-weight:700; color:#d4a017; margin-bottom:0.4rem; }}
+.ov-desc  {{ font-size:1rem; color:#a0a0b8; line-height:1.65; }}
+</style>
+</head>
+<body>
+<div class="hub-page">
+    <div class="hub-logo-wrap">
+        <img src="https://raw.githubusercontent.com/marcasosguemes-cell/Stock-SECCO-AGRO/main/Logo.png"
+             class="hub-logo" alt="Logo">
     </div>
-    """, unsafe_allow_html=True)
-
-    # Botones Streamlit — uno solo por módulo, alineados bajo las tarjetas
-    _, col1, col2, _ = st.columns([0.55, 1, 1, 0.55])
-    with col1:
-        if st.button("Ver Módulo", key="btn_hub_stock", use_container_width=True):
-            st.session_state["modulo"] = "stock"
-            st.session_state["pagina"] = "Dashboard"
-            st.rerun()
-    with col2:
-        if rol == "admin":
-            if st.button("Ver Módulo", key="btn_hub_maquinaria", use_container_width=True):
-                st.session_state["modulo"] = "maquinaria"
-                st.rerun()
-        else:
-            if st.button("Ver Módulo", key="btn_hub_maq_dev", use_container_width=True):
-                st.session_state["hub_maq_clicked"] = True
-                st.rerun()
-
-    # Overlay "Sistema en Desarrollo" — se muestra centrado en pantalla via st.components
-    if mostrar_overlay and rol != "admin":
-        st_components.html("""
-        <!DOCTYPE html><html><head>
-        <style>
-        * { margin:0; padding:0; box-sizing:border-box; }
-        html, body { background:transparent; overflow:hidden; width:100%; height:100%; }
-        @keyframes fadeInOut {
-            0%   { opacity:0; transform:scale(0.90); }
-            10%  { opacity:1; transform:scale(1); }
-            80%  { opacity:1; transform:scale(1); }
-            100% { opacity:0; transform:scale(0.96); }
-        }
-        .overlay {
-            position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
-            display: flex; align-items: center; justify-content: center;
-            background: rgba(0,0,0,0.55);
-            z-index: 99999;
-            animation: fadeInOut 5s ease forwards;
-            pointer-events: none;
-        }
-        .box {
-            background: linear-gradient(135deg,#0e0e18,#1c1808);
-            border: 1.5px solid rgba(212,160,23,0.7);
-            border-radius: 26px;
-            padding: 3rem 4rem;
-            text-align: center;
-            min-width: 420px;
-            box-shadow: 0 28px 70px rgba(0,0,0,0.9);
-        }
-        .icon  { font-size:4rem; margin-bottom:0.7rem; }
-        .title { font-family:Georgia,serif; font-size:2rem; font-weight:700;
-                 color:#d4a017; margin-bottom:0.5rem; }
-        .desc  { font-family:Arial,sans-serif; font-size:1.05rem;
-                 color:#a0a0b8; line-height:1.65; }
-        </style>
-        </head><body>
-        <div class="overlay">
-            <div class="box">
-                <div class="icon">🔧</div>
-                <div class="title">Sistema en Desarrollo</div>
-                <div class="desc">
-                    Este módulo estará disponible próximamente.<br>
-                    Contactá al administrador para más información.
-                </div>
-            </div>
+    <div class="hub-grid">
+        <!-- Tarjetas -->
+        <div class="hub-card">
+            <div class="hub-card-icon">📦</div>
+            <div class="hub-card-title">Gestión de Stock</div>
+            <div class="hub-card-desc">Control de ingresos, egresos, inventario y reportes por establecimiento.</div>
         </div>
-        </body></html>
-        """, height=400, scrolling=False)
+        <div class="{maq_cls}">
+            <div class="hub-card-icon">⚙️</div>
+            <div class="hub-card-title">Gestión de Maquinaria</div>
+            <div class="hub-card-desc">Seguimiento de mantenimiento preventivo y correctivo de equipos.</div>
+            {maq_badge}
+        </div>
+        <!-- Botones pegados -->
+        <button class="hub-btn" onclick="goStock()">Ver Módulo</button>
+        <button class="hub-btn" onclick="goMaq()">Ver Módulo</button>
+    </div>
+</div>
+<!-- Overlay -->
+<div class="overlay-bg" id="ov"></div>
+<script>
+function goStock() {{
+    window.parent.postMessage({{type:'streamlit:setComponentValue', value:'stock'}}, '*');
+}}
+function goMaq() {{
+    window.parent.postMessage({{type:'streamlit:setComponentValue', value:'maquinaria'}}, '*');
+}}
+{'// Auto-show overlay' if mostrar_overlay else ''}
+{'document.getElementById("ov").innerHTML = \'<div class="overlay-box"><div class="ov-icon">🔧</div><div class="ov-title">Sistema en Desarrollo</div><div class="ov-desc">Este módulo estará disponible próximamente.<br>Contactá al administrador para más información.</div></div>\'; document.getElementById("ov").classList.add("show"); setTimeout(function(){{document.getElementById("ov").classList.remove("show");}}, 5100);' if mostrar_overlay else ''}
+</script>
+</body></html>"""
+
+    # st_components.html con key para capturar clicks de los botones HTML
+    click = st_components.html(html_hub, height=700, scrolling=False)
+
+    # Procesar el valor devuelto por postMessage → setComponentValue
+    if click == "stock":
+        st.session_state["modulo"] = "stock"
+        st.session_state["pagina"] = "Dashboard"
+        st.rerun()
+    elif click == "maquinaria":
+        if rol == "admin":
+            st.session_state["modulo"] = "maquinaria"
+            st.rerun()
+        else:
+            st.session_state["hub_maq_clicked"] = True
+            st.rerun()
 def pagina_maquinaria():
     """Módulo de Gestión de Maquinaria — solo admin (placeholder)."""
     if st.button("← Volver al Inicio", key="btn_back_hub_maq"):
