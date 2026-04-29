@@ -617,7 +617,7 @@ def logout():
         "session", "user_id", "perfil", "rol", "establecimiento_id",
         "establecimiento_nombre", "pagina", "password_changed",
         "skip_password_check", "last_activity", "estab_seleccionado",
-        "estab_activo_id", "estab_activo_nombre",
+        "estab_activo_id", "estab_activo_nombre", "modulo",
     ]
     for key in keys_to_clear:
         st.session_state.pop(key, None)
@@ -1095,6 +1095,9 @@ def sidebar():
                 st.rerun()
 
         st.markdown("---")
+        if st.button("🏠 Inicio", key="btn_volver_hub"):
+            st.session_state["modulo"] = "hub"
+            st.rerun()
         if st.button("🚪 Cerrar sesión"):
             logout()
 
@@ -3268,6 +3271,200 @@ def pagina_consolidado():
 # MAIN
 # ══════════════════════════════════════════════════════════════
 
+def pantalla_hub():
+    """Pantalla de inicio con acceso a Gestión de Stock y Gestión de Maquinaria."""
+    rol = st.session_state.get("rol", "")
+
+    st.markdown("""
+    <style>
+    .hub-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        min-height: 80vh;
+        padding: 2rem 1rem;
+    }
+    .hub-logo-wrap {
+        background: #f7f3e8;
+        border: 2px solid rgba(212,160,23,0.6);
+        border-radius: 50%;
+        width: 260px;
+        height: 260px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        box-shadow: 0 8px 40px rgba(0,0,0,0.45);
+        margin-bottom: 2rem;
+    }
+    .hub-logo {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        padding: 20px;
+        transform: scale(1.85);
+        transform-origin: center;
+    }
+    .hub-title {
+        font-family: 'Playfair Display', serif !important;
+        font-size: 2rem !important;
+        font-weight: 700 !important;
+        color: var(--gold) !important;
+        letter-spacing: 0.04em;
+        margin-bottom: 0.3rem;
+        text-align: center;
+    }
+    .hub-subtitle {
+        font-size: 0.9rem;
+        color: var(--text-muted);
+        margin-bottom: 2.5rem;
+        text-align: center;
+        letter-spacing: 0.06em;
+    }
+    .hub-cards {
+        display: flex;
+        gap: 2rem;
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+    .hub-card {
+        background: linear-gradient(145deg,rgba(55,55,62,0.92) 0%,rgba(40,40,50,0.97) 100%);
+        border: 1px solid rgba(212,160,23,0.35);
+        border-radius: 24px;
+        padding: 2.2rem 2.5rem;
+        width: 280px;
+        text-align: center;
+        cursor: pointer;
+        box-shadow: 0 6px 28px rgba(0,0,0,0.35);
+        transition: all 0.28s cubic-bezier(.4,0,.2,1);
+    }
+    .hub-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 16px 40px rgba(0,0,0,0.5);
+        border-color: rgba(212,160,23,0.7);
+    }
+    .hub-card-icon {
+        font-size: 3.5rem;
+        margin-bottom: 1rem;
+        display: block;
+    }
+    .hub-card-title {
+        font-family: 'Playfair Display', serif !important;
+        font-size: 1.3rem !important;
+        font-weight: 700 !important;
+        color: #f0f0f5 !important;
+        margin-bottom: 0.5rem;
+    }
+    .hub-card-desc {
+        font-size: 0.82rem;
+        color: var(--text-muted);
+        line-height: 1.5;
+    }
+    .hub-card-maq-dev {
+        background: linear-gradient(145deg,rgba(35,35,42,0.92) 0%,rgba(28,28,36,0.97) 100%);
+        border: 1px solid rgba(212,160,23,0.18);
+        opacity: 0.75;
+    }
+    .dev-badge {
+        display: inline-block;
+        background: rgba(212,160,23,0.18);
+        border: 1px solid rgba(212,160,23,0.4);
+        border-radius: 20px;
+        padding: 3px 14px;
+        font-size: 0.72rem;
+        color: var(--gold);
+        letter-spacing: 0.08em;
+        font-weight: 600;
+        margin-top: 0.8rem;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+
+    col_l, col_c, col_r = st.columns([1, 3, 1])
+    with col_c:
+        st.markdown("""
+        <div class="hub-container">
+            <div class="hub-logo-wrap">
+                <img src="https://raw.githubusercontent.com/marcasosguemes-cell/Stock-SECCO-AGRO/main/Logo.png"
+                     class="hub-logo" alt="Logo SECCO AGRO">
+            </div>
+            <div class="hub-title">SECCO AGRO</div>
+            <div class="hub-subtitle">LA SONIA · SAN GUILLERMO · CAMBA PORA</div>
+        </div>
+        """, unsafe_allow_html=True)
+
+        c1, c2 = st.columns(2)
+        with c1:
+            st.markdown("""
+            <div class="hub-card">
+                <span class="hub-card-icon">📦</span>
+                <div class="hub-card-title">Gestión de Stock</div>
+                <div class="hub-card-desc">Control de ingresos, egresos, inventario y reportes por establecimiento.</div>
+            </div>
+            """, unsafe_allow_html=True)
+            if st.button("Ingresar →", key="btn_hub_stock", use_container_width=True):
+                st.session_state["modulo"] = "stock"
+                st.session_state["pagina"] = "Dashboard"
+                st.rerun()
+
+        with c2:
+            if rol == "admin":
+                st.markdown("""
+                <div class="hub-card">
+                    <span class="hub-card-icon">⚙️</span>
+                    <div class="hub-card-title">Gestión de Maquinaria</div>
+                    <div class="hub-card-desc">Seguimiento de mantenimiento preventivo y correctivo de equipos.</div>
+                </div>
+                """, unsafe_allow_html=True)
+                if st.button("Ingresar →", key="btn_hub_maquinaria", use_container_width=True):
+                    st.session_state["modulo"] = "maquinaria"
+                    st.rerun()
+            else:
+                st.markdown("""
+                <div class="hub-card hub-card-maq-dev">
+                    <span class="hub-card-icon">🔧</span>
+                    <div class="hub-card-title">Gestión de Maquinaria</div>
+                    <div class="hub-card-desc">Módulo de mantenimiento y seguimiento de equipos agrícolas.</div>
+                    <div class="dev-badge">🔩 En Desarrollo</div>
+                </div>
+                """, unsafe_allow_html=True)
+                st.markdown("""
+                <div style="text-align:center;margin-top:-0.5rem;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 100 100" style="opacity:0.35;margin-top:0.5rem;">
+                      <!-- Polea izquierda -->
+                      <circle cx="28" cy="55" r="18" fill="none" stroke="#d4a017" stroke-width="4"/>
+                      <circle cx="28" cy="55" r="8" fill="none" stroke="#d4a017" stroke-width="3"/>
+                      <circle cx="28" cy="55" r="3" fill="#d4a017"/>
+                      <!-- Polea derecha -->
+                      <circle cx="72" cy="55" r="12" fill="none" stroke="#d4a017" stroke-width="4"/>
+                      <circle cx="72" cy="55" r="5" fill="none" stroke="#d4a017" stroke-width="3"/>
+                      <circle cx="72" cy="55" r="2.5" fill="#d4a017"/>
+                      <!-- Correa superior -->
+                      <line x1="28" y1="37" x2="72" y2="43" stroke="#d4a017" stroke-width="3.5" stroke-linecap="round"/>
+                      <!-- Correa inferior -->
+                      <line x1="28" y1="73" x2="72" y2="67" stroke="#d4a017" stroke-width="3.5" stroke-linecap="round"/>
+                    </svg>
+                    <div style="color:rgba(212,160,23,0.55);font-size:0.75rem;margin-top:4px;letter-spacing:0.08em;">PRÓXIMAMENTE</div>
+                </div>
+                """, unsafe_allow_html=True)
+                st.button("En Desarrollo", key="btn_hub_maq_disabled", disabled=True, use_container_width=True)
+
+
+def pagina_maquinaria():
+    """Módulo de Gestión de Maquinaria — solo admin (placeholder)."""
+    if st.button("← Volver al Inicio", key="btn_back_hub_maq"):
+        st.session_state["modulo"] = "hub"
+        st.rerun()
+    st.markdown("""
+    <div style="text-align:center;padding:3rem 1rem;">
+        <div style="font-size:4rem;margin-bottom:1rem;">⚙️</div>
+        <h2 style="font-family:'Playfair Display',serif;color:var(--gold);">Gestión de Maquinaria</h2>
+        <p style="color:var(--text-secondary);">Este módulo está en construcción. Pronto disponible.</p>
+    </div>
+    """, unsafe_allow_html=True)
+
+
 def main():
     if not check_auth():
         login()
@@ -3282,6 +3479,22 @@ def main():
     ):
         mostrar_cambio_password()
         return
+
+    # Pantalla hub inicial
+    if "modulo" not in st.session_state:
+        st.session_state["modulo"] = "hub"
+
+    modulo = st.session_state.get("modulo", "hub")
+
+    if modulo == "hub":
+        pantalla_hub()
+        return
+
+    if modulo == "maquinaria":
+        pagina_maquinaria()
+        return
+
+    # ── A partir de acá: módulo "stock" ──────────────────────────
 
     # Toggle sidebar
     if "sidebar_open" not in st.session_state:
