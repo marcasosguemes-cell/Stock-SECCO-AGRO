@@ -3328,30 +3328,32 @@ def pantalla_hub():
         font-size:0.82rem; color:#d4a017;
         font-weight:700; margin-top:1rem;
     }}
-    /* Botones Streamlit: sin margen superior, radio solo abajo */
+    /* Botones Streamlit: pegados bajo tarjetas, sin gap */
     div[data-testid="stHorizontalBlock"] {{
-        margin-top:0 !important;
-        padding:0 !important;
-        gap:0 !important;
+        margin-top: -8px !important;
+        padding: 0 !important;
+        gap: 0 !important;
+        justify-content: center !important;
     }}
     div[data-testid="stHorizontalBlock"] > div {{
-        padding:0 !important;
-        flex:0 0 380px !important;
-        max-width:380px !important;
+        padding: 0 !important;
+        flex: 0 0 380px !important;
+        max-width: 380px !important;
+        min-width: 380px !important;
     }}
-    div[data-testid="stHorizontalBlock"] > div:first-child {{
-        margin-right: 2.4rem !important;
+    div[data-testid="stHorizontalBlock"] > div:nth-child(2) {{
+        margin-left: 2.4rem !important;
     }}
     div[data-testid="stHorizontalBlock"] .stButton > button {{
-        border-radius:0 0 22px 22px !important;
-        height:58px !important;
-        font-size:1rem !important;
-        font-weight:700 !important;
-        margin:0 !important;
-        padding:0 !important;
-        width:100% !important;
-        display:block !important;
-        letter-spacing:0.03em !important;
+        border-radius: 0 0 22px 22px !important;
+        height: 58px !important;
+        font-size: 1rem !important;
+        font-weight: 700 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        width: 100% !important;
+        letter-spacing: 0.03em !important;
+        box-shadow: 0 6px 18px rgba(0,0,0,0.3) !important;
     }}
     </style>
     <div class="hub-page">
@@ -3394,45 +3396,53 @@ def pantalla_hub():
 
     # ── Overlay "Sistema en Desarrollo" via st_components ─────
     if mostrar_overlay and rol != "admin":
-        st_components.html("""<!DOCTYPE html>
-<html><head>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
-<style>
-* { margin:0; padding:0; box-sizing:border-box; }
-html, body { background:transparent; overflow:hidden; }
-@keyframes fadeInOut {
-    0%   { opacity:0; transform:scale(0.90); }
-    10%  { opacity:1; transform:scale(1); }
-    80%  { opacity:1; transform:scale(1); }
-    100% { opacity:0; transform:scale(0.96); }
-}
-.bg {
-    position:fixed; top:0; left:0; right:0; bottom:0;
-    background:rgba(0,0,0,0.65);
-    display:flex; align-items:center; justify-content:center;
-    animation:fadeInOut 5s ease forwards;
-    pointer-events:none; z-index:9999;
-}
-.box {
-    background:linear-gradient(135deg,#0e0e18,#1c1808);
-    border:1.5px solid rgba(212,160,23,0.7);
-    border-radius:26px; padding:3rem 4rem;
-    text-align:center; min-width:420px;
-    box-shadow:0 28px 70px rgba(0,0,0,0.9);
-}
-.icon  { font-size:4rem; margin-bottom:0.6rem; }
-.title { font-family:'Playfair Display',serif; font-size:2rem;
-         font-weight:700; color:#d4a017; margin-bottom:0.4rem; }
-.desc  { font-family:Arial,sans-serif; font-size:1rem;
-         color:#a0a0b8; line-height:1.65; }
-</style></head><body>
-<div class="bg"><div class="box">
-    <div class="icon">🔧</div>
-    <div class="title">Sistema en Desarrollo</div>
-    <div class="desc">Este módulo estará disponible próximamente.<br>
-    Contactá al administrador para más información.</div>
-</div></div>
-</body></html>""", height=400, scrolling=False)
+        # Inyectar overlay en el DOM padre via JS — evita el iframe limitado
+        st.markdown("""
+        <style>
+        @keyframes hubFadeInOut {
+            0%   { opacity:0; transform:translate(-50%,-50%) scale(0.88); }
+            10%  { opacity:1; transform:translate(-50%,-50%) scale(1); }
+            80%  { opacity:1; transform:translate(-50%,-50%) scale(1); }
+            100% { opacity:0; transform:translate(-50%,-50%) scale(0.96); }
+        }
+        #hub-dev-overlay {
+            position: fixed;
+            top: 50%; left: 50%;
+            transform: translate(-50%,-50%);
+            z-index: 999999;
+            background: linear-gradient(135deg,#0e0e18,#1c1808);
+            border: 1.5px solid rgba(212,160,23,0.75);
+            border-radius: 26px;
+            padding: 3rem 4rem;
+            text-align: center;
+            min-width: 440px;
+            box-shadow: 0 28px 70px rgba(0,0,0,0.92);
+            animation: hubFadeInOut 5s ease forwards;
+            pointer-events: none;
+        }
+        #hub-dev-bg {
+            position: fixed;
+            top:0; left:0; right:0; bottom:0;
+            background: rgba(0,0,0,0.6);
+            z-index: 999998;
+            animation: hubFadeInOut 5s ease forwards;
+            pointer-events: none;
+        }
+        .hub-ov-icon  { font-size:4rem; margin-bottom:0.6rem; }
+        .hub-ov-title { font-family:'Playfair Display',serif; font-size:2rem;
+                        font-weight:700; color:#d4a017; margin-bottom:0.4rem; }
+        .hub-ov-desc  { font-size:1rem; color:#a0a0b8; line-height:1.65; }
+        </style>
+        <div id="hub-dev-bg"></div>
+        <div id="hub-dev-overlay">
+            <div class="hub-ov-icon">🔧</div>
+            <div class="hub-ov-title">Sistema en Desarrollo</div>
+            <div class="hub-ov-desc">
+                Este módulo estará disponible próximamente.<br>
+                Contactá al administrador para más información.
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
 def pagina_maquinaria():
     """Módulo de Gestión de Maquinaria — solo admin (placeholder)."""
     if st.button("← Volver al Inicio", key="btn_back_hub_maq"):
