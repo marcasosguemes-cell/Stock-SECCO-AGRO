@@ -3335,8 +3335,7 @@ def pantalla_hub():
     .hub-logo {{ width:100%; height:100%; object-fit:contain; padding:15px; }}
     .hub-cards {{
         display:flex; gap:2.4rem; justify-content:center;
-        width:100%;
-        max-width:760px;
+        width:560px;
     }}
     .hub-card {{
         background:linear-gradient(160deg,rgba(60,60,70,0.97),rgba(40,40,52,0.99));
@@ -3371,10 +3370,10 @@ def pantalla_hub():
     div[data-testid="stHorizontalBlock"] {{
         display:flex !important;
         justify-content:center !important;
-        gap:0 !important;
+        gap:2.4rem !important;
         margin-top:-12px !important;
         padding:0 !important;
-        max-width:760px !important;
+        width:560px !important;
         margin-left:auto !important;
         margin-right:auto !important;
     }}
@@ -3382,9 +3381,6 @@ def pantalla_hub():
         flex:1 !important;
         padding:0 !important;
         min-width:0 !important;
-    }}
-    div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:first-child {{
-        margin-right:2.4rem !important;
     }}
     div[data-testid="stHorizontalBlock"] .stButton > button {{
         border-radius:0 0 22px 22px !important;
