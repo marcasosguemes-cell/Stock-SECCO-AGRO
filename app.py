@@ -3308,9 +3308,10 @@ def pantalla_hub():
         display: flex;
         gap: 2.6rem;
         justify-content: center;
-        align-items: flex-start;
+        align-items: stretch;
         flex-wrap: nowrap;
-        margin-bottom: 0;
+        margin: 0 auto;
+        width: fit-content;
     }
     /* Tarjetas +30%: 290px → 377px */
     .hub-slot {
@@ -3329,6 +3330,7 @@ def pantalla_hub():
         display: flex;
         flex-direction: column;
         align-items: center;
+        justify-content: center;
         box-sizing: border-box;
         min-height: 273px;
         margin-bottom: 1rem;
@@ -3338,23 +3340,20 @@ def pantalla_hub():
         border-color: rgba(212,160,23,0.2);
         opacity: 0.82;
     }
-    /* Ícono +30%: 2.6 → 3.4rem */
     .hub-card-icon {
-        font-size: 3.4rem;
+        font-size: 3.8rem;
         margin-bottom: 1rem;
         line-height: 1;
     }
-    /* Título +30%: 1.15 → 1.5rem */
     .hub-card-title {
         font-family: 'Playfair Display', serif;
-        font-size: 1.5rem;
+        font-size: 1.7rem;
         font-weight: 700;
         color: #f0f0f5;
         margin: 0 0 0.55rem 0;
     }
-    /* Descripción +30%: 0.77 → 1rem */
     .hub-card-desc {
-        font-size: 1rem;
+        font-size: 1.1rem;
         color: #9090a8;
         line-height: 1.55;
         margin: 0;
@@ -3450,8 +3449,8 @@ def pantalla_hub():
             <style>
             @keyframes fadeInOut {
                 0%   { opacity: 0; transform: translate(-50%,-50%) scale(0.92); }
-                12%  { opacity: 1; transform: translate(-50%,-50%) scale(1); }
-                75%  { opacity: 1; transform: translate(-50%,-50%) scale(1); }
+                8%   { opacity: 1; transform: translate(-50%,-50%) scale(1); }
+                82%  { opacity: 1; transform: translate(-50%,-50%) scale(1); }
                 100% { opacity: 0; transform: translate(-50%,-50%) scale(0.95); }
             }
             .hub-overlay {
@@ -3467,7 +3466,7 @@ def pantalla_hub():
                 text-align: center;
                 min-width: 320px;
                 box-shadow: 0 20px 60px rgba(0,0,0,0.7);
-                animation: fadeInOut 3.2s ease forwards;
+                animation: fadeInOut 5s ease forwards;
                 pointer-events: none;
             }
             .hub-overlay-icon { font-size: 3rem; margin-bottom: 0.6rem; }
