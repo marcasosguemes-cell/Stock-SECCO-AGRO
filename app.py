@@ -3321,6 +3321,7 @@ def pantalla_hub():
         display:flex; flex-direction:column;
         align-items:center; justify-content:center;
         padding:2rem 1rem 0 1rem;
+        width:100%;
     }}
     .hub-logo-wrap {{
         background:#f7f3e8;
@@ -3335,7 +3336,10 @@ def pantalla_hub():
     .hub-logo {{ width:100%; height:100%; object-fit:contain; padding:15px; }}
     .hub-cards {{
         display:flex; gap:2.4rem; justify-content:center;
-        width:560px;
+        width:100%;
+        max-width:760px;
+        margin-left:auto;
+        margin-right:auto;
     }}
     .hub-card {{
         background:linear-gradient(160deg,rgba(60,60,70,0.97),rgba(40,40,52,0.99));
@@ -3373,7 +3377,7 @@ def pantalla_hub():
         gap:2.4rem !important;
         margin-top:-12px !important;
         padding:0 !important;
-        width:560px !important;
+        max-width:760px !important;
         margin-left:auto !important;
         margin-right:auto !important;
     }}
