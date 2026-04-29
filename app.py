@@ -7,6 +7,7 @@ Versión mejorada: seguridad, infraestructura, estética, información y almacen
 import html
 import logging
 import streamlit as st
+import streamlit.components.v1 as st_components
 from supabase import create_client, Client
 from datetime import date, datetime, timedelta
 from zoneinfo import ZoneInfo
@@ -3271,39 +3272,15 @@ def pantalla_hub():
     """Pantalla de inicio con acceso a Gestión de Stock y Gestión de Maquinaria."""
     rol = st.session_state.get("rol", "")
 
-    # Manejar acciones de los botones HTML
-    accion = st.session_state.pop("hub_accion", None)
-    if accion == "stock":
-        st.session_state["modulo"] = "stock"
-        st.session_state["pagina"] = "Dashboard"
-        st.rerun()
-    elif accion == "maquinaria" and rol == "admin":
-        st.session_state["modulo"] = "maquinaria"
-        st.rerun()
-
-    maq_btn_html = ""
-    if rol == "admin":
-        maq_btn_html = """
-        <button class="hub-btn" onclick="window.parent.postMessage({type:'streamlit:setComponentValue',value:'maquinaria'},'*');
-            document.querySelector('[data-testid=stTextInput] input') && (document.querySelector('[data-testid=stTextInput] input').value='maquinaria');
-            hubAction('maquinaria')">
-            Ver Módulo
-        </button>"""
-    else:
-        maq_btn_html = """
-        <button class="hub-btn hub-btn-dev" onclick="showDevOverlay()">
-            Ver Módulo
-        </button>"""
+    # ── Mostrar overlay si no-admin clickeó maquinaria ────────
+    mostrar_overlay = st.session_state.pop("hub_maq_clicked", False)
 
     maq_badge = '<div class="dev-badge">&#9881; En Desarrollo</div>' if rol != "admin" else ""
     maq_cls   = "hub-card hub-card-dev" if rol != "admin" else "hub-card"
 
+    # ── CSS + HTML del hub ────────────────────────────────────
     st.markdown(f"""
     <style>
-    /* Reset margen del bloque principal */
-    [data-testid="stAppViewContainer"] > section > div {{
-        padding-top: 0 !important;
-    }}
     .hub-page {{
         display: flex;
         flex-direction: column;
@@ -3313,7 +3290,6 @@ def pantalla_hub():
         padding: 2rem 1rem;
         box-sizing: border-box;
     }}
-    /* Óvalo igual al login */
     .hub-logo-wrap {{
         background: #f7f3e8;
         border: 2px solid rgba(212,160,23,0.55);
@@ -3335,7 +3311,6 @@ def pantalla_hub():
         display: block;
         padding: 15px;
     }}
-    /* Par de tarjetas + botones */
     .hub-grid {{
         display: grid;
         grid-template-columns: 380px 380px;
@@ -3363,216 +3338,152 @@ def pantalla_hub():
         border-color: rgba(212,160,23,0.22);
         opacity: 0.84;
     }}
-    .hub-card-icon {{
-        font-size: 3.6rem;
-        margin-bottom: 0.9rem;
-        line-height: 1;
-    }}
+    .hub-card-icon {{ font-size: 3.6rem; margin-bottom: 0.9rem; line-height: 1; }}
     .hub-card-title {{
         font-family: 'Playfair Display', serif;
-        font-size: 1.65rem;
-        font-weight: 700;
-        color: #f0f0f5;
-        margin: 0 0 0.5rem 0;
+        font-size: 1.65rem; font-weight: 700;
+        color: #f0f0f5; margin: 0 0 0.5rem 0;
     }}
-    .hub-card-desc {{
-        font-size: 1rem;
-        color: #9090a8;
-        line-height: 1.55;
-        margin: 0;
-    }}
+    .hub-card-desc {{ font-size: 1rem; color: #9090a8; line-height: 1.55; margin: 0; }}
     .dev-badge {{
-        display: inline-flex;
-        align-items: center;
-        gap: 5px;
+        display: inline-flex; align-items: center; gap: 5px;
         background: rgba(212,160,23,0.13);
         border: 1px solid rgba(212,160,23,0.42);
-        border-radius: 20px;
-        padding: 4px 16px;
-        font-size: 0.85rem;
-        color: #d4a017;
-        letter-spacing: 0.07em;
-        font-weight: 700;
-        margin-top: 1rem;
+        border-radius: 20px; padding: 4px 16px;
+        font-size: 0.85rem; color: #d4a017;
+        letter-spacing: 0.07em; font-weight: 700; margin-top: 1rem;
     }}
-    /* Botones pegados abajo de la tarjeta */
     .hub-btn {{
-        width: 100%;
-        padding: 0.85rem 1rem;
+        width: 100%; padding: 0.85rem 1rem;
         background: linear-gradient(135deg, #d4a017, #b87a0c);
-        color: #1a1a1f;
-        border: none;
+        color: #1a1a1f; border: none;
         border-radius: 0 0 22px 22px;
-        font-size: 1rem;
-        font-weight: 700;
+        font-size: 1rem; font-weight: 700;
         font-family: 'DM Sans', sans-serif;
         cursor: pointer;
         box-shadow: 0 6px 18px rgba(0,0,0,0.3);
         transition: all 0.22s ease;
-        letter-spacing: 0.02em;
         box-sizing: border-box;
+        letter-spacing: 0.02em;
     }}
     .hub-btn:hover {{
         background: linear-gradient(135deg, #e5b52a, #c98a1a);
-        transform: translateY(-1px);
         box-shadow: 0 8px 22px rgba(0,0,0,0.4);
     }}
-    .hub-btn-dev {{
-        background: linear-gradient(135deg, #b8922a, #9a7518);
-        opacity: 0.88;
-    }}
-    /* Overlay */
-    @keyframes fadeInOut {{
-        0%   {{ opacity:0; transform:translate(-50%,-50%) scale(0.92); }}
-        8%   {{ opacity:1; transform:translate(-50%,-50%) scale(1); }}
-        82%  {{ opacity:1; transform:translate(-50%,-50%) scale(1); }}
-        100% {{ opacity:0; transform:translate(-50%,-50%) scale(0.95); }}
-    }}
-    .hub-overlay {{
-        position: fixed;
-        top: 50%; left: 50%;
-        transform: translate(-50%,-50%);
-        z-index: 9999;
-        background: linear-gradient(135deg,rgba(18,18,24,0.98),rgba(28,24,14,0.98));
-        border: 1px solid rgba(212,160,23,0.6);
-        border-radius: 24px;
-        padding: 2.8rem 3.5rem;
-        text-align: center;
-        min-width: 440px;
-        box-shadow: 0 24px 64px rgba(0,0,0,0.75);
-        animation: fadeInOut 5s ease forwards;
-        pointer-events: none;
-    }}
-    .hub-overlay-icon {{ font-size: 4rem; margin-bottom: 0.8rem; }}
-    .hub-overlay-title {{
-        font-family: 'Playfair Display', serif;
-        font-size: 1.9rem; font-weight: 700;
-        color: #d4a017; margin-bottom: 0.5rem;
-    }}
-    .hub-overlay-desc {{
-        font-size: 1.05rem; color: #a0a0b0; line-height: 1.65;
-    }}
     </style>
-
     <div class="hub-page">
         <div class="hub-logo-wrap">
             <img src="https://raw.githubusercontent.com/marcasosguemes-cell/Stock-SECCO-AGRO/main/Logo.png"
                  class="hub-logo" alt="Logo SECCO AGRO">
         </div>
         <div class="hub-grid">
-            <!-- Tarjeta Stock -->
             <div class="hub-card">
                 <div class="hub-card-icon">📦</div>
                 <div class="hub-card-title">Gestión de Stock</div>
                 <div class="hub-card-desc">Control de ingresos, egresos, inventario y reportes por establecimiento.</div>
             </div>
-            <!-- Tarjeta Maquinaria -->
             <div class="{maq_cls}">
                 <div class="hub-card-icon">⚙️</div>
                 <div class="hub-card-title">Gestión de Maquinaria</div>
                 <div class="hub-card-desc">Seguimiento de mantenimiento preventivo y correctivo de equipos.</div>
                 {maq_badge}
             </div>
-            <!-- Botón Stock -->
-            <button class="hub-btn" id="btn-stock" onclick="hubAction('stock')">Ver Módulo</button>
-            <!-- Botón Maquinaria -->
-            {'<button class="hub-btn" id="btn-maq" onclick="hubAction(\'maquinaria\')">Ver Módulo</button>'
-              if rol == "admin" else
-              '<button class="hub-btn hub-btn-dev" id="btn-maq" onclick="showDevOverlay()">Ver Módulo</button>'
-            }
+            <form id="f1" style="margin:0">
+              <button class="hub-btn" type="submit" form="f1">Ver Módulo</button>
+            </form>
+            <form id="f2" style="margin:0">
+              <button class="hub-btn" type="submit" form="f2">Ver Módulo</button>
+            </form>
         </div>
     </div>
-
-    <!-- Overlay "en desarrollo" (oculto por defecto) -->
-    <div id="hub-overlay" style="
-        display:none;
-        position:fixed;
-        top:50%; left:50%;
-        transform:translate(-50%,-50%);
-        z-index:9999;
-        background:linear-gradient(135deg,rgba(18,18,24,0.98),rgba(28,24,14,0.98));
-        border:1px solid rgba(212,160,23,0.6);
-        border-radius:24px;
-        padding:2.8rem 3.5rem;
-        text-align:center;
-        min-width:440px;
-        box-shadow:0 24px 64px rgba(0,0,0,0.75);
-        pointer-events:none;
-    ">
-        <div style="font-size:4rem;margin-bottom:0.8rem;">🔧</div>
-        <div style="font-family:'Playfair Display',serif;font-size:1.9rem;font-weight:700;color:#d4a017;margin-bottom:0.5rem;">Sistema en Desarrollo</div>
-        <div style="font-size:1.05rem;color:#a0a0b0;line-height:1.65;">
-            Este módulo estará disponible próximamente.<br>
-            Contactá al administrador para más información.
-        </div>
-    </div>
-
-    <script>
-    function hubAction(modulo) {{
-        // Enviamos al input oculto de Streamlit
-        const inputs = window.parent.document.querySelectorAll('input[type="text"]');
-        // Usamos sendPrompt si está disponible (Claude artifacts), si no simulamos click
-        if (typeof window.sendPrompt === 'function') {{
-            window.sendPrompt('__hub__' + modulo);
-        }} else {{
-            // Fallback: recargar con query param
-            window.parent.location.href = window.parent.location.pathname + '?hub=' + modulo;
-        }}
-    }}
-    function showDevOverlay() {{
-        const el = document.getElementById('hub-overlay');
-        if (!el) return;
-        el.innerHTML = '<div class="hub-overlay-icon">🔧</div>' +
-            '<div class="hub-overlay-title">Sistema en Desarrollo</div>' +
-            '<div class="hub-overlay-desc">Este módulo estará disponible próximamente.<br>Contactá al administrador para más información.</div>';
-        el.style.display = 'block';
-        el.style.animation = 'fadeInOut 5s ease forwards';
-        // Volver a ocultar al finalizar
-        setTimeout(function(){{ el.style.display='none'; el.style.animation='none'; }}, 5100);
-    }}
-    </script>
     """, unsafe_allow_html=True)
 
-    # Capturamos acción via botones nativos de Streamlit (invisibles, accionados por JS)
-    # Como fallback usamos st.button invisible — el JS no puede llamar Streamlit directamente,
-    # así que mantenemos botones Streamlit ocultos y los activamos via hash en URL
-    col1, col2 = st.columns(2)
+    # ── Botones reales de Streamlit (visibles, alineados bajo el grid HTML) ──
+    _, col1, col2, _ = st.columns([0.55, 1, 1, 0.55])
     with col1:
-        if st.button("▶ stock", key="btn_hub_stock_hidden",
-                     help="", type="secondary"):
+        if st.button("Ver Módulo", key="btn_hub_stock", use_container_width=True):
             st.session_state["modulo"] = "stock"
             st.session_state["pagina"] = "Dashboard"
             st.rerun()
     with col2:
         if rol == "admin":
-            if st.button("▶ maquinaria", key="btn_hub_maq_hidden",
-                         help="", type="secondary"):
+            if st.button("Ver Módulo", key="btn_hub_maquinaria", use_container_width=True):
                 st.session_state["modulo"] = "maquinaria"
                 st.rerun()
         else:
-            if st.button("▶ dev", key="btn_hub_dev_hidden",
-                         help="", type="secondary"):
+            if st.button("Ver Módulo", key="btn_hub_maq_dev", use_container_width=True):
                 st.session_state["hub_maq_clicked"] = True
                 st.rerun()
 
-    # CSS para ocultar los botones Streamlit de control (solo usan los HTML)
+    # CSS para ocultar los formularios HTML (usamos solo los botones Streamlit)
     st.markdown("""
     <style>
-    /* Ocultar botones de control internos */
+    /* Ocultar los form/button HTML del grid — solo son placeholders visuales */
+    .hub-grid form { pointer-events: none; }
+    /* Superponer botones Streamlit sobre los placeholder HTML */
     div[data-testid="stHorizontalBlock"] {
-        position: absolute !important;
-        opacity: 0 !important;
-        pointer-events: none !important;
-        height: 0 !important;
-        overflow: hidden !important;
-        margin: 0 !important;
-        padding: 0 !important;
+        margin-top: -54px !important;
+        position: relative !important;
+        z-index: 10 !important;
+    }
+    div[data-testid="stHorizontalBlock"] > div:first-child { padding-left: 0 !important; }
+    div[data-testid="stHorizontalBlock"] > div:last-child  { padding-right: 0 !important; }
+    div[data-testid="stHorizontalBlock"] button {
+        border-radius: 0 0 22px 22px !important;
+        padding: 0.85rem 1rem !important;
+        font-size: 1rem !important;
+        margin-top: 0 !important;
     }
     </style>
     """, unsafe_allow_html=True)
 
-    # No extra overlay needed - handled entirely by JS in the HTML block above
-
+    # ── Overlay "Sistema en Desarrollo" con st.components ────
+    if mostrar_overlay and rol != "admin":
+        st_components.html("""
+        <!DOCTYPE html>
+        <html>
+        <head>
+        <style>
+            body { margin:0; background:transparent; overflow:hidden; }
+            @keyframes fadeInOut {
+                0%   { opacity:0; transform:translate(-50%,-50%) scale(0.92); }
+                8%   { opacity:1; transform:translate(-50%,-50%) scale(1); }
+                82%  { opacity:1; transform:translate(-50%,-50%) scale(1); }
+                100% { opacity:0; transform:translate(-50%,-50%) scale(0.96); }
+            }
+            .overlay {
+                position: fixed;
+                top: 50%; left: 50%;
+                transform: translate(-50%,-50%);
+                z-index: 99999;
+                background: linear-gradient(135deg,rgba(14,14,20,0.98),rgba(24,20,10,0.98));
+                border: 1.5px solid rgba(212,160,23,0.65);
+                border-radius: 26px;
+                padding: 3rem 4rem;
+                text-align: center;
+                min-width: 460px;
+                box-shadow: 0 28px 70px rgba(0,0,0,0.85);
+                animation: fadeInOut 5s ease forwards;
+                pointer-events: none;
+                font-family: Georgia, serif;
+            }
+            .ov-icon  { font-size: 4.5rem; margin-bottom: 0.7rem; }
+            .ov-title { font-size: 2rem; font-weight: 700; color: #d4a017; margin-bottom: 0.5rem; }
+            .ov-desc  { font-size: 1.1rem; color: #a0a0b8; line-height: 1.65; }
+        </style>
+        </head>
+        <body>
+            <div class="overlay">
+                <div class="ov-icon">🔧</div>
+                <div class="ov-title">Sistema en Desarrollo</div>
+                <div class="ov-desc">
+                    Este módulo estará disponible próximamente.<br>
+                    Contactá al administrador para más información.
+                </div>
+            </div>
+        </body>
+        </html>
+        """, height=300, scrolling=False)
 
 def pagina_maquinaria():
     """Módulo de Gestión de Maquinaria — solo admin (placeholder)."""
