@@ -3271,62 +3271,49 @@ def pagina_consolidado():
 def pantalla_hub():
     """Pantalla de inicio con acceso a Gestión de Stock y Gestión de Maquinaria."""
     rol = st.session_state.get("rol", "")
-    mostrar_overlay = st.session_state.pop("hub_maq_clicked", False)
 
-    if mostrar_overlay and rol != "admin":
-        st.toast("🔧 **Sistema en Desarrollo** — Este módulo estará disponible próximamente.", icon="⚙️")
+    # Toast para no-admin que clickea maquinaria
+    if st.session_state.pop("hub_maq_clicked", False) and rol != "admin":
+        st.toast("⚙️  Sistema en Desarrollo — Módulo disponible próximamente.", icon="🔧")
 
     maq_badge = '<div class="dev-badge">&#9881; En Desarrollo</div>' if rol != "admin" else ""
     maq_cls   = "hub-card hub-card-dev" if rol != "admin" else "hub-card"
 
     st.markdown(f"""
     <style>
-    /* ── Reset Streamlit padding ── */
-    [data-testid="stAppViewContainer"] > section > div:first-child {{
-        padding-top: 0 !important;
-    }}
-    .block-container {{
-        padding-top: 1rem !important;
-        padding-bottom: 0 !important;
-        max-width: 100% !important;
-    }}
-    /* ── Hub layout ── */
     .hub-page {{
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        padding: 2rem 1rem 0 1rem;
+        display:flex; flex-direction:column;
+        align-items:center; justify-content:center;
+        padding:2rem 1rem 0 1rem;
     }}
     .hub-logo-wrap {{
-        background: #f7f3e8;
-        border: 2px solid rgba(212,160,23,0.6);
-        border-radius: 50%;
-        width: 460px; height: 276px;
-        display: flex; align-items: center; justify-content: center;
-        overflow: hidden;
-        box-shadow: 0 8px 32px rgba(0,0,0,0.45);
-        margin-bottom: 2.2rem;
+        background:#f7f3e8;
+        border:2px solid rgba(212,160,23,0.6);
+        border-radius:50%;
+        width:460px; height:276px;
+        display:flex; align-items:center; justify-content:center;
+        overflow:hidden;
+        box-shadow:0 8px 32px rgba(0,0,0,0.45);
+        margin-bottom:2.2rem;
     }}
     .hub-logo {{ width:100%; height:100%; object-fit:contain; padding:15px; }}
     .hub-cards {{
-        display: flex;
-        gap: 2.4rem;
-        justify-content: center;
+        display:flex; gap:2.4rem; justify-content:center;
     }}
     .hub-card {{
-        background: linear-gradient(160deg,rgba(60,60,70,0.97),rgba(40,40,52,0.99));
-        border: 1px solid rgba(212,160,23,0.42);
-        border-radius: 22px 22px 0 0;
-        padding: 2.4rem 2rem 2rem 2rem;
-        text-align: center;
-        box-shadow: 0 8px 24px rgba(0,0,0,0.4);
-        display: flex; flex-direction: column;
-        align-items: center; justify-content: center;
-        width: 340px; min-height: 260px; box-sizing: border-box;
+        background:linear-gradient(160deg,rgba(60,60,70,0.97),rgba(40,40,52,0.99));
+        border:1px solid rgba(212,160,23,0.42);
+        border-radius:22px 22px 0 0;
+        padding:2.4rem 2rem 2rem 2rem;
+        text-align:center;
+        box-shadow:0 8px 24px rgba(0,0,0,0.4);
+        display:flex; flex-direction:column;
+        align-items:center; justify-content:center;
+        width:340px; min-height:260px; box-sizing:border-box;
     }}
     .hub-card-dev {{
-        background: linear-gradient(160deg,rgba(32,32,40,0.97),rgba(22,22,30,0.99));
-        border-color: rgba(212,160,23,0.22); opacity: 0.85;
+        background:linear-gradient(160deg,rgba(32,32,40,0.97),rgba(22,22,30,0.99));
+        border-color:rgba(212,160,23,0.22); opacity:0.85;
     }}
     .hub-card-icon {{ font-size:3.5rem; margin-bottom:0.85rem; line-height:1; }}
     .hub-card-title {{
@@ -3343,36 +3330,32 @@ def pantalla_hub():
         font-size:0.82rem; color:#d4a017;
         font-weight:700; margin-top:1rem;
     }}
-    /* ── Botones: sin margen, pegados a las tarjetas ── */
+    /* Botones pegados exactamente bajo cada tarjeta */
     div[data-testid="stHorizontalBlock"] {{
-        display: flex !important;
-        justify-content: center !important;
-        gap: 2.4rem !important;
-        margin-top: 0 !important;
-        padding: 0 !important;
+        display:flex !important;
+        justify-content:center !important;
+        gap:2.4rem !important;
+        margin-top:0 !important;
+        padding:0 !important;
+        width:100% !important;
     }}
     div[data-testid="stHorizontalBlock"] > div[data-testid="column"] {{
-        flex: 0 0 340px !important;
-        max-width: 340px !important;
-        min-width: 340px !important;
-        padding: 0 !important;
+        flex:0 0 340px !important;
+        width:340px !important;
+        min-width:340px !important;
+        max-width:340px !important;
+        padding:0 !important;
     }}
     div[data-testid="stHorizontalBlock"] .stButton > button {{
-        border-radius: 0 0 22px 22px !important;
-        height: 54px !important;
-        font-size: 1rem !important;
-        font-weight: 700 !important;
-        margin: 0 !important;
-        padding: 0 !important;
-        width: 100% !important;
-        letter-spacing: 0.03em !important;
-        box-shadow: 0 6px 18px rgba(0,0,0,0.3) !important;
-    }}
-    /* ── Toast styling ── */
-    div[data-testid="stToast"] {{
-        min-width: 420px !important;
-        font-size: 1.05rem !important;
-        padding: 1.2rem 1.8rem !important;
+        border-radius:0 0 22px 22px !important;
+        height:54px !important;
+        font-size:1rem !important;
+        font-weight:700 !important;
+        margin:0 !important;
+        padding:0 !important;
+        width:340px !important;
+        letter-spacing:0.03em !important;
+        box-shadow:0 6px 18px rgba(0,0,0,0.3) !important;
     }}
     </style>
     <div class="hub-page">
@@ -3396,8 +3379,7 @@ def pantalla_hub():
     </div>
     """, unsafe_allow_html=True)
 
-    # Botones nativos Streamlit — columnas de ancho fijo 340px cada una
-    c1, c2 = st.columns(2)
+    _, c1, c2, _ = st.columns([0.83, 3.4, 3.4, 0.83])
     with c1:
         if st.button("Ver Módulo", key="btn_hub_stock", use_container_width=True):
             st.session_state["modulo"] = "stock"
