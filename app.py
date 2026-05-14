@@ -1826,11 +1826,11 @@ def pagina_ingreso():
                     continue
                 prod_options_i = {"— Sin Nombre —": None, **prod_options_i}
                 prod_sel_i = st.selectbox("Producto", list(prod_options_i.keys()), key=f"ing_prod_{i}_{ing_v}")
-                if prod_options_i[prod_sel_i] is None:
-                    st.warning("⚠️ Seleccioná un producto antes de continuar.")
-                    continue
-                producto_id_i = prod_options_i[prod_sel_i]
-                prod_obj_i = next((p for p in productos_i if p["id"] == producto_id_i), {})
+                prod_invalido_i = prod_options_i[prod_sel_i] is None
+                if prod_invalido_i:
+                    st.caption("⚠️ Seleccioná un producto.")
+                producto_id_i = prod_options_i[prod_sel_i] if not prod_invalido_i else None
+                prod_obj_i = next((p for p in productos_i if p["id"] == producto_id_i), {}) if not prod_invalido_i else {}
 
             with col_b:
                 cantidad_i = st.number_input(
@@ -1851,6 +1851,9 @@ def pagina_ingreso():
                     "Concentración", value=prod_obj_i.get("concentracion", "") or "",
                     placeholder="Ej: 48%", key=f"ing_conc_{i}_{ing_v}"
                 )
+
+            if prod_invalido_i:
+                continue
 
             lineas_validas.append({
                 "producto_id": producto_id_i,
@@ -2104,10 +2107,10 @@ def pagina_egreso():
                     continue
                 prod_options_i = {"— Sin Nombre —": None, **prod_options_i}
                 prod_sel_i = st.selectbox("Producto", list(prod_options_i.keys()), key=f"eg_prod_{i}_{eg_v}")
-                if prod_options_i[prod_sel_i] is None:
-                    st.warning("⚠️ Seleccioná un producto antes de continuar.")
-                    continue
-                producto_id_i = prod_options_i[prod_sel_i]
+                prod_invalido_i = prod_options_i[prod_sel_i] is None
+                if prod_invalido_i:
+                    st.caption("⚠️ Seleccioná un producto.")
+                producto_id_i = prod_options_i[prod_sel_i] if not prod_invalido_i else None
 
                 # Mostrar stock disponible
                 if not stock_actual_df.empty:
@@ -2126,6 +2129,9 @@ def pagina_egreso():
                     "Cantidad *", min_value=0.001, step=0.5, format="%.3f",
                     key=f"eg_cant_{i}_{eg_v}"
                 )
+
+            if prod_invalido_i:
+                continue
 
             lineas_validas.append({
                 "producto_id": producto_id_i,
