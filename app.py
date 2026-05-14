@@ -1807,11 +1807,16 @@ def pagina_ingreso():
             col_a, col_b, col_c = st.columns([2, 1, 1])
             with col_a:
                 cat_sel_i = st.selectbox(
-                    f"Categoría", list(cat_options.keys()),
+                    f"Categoría", ["— Sin Nombre —"] + list(cat_options.keys()),
                     key=f"ing_cat_{i}_{ing_v}"
                 )
-                cat_id_i = cat_options[cat_sel_i]
-                es_agro_i = "agroquimico" in cat_sel_i.lower() or "agroquímico" in cat_sel_i.lower()
+                if cat_sel_i == "— Sin Nombre —":
+                    st.caption("⚠️ Seleccioná una categoría.")
+                    cat_id_i = None
+                    es_agro_i = False
+                else:
+                    cat_id_i = cat_options[cat_sel_i]
+                    es_agro_i = "agroquimico" in cat_sel_i.lower() or "agroquímico" in cat_sel_i.lower()
                 subcat_i = None
                 if es_agro_i:
                     subcat_i = st.selectbox(
@@ -1819,18 +1824,25 @@ def pagina_ingreso():
                         ["Herbicidas", "Insecticidas", "Fungicidas", "Coadyuvantes", "Fertilizantes foliares"],
                         key=f"ing_subcat_{i}_{ing_v}"
                     )
-                productos_i = get_productos(cat_id_i, subcat_i if es_agro_i else None)
-                prod_options_i = {p["nombre"]: p["id"] for p in productos_i} if productos_i else {}
-                if not prod_options_i:
-                    st.warning("Sin productos en esta categoría.")
-                    continue
-                prod_options_i = {"— Sin Nombre —": None, **prod_options_i}
-                prod_sel_i = st.selectbox("Producto", list(prod_options_i.keys()), key=f"ing_prod_{i}_{ing_v}")
-                prod_invalido_i = prod_options_i[prod_sel_i] is None
-                if prod_invalido_i:
-                    st.caption("⚠️ Seleccioná un producto.")
-                producto_id_i = prod_options_i[prod_sel_i] if not prod_invalido_i else None
-                prod_obj_i = next((p for p in productos_i if p["id"] == producto_id_i), {}) if not prod_invalido_i else {}
+                if cat_id_i is None:
+                    prod_sel_i = st.selectbox("Producto", ["— Sin Nombre —"], key=f"ing_prod_{i}_{ing_v}")
+                    prod_invalido_i = True
+                    prod_obj_i = {}
+                    productos_i = []
+                    producto_id_i = None
+                else:
+                    productos_i = get_productos(cat_id_i, subcat_i if es_agro_i else None)
+                    prod_options_i = {p["nombre"]: p["id"] for p in productos_i} if productos_i else {}
+                    if not prod_options_i:
+                        st.warning("Sin productos en esta categoría.")
+                        continue
+                    prod_options_i = {"— Sin Nombre —": None, **prod_options_i}
+                    prod_sel_i = st.selectbox("Producto", list(prod_options_i.keys()), key=f"ing_prod_{i}_{ing_v}")
+                    prod_invalido_i = prod_options_i[prod_sel_i] is None
+                    if prod_invalido_i:
+                        st.caption("⚠️ Seleccioná un producto.")
+                    producto_id_i = prod_options_i[prod_sel_i] if not prod_invalido_i else None
+                    prod_obj_i = next((p for p in productos_i if p["id"] == producto_id_i), {}) if not prod_invalido_i else {}
 
             with col_b:
                 cantidad_i = st.number_input(
@@ -2088,11 +2100,16 @@ def pagina_egreso():
             col_a, col_b = st.columns([3, 1])
             with col_a:
                 cat_sel_i = st.selectbox(
-                    "Categoría", list(cat_options.keys()),
+                    "Categoría", ["— Sin Nombre —"] + list(cat_options.keys()),
                     key=f"eg_cat_{i}_{eg_v}"
                 )
-                cat_id_i = cat_options[cat_sel_i]
-                es_agro_i = "agroquimico" in cat_sel_i.lower() or "agroquímico" in cat_sel_i.lower()
+                if cat_sel_i == "— Sin Nombre —":
+                    st.caption("⚠️ Seleccioná una categoría.")
+                    cat_id_i = None
+                    es_agro_i = False
+                else:
+                    cat_id_i = cat_options[cat_sel_i]
+                    es_agro_i = "agroquimico" in cat_sel_i.lower() or "agroquímico" in cat_sel_i.lower()
                 subcat_i = None
                 if es_agro_i:
                     subcat_i = st.selectbox(
@@ -2100,17 +2117,23 @@ def pagina_egreso():
                         ["Herbicidas", "Insecticidas", "Fungicidas", "Coadyuvantes", "Fertilizantes foliares"],
                         key=f"eg_subcat_{i}_{eg_v}"
                     )
-                productos_i = get_productos(cat_id_i, subcat_i if es_agro_i else None)
-                prod_options_i = {p["nombre"]: p["id"] for p in productos_i} if productos_i else {}
-                if not prod_options_i:
-                    st.warning("Sin productos en esta categoría.")
-                    continue
-                prod_options_i = {"— Sin Nombre —": None, **prod_options_i}
-                prod_sel_i = st.selectbox("Producto", list(prod_options_i.keys()), key=f"eg_prod_{i}_{eg_v}")
-                prod_invalido_i = prod_options_i[prod_sel_i] is None
-                if prod_invalido_i:
-                    st.caption("⚠️ Seleccioná un producto.")
-                producto_id_i = prod_options_i[prod_sel_i] if not prod_invalido_i else None
+                if cat_id_i is None:
+                    prod_sel_i = st.selectbox("Producto", ["— Sin Nombre —"], key=f"eg_prod_{i}_{eg_v}")
+                    prod_invalido_i = True
+                    productos_i = []
+                    producto_id_i = None
+                else:
+                    productos_i = get_productos(cat_id_i, subcat_i if es_agro_i else None)
+                    prod_options_i = {p["nombre"]: p["id"] for p in productos_i} if productos_i else {}
+                    if not prod_options_i:
+                        st.warning("Sin productos en esta categoría.")
+                        continue
+                    prod_options_i = {"— Sin Nombre —": None, **prod_options_i}
+                    prod_sel_i = st.selectbox("Producto", list(prod_options_i.keys()), key=f"eg_prod_{i}_{eg_v}")
+                    prod_invalido_i = prod_options_i[prod_sel_i] is None
+                    if prod_invalido_i:
+                        st.caption("⚠️ Seleccioná un producto.")
+                    producto_id_i = prod_options_i[prod_sel_i] if not prod_invalido_i else None
 
                 # Mostrar stock disponible
                 if not stock_actual_df.empty:
