@@ -1824,7 +1824,11 @@ def pagina_ingreso():
                 if not prod_options_i:
                     st.warning("Sin productos en esta categoría.")
                     continue
+                prod_options_i = {"— Sin Nombre —": None, **prod_options_i}
                 prod_sel_i = st.selectbox("Producto", list(prod_options_i.keys()), key=f"ing_prod_{i}_{ing_v}")
+                if prod_options_i[prod_sel_i] is None:
+                    st.warning("⚠️ Seleccioná un producto antes de continuar.")
+                    continue
                 producto_id_i = prod_options_i[prod_sel_i]
                 prod_obj_i = next((p for p in productos_i if p["id"] == producto_id_i), {})
 
@@ -2098,7 +2102,11 @@ def pagina_egreso():
                 if not prod_options_i:
                     st.warning("Sin productos en esta categoría.")
                     continue
+                prod_options_i = {"— Sin Nombre —": None, **prod_options_i}
                 prod_sel_i = st.selectbox("Producto", list(prod_options_i.keys()), key=f"eg_prod_{i}_{eg_v}")
+                if prod_options_i[prod_sel_i] is None:
+                    st.warning("⚠️ Seleccioná un producto antes de continuar.")
+                    continue
                 producto_id_i = prod_options_i[prod_sel_i]
 
                 # Mostrar stock disponible
