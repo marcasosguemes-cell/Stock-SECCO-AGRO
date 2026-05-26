@@ -3319,8 +3319,7 @@ def pantalla_hub():
           <div style="background:linear-gradient(145deg,#1a1a10,#1c1808);
               border:2px solid rgba(212,160,23,0.75);border-radius:24px;
               padding:3rem 3.5rem;text-align:center;
-              box-shadow:0 24px 80px rgba(0,0,0,0.7);max-width:480px;width:90%;
-              animation:popIn .35s cubic-bezier(.175,.885,.32,1.275);">
+              box-shadow:0 24px 80px rgba(0,0,0,0.7);max-width:480px;width:90%;">
             <div style="font-size:4rem;margin-bottom:1rem;">&#9881;</div>
             <div style="color:#d4a017;font-weight:800;font-size:1.5rem;margin-bottom:0.5rem;">
               Sistema en Desarrollo
@@ -3328,10 +3327,8 @@ def pantalla_hub():
             <div style="color:#a09060;font-size:0.98rem;margin-bottom:1.5rem;">
               Este modulo estara disponible proximamente.
             </div>
-            <div style="color:#706040;font-size:0.8rem;">Cerrando automaticamente...</div>
           </div>
         </div>
-        <style>@keyframes popIn{from{opacity:0;transform:scale(0.75)}to{opacity:1;transform:scale(1)}}</style>
         """, unsafe_allow_html=True)
         time.sleep(3)
         st.session_state.pop("hub_maq_ts", None)
@@ -3339,94 +3336,85 @@ def pantalla_hub():
     elif _ts_maq:
         st.session_state.pop("hub_maq_ts", None)
 
-    maq_badge = '<div class="dev-badge">&#9881; En Desarrollo</div>' if rol != "admin" else ""
+    # Calcular clases y badges ANTES de armar el HTML
+    maq_badge = '<div class="dev-badge">En Desarrollo</div>' if rol != "admin" else ""
     maq_cls   = "hub-card hub-card-dev" if rol != "admin" else "hub-card"
     ind_badge = "" if rol == "admin" else '<div class="dev-badge">Solo Admin</div>'
     ind_cls   = "hub-card" if rol == "admin" else "hub-card hub-card-dev"
 
-    # CSS + logo + primera 2 cards — sin tercera card adentro
-    st.markdown("""
-    <style>
-    .hub-page {display:flex;flex-direction:column;align-items:center;padding:2rem 1rem 0 1rem;}
-    .hub-logo-wrap {
+    # Construir el HTML completo como concatenacion de strings — NUNCA f-string con HTML
+    css = """<style>
+    .hub-page{display:flex;flex-direction:column;align-items:center;padding:2rem 1rem 0;}
+    .hub-logo-wrap{
         background:#f7f3e8;border:2px solid rgba(212,160,23,0.6);border-radius:50%;
         width:460px;height:276px;display:flex;align-items:center;justify-content:center;
-        overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,0.45);margin-bottom:2.2rem;
-    }
-    .hub-logo {width:100%;height:100%;object-fit:contain;padding:15px;}
-    .hub-cards {
-        display:grid;grid-template-columns:300px 300px 300px;gap:2rem;
-    }
-    .hub-card {
+        overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,0.45);margin-bottom:2.2rem;}
+    .hub-logo{width:100%;height:100%;object-fit:contain;padding:15px;}
+    .hub-cards{display:flex;flex-direction:row;gap:2rem;justify-content:center;flex-wrap:nowrap;}
+    .hub-card{
         background:linear-gradient(160deg,rgba(60,60,70,0.97),rgba(40,40,52,0.99));
         border:1px solid rgba(212,160,23,0.42);border-radius:22px 22px 0 0;
-        padding:2.4rem 2rem 2rem 2rem;text-align:center;
-        box-shadow:0 8px 24px rgba(0,0,0,0.4);
+        padding:2.4rem 2rem 2rem;text-align:center;box-shadow:0 8px 24px rgba(0,0,0,0.4);
         display:flex;flex-direction:column;align-items:center;justify-content:center;
-        min-height:260px;box-sizing:border-box;
-    }
-    .hub-card-dev {
+        min-height:260px;width:300px;box-sizing:border-box;}
+    .hub-card-dev{
         background:linear-gradient(160deg,rgba(32,32,40,0.97),rgba(22,22,30,0.99));
-        border-color:rgba(212,160,23,0.22);opacity:0.85;
-    }
-    .hub-card-icon {font-size:3.5rem;margin-bottom:0.85rem;line-height:1;}
-    .hub-card-title {
+        border-color:rgba(212,160,23,0.22);opacity:0.85;}
+    .hub-card-icon{font-size:3.5rem;margin-bottom:0.85rem;line-height:1;}
+    .hub-card-title{
         font-family:'Playfair Display',serif;font-size:1.45rem;font-weight:700;
-        color:#f0f0f5;margin:0 0 0.5rem 0;
-    }
-    .hub-card-desc {font-size:0.9rem;color:#9090a8;line-height:1.55;}
-    .dev-badge {
+        color:#f0f0f5;margin:0 0 0.5rem;}
+    .hub-card-desc{font-size:0.9rem;color:#9090a8;line-height:1.55;}
+    .dev-badge{
         display:inline-flex;align-items:center;gap:5px;
         background:rgba(212,160,23,0.13);border:1px solid rgba(212,160,23,0.42);
         border-radius:20px;padding:4px 16px;font-size:0.82rem;color:#d4a017;
-        font-weight:700;margin-top:1rem;
-    }
-    div[data-testid="stHorizontalBlock"] {
-        display:grid !important;grid-template-columns:300px 300px 300px !important;
-        gap:2rem !important;margin-top:-12px !important;padding:0 !important;
-        width:fit-content !important;margin-left:auto !important;margin-right:auto !important;
-    }
-    div[data-testid="stHorizontalBlock"] > div[data-testid="column"] {
-        width:300px !important;padding:0 !important;min-width:0 !important;
-    }
-    div[data-testid="stHorizontalBlock"] .stButton > button {
+        font-weight:700;margin-top:1rem;}
+    div[data-testid="stHorizontalBlock"]{
+        display:flex !important;flex-direction:row !important;
+        gap:2rem !important;margin-top:-12px !important;
+        justify-content:center !important;flex-wrap:nowrap !important;}
+    div[data-testid="stHorizontalBlock"] > div[data-testid="column"]{
+        flex:0 0 300px !important;max-width:300px !important;min-width:0 !important;padding:0 !important;}
+    div[data-testid="stHorizontalBlock"] .stButton > button{
         border-radius:0 0 22px 22px !important;height:54px !important;
-        font-size:0.95rem !important;font-weight:700 !important;margin:0 !important;
-        padding:0 !important;width:300px !important;letter-spacing:0.03em !important;
-        box-shadow:0 6px 18px rgba(0,0,0,0.3) !important;
-    }
-    </style>
-    <div class="hub-page">
-      <div class="hub-logo-wrap">
+        font-size:0.95rem !important;font-weight:700 !important;
+        width:300px !important;margin:0 !important;padding:0 !important;
+        letter-spacing:0.03em !important;box-shadow:0 6px 18px rgba(0,0,0,0.3) !important;}
+    </style>"""
+
+    logo = """<div class="hub-page">
+    <div class="hub-logo-wrap">
         <img src="https://raw.githubusercontent.com/marcasosguemes-cell/Stock-SECCO-AGRO/main/Logo.png"
              class="hub-logo" alt="Logo">
-      </div>
-      <div class="hub-cards">
-        <div class="hub-card">
-          <div class="hub-card-icon">&#128230;</div>
-          <div class="hub-card-title">Gestion de Stock</div>
-          <div class="hub-card-desc">Control de ingresos, egresos, inventario y reportes por establecimiento.</div>
-        </div>
-    """, unsafe_allow_html=True)
+    </div>
+    <div class="hub-cards">"""
 
-    # Segunda y tercera card — inyectadas como strings Python (sin f-string)
+    card1 = """<div class="hub-card">
+        <div class="hub-card-icon">&#128230;</div>
+        <div class="hub-card-title">Gestion de Stock</div>
+        <div class="hub-card-desc">Control de ingresos, egresos, inventario y reportes por establecimiento.</div>
+    </div>"""
+
     card2 = (
         '<div class="' + maq_cls + '">'
         '<div class="hub-card-icon">&#9881;</div>'
         '<div class="hub-card-title">Gestion de Maquinaria</div>'
         '<div class="hub-card-desc">Seguimiento de mantenimiento preventivo y correctivo de equipos.</div>'
-        + maq_badge +
-        '</div>'
+        + maq_badge + '</div>'
     )
+
     card3 = (
         '<div class="' + ind_cls + '">'
         '<div class="hub-card-icon">&#129695;</div>'
         '<div class="hub-card-title">Indumentaria</div>'
         '<div class="hub-card-desc">Talles, asignaciones, stock, cotizaciones y distribucion de costos por firma.</div>'
-        + ind_badge +
-        '</div>'
+        + ind_badge + '</div>'
     )
-    st.markdown(card2 + card3 + '</div></div>', unsafe_allow_html=True)
+
+    close = '</div></div>'
+
+    st.markdown(css + logo + card1 + card2 + card3 + close, unsafe_allow_html=True)
 
     c1, c2, c3 = st.columns(3)
     with c1:
