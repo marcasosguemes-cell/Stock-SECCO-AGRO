@@ -3331,104 +3331,141 @@ def pantalla_hub():
     elif _ts_maq:
         st.session_state.pop("hub_maq_ts", None)
 
-    # Determinar clases y badges segun rol
     if rol == "admin":
-        maq_cls   = "hub-card"
-        maq_badge = ""
-        ind_cls   = "hub-card"
-        ind_badge = ""
+        maq_cls = "hub-card"; maq_badge = ""; ind_cls = "hub-card"; ind_badge = ""
     else:
-        maq_cls   = "hub-card hub-card-dev"
+        maq_cls = "hub-card hub-card-dev"
         maq_badge = '<div class="dev-badge">En Desarrollo</div>'
-        ind_cls   = "hub-card hub-card-dev"
+        ind_cls = "hub-card hub-card-dev"
         ind_badge = '<div class="dev-badge">Solo Admin</div>'
 
-    # Construir HTML completo como string Python — sin f-string
     html_hub = (
         "<style>"
         ".hub-page{display:flex;flex-direction:column;align-items:center;padding:2rem 1rem 0;}"
         ".hub-logo-wrap{background:#f7f3e8;border:2px solid rgba(212,160,23,0.6);"
         "border-radius:50%;width:460px;height:276px;display:flex;align-items:center;"
-        "justify-content:center;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,0.45);"
-        "margin-bottom:2.2rem;}"
+        "justify-content:center;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,0.45);margin-bottom:2.2rem;}"
         ".hub-logo{width:100%;height:100%;object-fit:contain;padding:15px;}"
-        ".hub-cards{display:flex;flex-direction:row;gap:2rem;justify-content:center;}"
+        ".hub-wrap{display:flex;flex-direction:row;gap:2rem;justify-content:center;align-items:flex-end;}"
+        ".hub-item{display:flex;flex-direction:column;align-items:stretch;width:300px;}"
         ".hub-card{background:linear-gradient(160deg,rgba(60,60,70,0.97),rgba(40,40,52,0.99));"
         "border:1px solid rgba(212,160,23,0.42);border-radius:22px 22px 0 0;"
         "padding:2.4rem 2rem 2rem;text-align:center;box-shadow:0 8px 24px rgba(0,0,0,0.4);"
         "display:flex;flex-direction:column;align-items:center;justify-content:center;"
-        "min-height:260px;width:300px;box-sizing:border-box;}"
+        "min-height:260px;box-sizing:border-box;flex:1;}"
         ".hub-card-dev{background:linear-gradient(160deg,rgba(32,32,40,0.97),rgba(22,22,30,0.99));"
         "border-color:rgba(212,160,23,0.22);opacity:0.85;}"
         ".hub-card-icon{font-size:3.5rem;margin-bottom:0.85rem;line-height:1;}"
         ".hub-card-title{font-family:'Playfair Display',serif;font-size:1.45rem;font-weight:700;"
         "color:#f0f0f5;margin:0 0 0.5rem;}"
         ".hub-card-desc{font-size:0.9rem;color:#9090a8;line-height:1.55;}"
-        ".dev-badge{display:inline-flex;align-items:center;gap:5px;"
-        "background:rgba(212,160,23,0.13);border:1px solid rgba(212,160,23,0.42);"
-        "border-radius:20px;padding:4px 16px;font-size:0.82rem;color:#d4a017;"
-        "font-weight:700;margin-top:1rem;}"
-        "div[data-testid='stHorizontalBlock']{display:flex !important;"
-        "flex-direction:row !important;gap:2rem !important;"
-        "justify-content:center !important;margin-top:-12px !important;}"
-        "div[data-testid='stHorizontalBlock'] > div[data-testid='column']{"
-        "flex:0 0 300px !important;max-width:300px !important;padding:0 !important;}"
-        "div[data-testid='stHorizontalBlock'] .stButton > button{"
-        "border-radius:0 0 22px 22px !important;height:54px !important;"
-        "font-size:0.95rem !important;font-weight:700 !important;"
-        "width:300px !important;margin:0 !important;padding:0 !important;}"
+        ".dev-badge{display:inline-flex;align-items:center;background:rgba(212,160,23,0.13);"
+        "border:1px solid rgba(212,160,23,0.42);border-radius:20px;padding:4px 16px;"
+        "font-size:0.82rem;color:#d4a017;font-weight:700;margin-top:1rem;}"
+        ".hub-btn{display:block;width:100%;height:54px;line-height:54px;text-align:center;"
+        "background:linear-gradient(135deg,#d4a017,#b87a0c);color:#1a1a1f;"
+        "font-weight:700;font-size:0.95rem;letter-spacing:0.03em;"
+        "border-radius:0 0 22px 22px;cursor:pointer;text-decoration:none;"
+        "box-shadow:0 6px 18px rgba(0,0,0,0.3);border:none;box-sizing:border-box;}"
+        ".hub-btn:hover{background:linear-gradient(135deg,#e5b52a,#c98a1a);color:#000;}"
+        ".hub-btn-disabled{display:block;width:100%;height:54px;line-height:54px;text-align:center;"
+        "background:rgba(80,80,90,0.6);color:#606070;"
+        "font-weight:700;font-size:0.95rem;letter-spacing:0.03em;"
+        "border-radius:0 0 22px 22px;cursor:not-allowed;text-decoration:none;"
+        "box-shadow:none;border:1px solid rgba(100,100,120,0.3);box-sizing:border-box;}"
         "</style>"
         "<div class='hub-page'>"
         "<div class='hub-logo-wrap'>"
         "<img src='https://raw.githubusercontent.com/marcasosguemes-cell/Stock-SECCO-AGRO/main/Logo.png'"
         " class='hub-logo' alt='Logo'>"
         "</div>"
-        "<div class='hub-cards'>"
+        "<div class='hub-wrap'>"
+        # Card 1: Stock (always active)
+        "<div class='hub-item'>"
         "<div class='hub-card'>"
         "<div class='hub-card-icon'>&#128230;</div>"
         "<div class='hub-card-title'>Gestion de Stock</div>"
         "<div class='hub-card-desc'>Control de ingresos, egresos, inventario y reportes.</div>"
         "</div>"
+        "<a class='hub-btn' id='hub-btn-stock'>Ver Modulo</a>"
+        "</div>"
+        # Card 2: Maquinaria
+        + "<div class='hub-item'>"
         + "<div class='" + maq_cls + "'>"
         + "<div class='hub-card-icon'>&#9881;</div>"
         + "<div class='hub-card-title'>Gestion de Maquinaria</div>"
         + "<div class='hub-card-desc'>Seguimiento de mantenimiento preventivo y correctivo.</div>"
         + maq_badge
         + "</div>"
+        + ("<a class='hub-btn' id='hub-btn-maq'>Ver Modulo</a>" if rol == "admin"
+           else "<a class='hub-btn' id='hub-btn-maq-dev'>Ver Modulo</a>")
+        + "</div>"
+        # Card 3: Indumentaria
+        + "<div class='hub-item'>"
         + "<div class='" + ind_cls + "'>"
         + "<div class='hub-card-icon'>&#129695;</div>"
         + "<div class='hub-card-title'>Indumentaria</div>"
         + "<div class='hub-card-desc'>Talles, asignaciones, cotizaciones y costos por firma.</div>"
         + ind_badge
         + "</div>"
+        + ("<a class='hub-btn' id='hub-btn-ind'>Ver Modulo</a>" if rol == "admin"
+           else "<span class='hub-btn-disabled'>&#128274; Solo Admin</span>")
+        + "</div>"
         + "</div></div>"
     )
-
     st.markdown(html_hub, unsafe_allow_html=True)
 
-    c1, c2, c3 = st.columns(3)
-    with c1:
-        if st.button("Ver Modulo", key="btn_hub_stock", use_container_width=True):
-            st.session_state["modulo"] = "stock"
-            st.session_state["pagina"] = "Dashboard"
+    # Capturar clicks via componente oculto — usar botones Streamlit invisibles
+    # alineados debajo de cada tarjeta con CSS overlay
+    st.markdown("""
+    <style>
+    /* Ocultar los botones Streamlit — los reemplazamos con los <a> del HTML */
+    [data-testid="stHorizontalBlock"] { display:none !important; }
+    </style>
+    """, unsafe_allow_html=True)
+
+    # Streamlit buttons para manejar navegacion — hidden via CSS pero funcionales via JS
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        stock_click = st.button("stock", key="btn_hub_stock_h")
+    with col2:
+        maq_click = st.button("maq", key="btn_hub_maq_h") if rol == "admin" else st.button("maqdev", key="btn_hub_maq_dev_h")
+    with col3:
+        ind_click = st.button("ind", key="btn_hub_ind_h") if rol == "admin" else st.button("indlock", key="btn_hub_ind_lock_h", disabled=True)
+
+    # JS: conectar <a> clicks con los botones Streamlit ocultos
+    st.markdown("""
+    <script>
+    function clickStreamlit(key) {
+        var btns = window.parent.document.querySelectorAll('button[data-testid="baseButton-secondary"]');
+        btns.forEach(function(b){ if(b.innerText.trim() === key) b.click(); });
+    }
+    var s = document.getElementById('hub-btn-stock');
+    if(s) s.addEventListener('click', function(){ clickStreamlit('stock'); });
+    var m = document.getElementById('hub-btn-maq');
+    if(m) m.addEventListener('click', function(){ clickStreamlit('maq'); });
+    var md = document.getElementById('hub-btn-maq-dev');
+    if(md) md.addEventListener('click', function(){ clickStreamlit('maqdev'); });
+    var i = document.getElementById('hub-btn-ind');
+    if(i) i.addEventListener('click', function(){ clickStreamlit('ind'); });
+    </script>
+    """, unsafe_allow_html=True)
+
+    if stock_click:
+        st.session_state["modulo"] = "stock"
+        st.session_state["pagina"] = "Dashboard"
+        st.rerun()
+    if rol == "admin":
+        if maq_click:
+            st.session_state["modulo"] = "maquinaria"
             st.rerun()
-    with c2:
-        if rol == "admin":
-            if st.button("Ver Modulo", key="btn_hub_maq", use_container_width=True):
-                st.session_state["modulo"] = "maquinaria"
-                st.rerun()
-        else:
-            if st.button("Ver Modulo", key="btn_hub_maq_dev", use_container_width=True):
-                st.session_state["hub_maq_ts"] = now_arg()
-                st.rerun()
-    with c3:
-        if rol == "admin":
-            if st.button("Ver Modulo", key="btn_hub_ind", use_container_width=True):
-                st.session_state["modulo"] = "indumentaria"
-                st.rerun()
-        else:
-            st.button("Solo Admin", key="btn_hub_ind_lock",
-                      use_container_width=True, disabled=True)
+        if ind_click:
+            st.session_state["modulo"] = "indumentaria"
+            st.rerun()
+    else:
+        if maq_click:
+            st.session_state["hub_maq_ts"] = now_arg()
+            st.rerun()
 
 
 def pagina_maquinaria():
