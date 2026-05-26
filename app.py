@@ -3392,7 +3392,7 @@ def pantalla_hub():
         # Card 2: Maquinaria
         + "<div class='hub-item'>"
         + "<div class='" + maq_cls + "'>"
-        + "<div class='hub-card-icon'>&#9881;</div>"
+        + "<div class='hub-card-icon'>&#x2699;&#xFE0F;</div>"
         + "<div class='hub-card-title'>Gestion de Maquinaria</div>"
         + "<div class='hub-card-desc'>Seguimiento de mantenimiento preventivo y correctivo.</div>"
         + maq_badge
@@ -3403,7 +3403,7 @@ def pantalla_hub():
         # Card 3: Indumentaria
         + "<div class='hub-item'>"
         + "<div class='" + ind_cls + "'>"
-        + "<div class='hub-card-icon'>&#129695;</div>"
+        + "<div class='hub-card-icon'>&#129470;</div>"
         + "<div class='hub-card-title'>Indumentaria</div>"
         + "<div class='hub-card-desc'>Talles, asignaciones, cotizaciones y costos por firma.</div>"
         + ind_badge
