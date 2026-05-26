@@ -3310,6 +3310,26 @@ def pantalla_hub():
     import time
     rol = st.session_state.get("rol", "")
 
+    # Leer navegacion desde query params (seteado por JS)
+    qp = st.query_params.get("hub_nav", "")
+    if qp == "stock":
+        st.query_params.clear()
+        st.session_state["modulo"] = "stock"
+        st.session_state["pagina"] = "Dashboard"
+        st.rerun()
+    elif qp == "maquinaria":
+        st.query_params.clear()
+        if rol == "admin":
+            st.session_state["modulo"] = "maquinaria"
+        else:
+            st.session_state["hub_maq_ts"] = now_arg()
+        st.rerun()
+    elif qp == "indumentaria":
+        st.query_params.clear()
+        if rol == "admin":
+            st.session_state["modulo"] = "indumentaria"
+            st.rerun()
+
     _ts_maq = st.session_state.get("hub_maq_ts")
     if _ts_maq and (now_arg() - _ts_maq).total_seconds() < 4:
         st.markdown(
@@ -3333,11 +3353,15 @@ def pantalla_hub():
         maq_badge = ""
         ind_cls = "hub-card"
         ind_badge = ""
+        btn_maq = "<button class='hub-btn' onclick='nav(\"maquinaria\")'>Ver Modulo</button>"
+        btn_ind = "<button class='hub-btn' onclick='nav(\"indumentaria\")'>Ver Modulo</button>"
     else:
         maq_cls = "hub-card hub-card-dev"
         maq_badge = "<div class='dev-badge'>En Desarrollo</div>"
         ind_cls = "hub-card hub-card-dev"
         ind_badge = "<div class='dev-badge'>Solo Admin</div>"
+        btn_maq = "<button class='hub-btn' onclick='nav(\"maquinaria\")'>Ver Modulo</button>"
+        btn_ind = "<span class='hub-btn-dis'>Solo Admin</span>"
 
     css = (
         "<style>"
@@ -3371,9 +3395,18 @@ def pantalla_hub():
         ".hub-btn-dis{display:block;width:100%;height:54px;line-height:54px;"
         "background:rgba(60,60,70,0.7);color:#606070;border-radius:0 0 22px 22px;"
         "font-size:1rem;font-weight:700;cursor:not-allowed;letter-spacing:0.04em;}"
-        "/* Botones Streamlit ocultos - solo se usan para capturar el click */"
-        "div[data-testid='stHorizontalBlock']{display:none !important;}"
         "</style>"
+    )
+
+    # JS: navega cambiando query param, Streamlit lo detecta en el proximo rerun
+    js = (
+        "<script>"
+        "function nav(dest){"
+        "  var url=new URL(window.parent.location.href);"
+        "  url.searchParams.set('hub_nav',dest);"
+        "  window.parent.location.href=url.toString();"
+        "}"
+        "</script>"
     )
 
     card1 = (
@@ -3383,7 +3416,7 @@ def pantalla_hub():
         "<div class='hub-card-title'>Gestion de Stock</div>"
         "<div class='hub-card-desc'>Control de ingresos, egresos, inventario y reportes.</div>"
         "</div>"
-        "<button class='hub-btn' onclick='document.getElementById(\"s1\").click()'>Ver Modulo</button>"
+        "<button class='hub-btn' onclick='nav(\"stock\")'>Ver Modulo</button>"
         "</div>"
     )
     card2 = (
@@ -3393,9 +3426,7 @@ def pantalla_hub():
         + "<div class='hub-card-title'>Gestion de Maquinaria</div>"
         + "<div class='hub-card-desc'>Seguimiento de mantenimiento preventivo y correctivo.</div>"
         + maq_badge + "</div>"
-        + ("<button class='hub-btn' onclick='document.getElementById(\"s2\").click()'>Ver Modulo</button>"
-           if rol == "admin" else
-           "<button class='hub-btn' onclick='document.getElementById(\"s2d\").click()'>Ver Modulo</button>")
+        + btn_maq
         + "</div>"
     )
     card3 = (
@@ -3405,9 +3436,7 @@ def pantalla_hub():
         + "<div class='hub-card-title'>Indumentaria</div>"
         + "<div class='hub-card-desc'>Talles, asignaciones, cotizaciones y costos por firma.</div>"
         + ind_badge + "</div>"
-        + ("<button class='hub-btn' onclick='document.getElementById(\"s3\").click()'>Ver Modulo</button>"
-           if rol == "admin" else
-           "<span class='hub-btn-dis'>&#128274; Solo Admin</span>")
+        + btn_ind
         + "</div>"
     )
 
@@ -3415,63 +3444,13 @@ def pantalla_hub():
         "<div class='hub-page'>"
         "<div class='hub-logo-wrap'>"
         "<img src='https://raw.githubusercontent.com/marcasosguemes-cell/Stock-SECCO-AGRO/main/Logo.png'"
-        " class='hub-logo' alt='Logo'>"
-        "</div>"
+        " class='hub-logo' alt='Logo'></div>"
         "<div class='hub-wrap'>"
-        + card1 + card2 + card3 +
-        "</div></div>"
-    )
-    st.markdown(css + wrap, unsafe_allow_html=True)
-
-    # Botones Streamlit ocultos con IDs para que el JS del HTML los dispare
-    c1, c2, c3 = st.columns(3)
-    with c1:
-        s1 = st.button("Ver Modulo", key="btn_hub_stock")
-    with c2:
-        if rol == "admin":
-            s2 = st.button("Ver Modulo", key="btn_hub_maq")
-            s2d = False
-        else:
-            s2 = False
-            s2d = st.button("Ver Modulo", key="btn_hub_maq_dev")
-    with c3:
-        if rol == "admin":
-            s3 = st.button("Ver Modulo", key="btn_hub_ind")
-        else:
-            s3 = False
-            st.button("Solo Admin", key="btn_hub_ind_lock", disabled=True)
-
-    # JS: asignar IDs a los botones ocultos para que onclick los encuentre
-    st.markdown(
-        "<script>"
-        "(function(){"
-        "var btns=window.parent.document.querySelectorAll('button[kind=secondary],button[data-testid]');"
-        "var keys=['btn_hub_stock','btn_hub_maq','btn_hub_maq_dev','btn_hub_ind'];"
-        "var ids=['s1','s2','s2d','s3'];"
-        "btns.forEach(function(b){"
-        "  var k=b.getAttribute('data-testid')||b.innerText;"
-        "  keys.forEach(function(key,i){if(k.indexOf(key)>-1)b.id=ids[i];});"
-        "});"
-        "})();"
-        "</script>",
-        unsafe_allow_html=True
+        + card1 + card2 + card3
+        + "</div></div>"
     )
 
-    if s1:
-        st.session_state["modulo"] = "stock"
-        st.session_state["pagina"] = "Dashboard"
-        st.rerun()
-    if rol == "admin":
-        if s2:
-            st.session_state["modulo"] = "maquinaria"
-            st.rerun()
-        if s3:
-            st.session_state["modulo"] = "indumentaria"
-            st.rerun()
-    else:
-        if s2d:
-            st.session_state["hub_maq_ts"] = now_arg()
-            st.rerun()
+    st.markdown(js + css + wrap, unsafe_allow_html=True)
 
 
 def pagina_maquinaria():
