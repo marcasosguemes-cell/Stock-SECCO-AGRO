@@ -3313,12 +3313,12 @@ def pantalla_hub():
     _ts_maq = st.session_state.get("hub_maq_ts")
     if _ts_maq and (now_arg() - _ts_maq).total_seconds() < 4:
         st.markdown(
-            "<div style=\"position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,0.75);"
-            "display:flex;align-items:center;justify-content:center;\">"
-            "<div style=\"background:#1a1a10;border:2px solid rgba(212,160,23,0.75);"
-            "border-radius:24px;padding:3rem;text-align:center;max-width:420px;\">"
-            "<div style=\"font-size:3rem;\">&#9881;</div>"
-            "<div style=\"color:#d4a017;font-weight:800;font-size:1.4rem;\">Sistema en Desarrollo</div>"
+            "<div style='position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,0.75);"
+            "display:flex;align-items:center;justify-content:center;'>"
+            "<div style='background:#1a1a10;border:2px solid rgba(212,160,23,0.75);"
+            "border-radius:24px;padding:3rem;text-align:center;max-width:420px;'>"
+            "<div style='font-size:3rem;'>&#9881;</div>"
+            "<div style='color:#d4a017;font-weight:800;font-size:1.4rem;'>Sistema en Desarrollo</div>"
             "</div></div>",
             unsafe_allow_html=True
         )
@@ -3335,9 +3335,9 @@ def pantalla_hub():
         ind_badge = ""
     else:
         maq_cls = "hub-card hub-card-dev"
-        maq_badge = "<div class=\"dev-badge\">En Desarrollo</div>"
+        maq_badge = "<div class='dev-badge'>En Desarrollo</div>"
         ind_cls = "hub-card hub-card-dev"
-        ind_badge = "<div class=\"dev-badge\">Solo Admin</div>"
+        ind_badge = "<div class='dev-badge'>Solo Admin</div>"
 
     css = (
         "<style>"
@@ -3346,12 +3346,13 @@ def pantalla_hub():
         "border-radius:50%;width:460px;height:276px;display:flex;align-items:center;"
         "justify-content:center;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,0.45);margin-bottom:2.2rem;}"
         ".hub-logo{width:100%;height:100%;object-fit:contain;padding:15px;}"
-        ".hub-cards{display:flex;flex-direction:row;gap:2rem;justify-content:center;}"
+        ".hub-wrap{display:flex;flex-direction:row;gap:2rem;justify-content:center;}"
+        ".hub-item{display:flex;flex-direction:column;width:300px;}"
         ".hub-card{background:linear-gradient(160deg,rgba(60,60,70,0.97),rgba(40,40,52,0.99));"
         "border:1px solid rgba(212,160,23,0.42);border-radius:22px 22px 0 0;"
         "padding:2.4rem 2rem 2rem;text-align:center;box-shadow:0 8px 24px rgba(0,0,0,0.4);"
         "display:flex;flex-direction:column;align-items:center;justify-content:center;"
-        "min-height:260px;width:300px;box-sizing:border-box;}"
+        "min-height:260px;box-sizing:border-box;flex:1;}"
         ".hub-card-dev{background:linear-gradient(160deg,rgba(32,32,40,0.97),rgba(22,22,30,0.99));"
         "border-color:rgba(212,160,23,0.22);opacity:0.85;}"
         ".hub-card-icon{font-size:3.5rem;margin-bottom:0.85rem;line-height:1;}"
@@ -3361,71 +3362,116 @@ def pantalla_hub():
         ".dev-badge{display:inline-flex;background:rgba(212,160,23,0.13);"
         "border:1px solid rgba(212,160,23,0.42);border-radius:20px;padding:4px 16px;"
         "font-size:0.82rem;color:#d4a017;font-weight:700;margin-top:1rem;}"
-        "div[data-testid=\"stHorizontalBlock\"]{"
-        "display:flex !important;flex-direction:row !important;"
-        "gap:2rem !important;justify-content:center !important;"
-        "margin-top:0 !important;padding:0 !important;}"
-        "div[data-testid=\"stHorizontalBlock\"]>div[data-testid=\"column\"]{"
-        "flex:0 0 300px !important;max-width:300px !important;"
-        "min-width:0 !important;padding:0 !important;}"
-        "div[data-testid=\"stHorizontalBlock\"] .stButton>button{"
-        "border-radius:0 0 22px 22px !important;height:54px !important;"
-        "font-size:1.05rem !important;font-weight:700 !important;"
-        "color:#ffffff !important;-webkit-text-fill-color:#ffffff !important;"
-        "width:300px !important;margin:0 !important;padding:0 !important;"
-        "letter-spacing:0.04em !important;}"
+        ".hub-btn{display:block;width:100%;height:54px;line-height:54px;"
+        "background:linear-gradient(135deg,#d4a017,#b87a0c);"
+        "border-radius:0 0 22px 22px;border:none;cursor:pointer;"
+        "font-size:1.05rem;font-weight:700;color:#fff;letter-spacing:0.04em;"
+        "box-shadow:0 6px 18px rgba(0,0,0,0.3);}"
+        ".hub-btn:hover{background:linear-gradient(135deg,#e5b52a,#c98a1a);}"
+        ".hub-btn-dis{display:block;width:100%;height:54px;line-height:54px;"
+        "background:rgba(60,60,70,0.7);color:#606070;border-radius:0 0 22px 22px;"
+        "font-size:1rem;font-weight:700;cursor:not-allowed;letter-spacing:0.04em;}"
+        "/* Botones Streamlit ocultos - solo se usan para capturar el click */"
+        "div[data-testid='stHorizontalBlock']{display:none !important;}"
         "</style>"
     )
 
-    cards = (
-        "<div class=\"hub-page\">"
-        "<div class=\"hub-logo-wrap\">"
-        "<img src=\"https://raw.githubusercontent.com/marcasosguemes-cell/Stock-SECCO-AGRO/main/Logo.png\" class=\"hub-logo\" alt=\"Logo\">"
+    card1 = (
+        "<div class='hub-item'>"
+        "<div class='hub-card'>"
+        "<div class='hub-card-icon'>&#128230;</div>"
+        "<div class='hub-card-title'>Gestion de Stock</div>"
+        "<div class='hub-card-desc'>Control de ingresos, egresos, inventario y reportes.</div>"
         "</div>"
-        "<div class=\"hub-cards\">"
-        "<div class=\"hub-card\">"
-        "<div class=\"hub-card-icon\">&#128230;</div>"
-        "<div class=\"hub-card-title\">Gestion de Stock</div>"
-        "<div class=\"hub-card-desc\">Control de ingresos, egresos, inventario y reportes.</div>"
+        "<button class='hub-btn' onclick='document.getElementById(\"s1\").click()'>Ver Modulo</button>"
         "</div>"
-        + "<div class=\"" + maq_cls + "\">"
-        + "<div class=\"hub-card-icon\">&#x2699;&#xFE0F;</div>"
-        + "<div class=\"hub-card-title\">Gestion de Maquinaria</div>"
-        + "<div class=\"hub-card-desc\">Seguimiento de mantenimiento preventivo y correctivo.</div>"
+    )
+    card2 = (
+        "<div class='hub-item'>"
+        + "<div class='" + maq_cls + "'>"
+        + "<div class='hub-card-icon'>&#x2699;&#xFE0F;</div>"
+        + "<div class='hub-card-title'>Gestion de Maquinaria</div>"
+        + "<div class='hub-card-desc'>Seguimiento de mantenimiento preventivo y correctivo.</div>"
         + maq_badge + "</div>"
-        + "<div class=\"" + ind_cls + "\">"
-        + "<div class=\"hub-card-icon\">&#129406;</div>"
-        + "<div class=\"hub-card-title\">Indumentaria</div>"
-        + "<div class=\"hub-card-desc\">Talles, asignaciones, cotizaciones y costos por firma.</div>"
+        + ("<button class='hub-btn' onclick='document.getElementById(\"s2\").click()'>Ver Modulo</button>"
+           if rol == "admin" else
+           "<button class='hub-btn' onclick='document.getElementById(\"s2d\").click()'>Ver Modulo</button>")
+        + "</div>"
+    )
+    card3 = (
+        "<div class='hub-item'>"
+        + "<div class='" + ind_cls + "'>"
+        + "<div class='hub-card-icon'>&#129406;</div>"
+        + "<div class='hub-card-title'>Indumentaria</div>"
+        + "<div class='hub-card-desc'>Talles, asignaciones, cotizaciones y costos por firma.</div>"
         + ind_badge + "</div>"
-        + "</div></div>"
+        + ("<button class='hub-btn' onclick='document.getElementById(\"s3\").click()'>Ver Modulo</button>"
+           if rol == "admin" else
+           "<span class='hub-btn-dis'>&#128274; Solo Admin</span>")
+        + "</div>"
     )
 
-    st.markdown(css + cards, unsafe_allow_html=True)
+    wrap = (
+        "<div class='hub-page'>"
+        "<div class='hub-logo-wrap'>"
+        "<img src='https://raw.githubusercontent.com/marcasosguemes-cell/Stock-SECCO-AGRO/main/Logo.png'"
+        " class='hub-logo' alt='Logo'>"
+        "</div>"
+        "<div class='hub-wrap'>"
+        + card1 + card2 + card3 +
+        "</div></div>"
+    )
+    st.markdown(css + wrap, unsafe_allow_html=True)
 
+    # Botones Streamlit ocultos con IDs para que el JS del HTML los dispare
     c1, c2, c3 = st.columns(3)
     with c1:
-        if st.button("Ver Modulo", key="btn_hub_stock", use_container_width=True):
-            st.session_state["modulo"] = "stock"
-            st.session_state["pagina"] = "Dashboard"
-            st.rerun()
+        s1 = st.button("Ver Modulo", key="btn_hub_stock")
     with c2:
         if rol == "admin":
-            if st.button("Ver Modulo", key="btn_hub_maq", use_container_width=True):
-                st.session_state["modulo"] = "maquinaria"
-                st.rerun()
+            s2 = st.button("Ver Modulo", key="btn_hub_maq")
+            s2d = False
         else:
-            if st.button("Ver Modulo", key="btn_hub_maq_dev", use_container_width=True):
-                st.session_state["hub_maq_ts"] = now_arg()
-                st.rerun()
+            s2 = False
+            s2d = st.button("Ver Modulo", key="btn_hub_maq_dev")
     with c3:
         if rol == "admin":
-            if st.button("Ver Modulo", key="btn_hub_ind", use_container_width=True):
-                st.session_state["modulo"] = "indumentaria"
-                st.rerun()
+            s3 = st.button("Ver Modulo", key="btn_hub_ind")
         else:
-            st.button("Solo Admin", key="btn_hub_ind_lock",
-                      use_container_width=True, disabled=True)
+            s3 = False
+            st.button("Solo Admin", key="btn_hub_ind_lock", disabled=True)
+
+    # JS: asignar IDs a los botones ocultos para que onclick los encuentre
+    st.markdown(
+        "<script>"
+        "(function(){"
+        "var btns=window.parent.document.querySelectorAll('button[kind=secondary],button[data-testid]');"
+        "var keys=['btn_hub_stock','btn_hub_maq','btn_hub_maq_dev','btn_hub_ind'];"
+        "var ids=['s1','s2','s2d','s3'];"
+        "btns.forEach(function(b){"
+        "  var k=b.getAttribute('data-testid')||b.innerText;"
+        "  keys.forEach(function(key,i){if(k.indexOf(key)>-1)b.id=ids[i];});"
+        "});"
+        "})();"
+        "</script>",
+        unsafe_allow_html=True
+    )
+
+    if s1:
+        st.session_state["modulo"] = "stock"
+        st.session_state["pagina"] = "Dashboard"
+        st.rerun()
+    if rol == "admin":
+        if s2:
+            st.session_state["modulo"] = "maquinaria"
+            st.rerun()
+        if s3:
+            st.session_state["modulo"] = "indumentaria"
+            st.rerun()
+    else:
+        if s2d:
+            st.session_state["hub_maq_ts"] = now_arg()
+            st.rerun()
 
 
 def pagina_maquinaria():
