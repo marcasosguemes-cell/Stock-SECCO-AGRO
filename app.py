@@ -3310,26 +3310,6 @@ def pantalla_hub():
     import time
     rol = st.session_state.get("rol", "")
 
-    # Leer navegacion desde query params (seteado por JS)
-    qp = st.query_params.get("hub_nav", "")
-    if qp == "stock":
-        st.query_params.clear()
-        st.session_state["modulo"] = "stock"
-        st.session_state["pagina"] = "Dashboard"
-        st.rerun()
-    elif qp == "maquinaria":
-        st.query_params.clear()
-        if rol == "admin":
-            st.session_state["modulo"] = "maquinaria"
-        else:
-            st.session_state["hub_maq_ts"] = now_arg()
-        st.rerun()
-    elif qp == "indumentaria":
-        st.query_params.clear()
-        if rol == "admin":
-            st.session_state["modulo"] = "indumentaria"
-            st.rerun()
-
     _ts_maq = st.session_state.get("hub_maq_ts")
     if _ts_maq and (now_arg() - _ts_maq).total_seconds() < 4:
         st.markdown(
@@ -3353,30 +3333,25 @@ def pantalla_hub():
         maq_badge = ""
         ind_cls = "hub-card"
         ind_badge = ""
-        btn_maq = "<button class='hub-btn' onclick='nav(\"maquinaria\")'>Ver Modulo</button>"
-        btn_ind = "<button class='hub-btn' onclick='nav(\"indumentaria\")'>Ver Modulo</button>"
     else:
         maq_cls = "hub-card hub-card-dev"
         maq_badge = "<div class='dev-badge'>En Desarrollo</div>"
         ind_cls = "hub-card hub-card-dev"
         ind_badge = "<div class='dev-badge'>Solo Admin</div>"
-        btn_maq = "<button class='hub-btn' onclick='nav(\"maquinaria\")'>Ver Modulo</button>"
-        btn_ind = "<span class='hub-btn-dis'>Solo Admin</span>"
 
-    css = (
+    # Logo centrado
+    st.markdown(
         "<style>"
-        ".hub-page{display:flex;flex-direction:column;align-items:center;padding:2rem 1rem 0;}"
         ".hub-logo-wrap{background:#f7f3e8;border:2px solid rgba(212,160,23,0.6);"
         "border-radius:50%;width:460px;height:276px;display:flex;align-items:center;"
-        "justify-content:center;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,0.45);margin-bottom:2.2rem;}"
+        "justify-content:center;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,0.45);"
+        "margin:2rem auto 2rem auto;}"
         ".hub-logo{width:100%;height:100%;object-fit:contain;padding:15px;}"
-        ".hub-wrap{display:flex;flex-direction:row;gap:2rem;justify-content:center;}"
-        ".hub-item{display:flex;flex-direction:column;width:300px;}"
         ".hub-card{background:linear-gradient(160deg,rgba(60,60,70,0.97),rgba(40,40,52,0.99));"
         "border:1px solid rgba(212,160,23,0.42);border-radius:22px 22px 0 0;"
         "padding:2.4rem 2rem 2rem;text-align:center;box-shadow:0 8px 24px rgba(0,0,0,0.4);"
         "display:flex;flex-direction:column;align-items:center;justify-content:center;"
-        "min-height:260px;box-sizing:border-box;flex:1;}"
+        "min-height:260px;box-sizing:border-box;}"
         ".hub-card-dev{background:linear-gradient(160deg,rgba(32,32,40,0.97),rgba(22,22,30,0.99));"
         "border-color:rgba(212,160,23,0.22);opacity:0.85;}"
         ".hub-card-icon{font-size:3.5rem;margin-bottom:0.85rem;line-height:1;}"
@@ -3386,71 +3361,65 @@ def pantalla_hub():
         ".dev-badge{display:inline-flex;background:rgba(212,160,23,0.13);"
         "border:1px solid rgba(212,160,23,0.42);border-radius:20px;padding:4px 16px;"
         "font-size:0.82rem;color:#d4a017;font-weight:700;margin-top:1rem;}"
-        ".hub-btn{display:block;width:100%;height:54px;line-height:54px;"
-        "background:linear-gradient(135deg,#d4a017,#b87a0c);"
-        "border-radius:0 0 22px 22px;border:none;cursor:pointer;"
-        "font-size:1.05rem;font-weight:700;color:#fff;letter-spacing:0.04em;"
-        "box-shadow:0 6px 18px rgba(0,0,0,0.3);}"
-        ".hub-btn:hover{background:linear-gradient(135deg,#e5b52a,#c98a1a);}"
-        ".hub-btn-dis{display:block;width:100%;height:54px;line-height:54px;"
-        "background:rgba(60,60,70,0.7);color:#606070;border-radius:0 0 22px 22px;"
-        "font-size:1rem;font-weight:700;cursor:not-allowed;letter-spacing:0.04em;}"
         "</style>"
-    )
-
-    # JS: navega cambiando query param, Streamlit lo detecta en el proximo rerun
-    js = (
-        "<script>"
-        "function nav(dest){"
-        "  var url=new URL(window.parent.location.href);"
-        "  url.searchParams.set('hub_nav',dest);"
-        "  window.parent.location.href=url.toString();"
-        "}"
-        "</script>"
-    )
-
-    card1 = (
-        "<div class='hub-item'>"
-        "<div class='hub-card'>"
-        "<div class='hub-card-icon'>&#128230;</div>"
-        "<div class='hub-card-title'>Gestion de Stock</div>"
-        "<div class='hub-card-desc'>Control de ingresos, egresos, inventario y reportes.</div>"
-        "</div>"
-        "<button class='hub-btn' onclick='nav(\"stock\")'>Ver Modulo</button>"
-        "</div>"
-    )
-    card2 = (
-        "<div class='hub-item'>"
-        + "<div class='" + maq_cls + "'>"
-        + "<div class='hub-card-icon'>&#x2699;&#xFE0F;</div>"
-        + "<div class='hub-card-title'>Gestion de Maquinaria</div>"
-        + "<div class='hub-card-desc'>Seguimiento de mantenimiento preventivo y correctivo.</div>"
-        + maq_badge + "</div>"
-        + btn_maq
-        + "</div>"
-    )
-    card3 = (
-        "<div class='hub-item'>"
-        + "<div class='" + ind_cls + "'>"
-        + "<div class='hub-card-icon'>&#129406;</div>"
-        + "<div class='hub-card-title'>Indumentaria</div>"
-        + "<div class='hub-card-desc'>Talles, asignaciones, cotizaciones y costos por firma.</div>"
-        + ind_badge + "</div>"
-        + btn_ind
-        + "</div>"
-    )
-
-    wrap = (
-        "<div class='hub-page'>"
         "<div class='hub-logo-wrap'>"
         "<img src='https://raw.githubusercontent.com/marcasosguemes-cell/Stock-SECCO-AGRO/main/Logo.png'"
-        " class='hub-logo' alt='Logo'></div>"
-        "<div class='hub-wrap'>"
-        + card1 + card2 + card3
-        + "</div></div>"
+        " class='hub-logo' alt='Logo'>"
+        "</div>",
+        unsafe_allow_html=True
     )
 
-    st.markdown(js + css + wrap, unsafe_allow_html=True)
+    # Tarjetas en columnas Streamlit nativas
+    c1, c2, c3 = st.columns(3)
+
+    with c1:
+        st.markdown(
+            "<div class='hub-card'>"
+            "<div class='hub-card-icon'>&#128230;</div>"
+            "<div class='hub-card-title'>Gestion de Stock</div>"
+            "<div class='hub-card-desc'>Control de ingresos, egresos, inventario y reportes.</div>"
+            "</div>",
+            unsafe_allow_html=True
+        )
+        if st.button("Ver Modulo", key="btn_hub_stock", use_container_width=True):
+            st.session_state["modulo"] = "stock"
+            st.session_state["pagina"] = "Dashboard"
+            st.rerun()
+
+    with c2:
+        st.markdown(
+            "<div class='" + maq_cls + "'>"
+            "<div class='hub-card-icon'>&#x2699;&#xFE0F;</div>"
+            "<div class='hub-card-title'>Gestion de Maquinaria</div>"
+            "<div class='hub-card-desc'>Seguimiento de mantenimiento preventivo y correctivo.</div>"
+            + maq_badge + "</div>",
+            unsafe_allow_html=True
+        )
+        if rol == "admin":
+            if st.button("Ver Modulo", key="btn_hub_maq", use_container_width=True):
+                st.session_state["modulo"] = "maquinaria"
+                st.rerun()
+        else:
+            if st.button("Ver Modulo", key="btn_hub_maq_dev", use_container_width=True):
+                st.session_state["hub_maq_ts"] = now_arg()
+                st.rerun()
+
+    with c3:
+        st.markdown(
+            "<div class='" + ind_cls + "'>"
+            "<div class='hub-card-icon'>&#129406;</div>"
+            "<div class='hub-card-title'>Indumentaria</div>"
+            "<div class='hub-card-desc'>Talles, asignaciones, cotizaciones y costos por firma.</div>"
+            + ind_badge + "</div>",
+            unsafe_allow_html=True
+        )
+        if rol == "admin":
+            if st.button("Ver Modulo", key="btn_hub_ind", use_container_width=True):
+                st.session_state["modulo"] = "indumentaria"
+                st.rerun()
+        else:
+            st.button("Solo Admin", key="btn_hub_ind_lock",
+                      use_container_width=True, disabled=True)
 
 
 def pagina_maquinaria():
