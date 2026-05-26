@@ -3387,7 +3387,7 @@ def pantalla_hub():
         "<div class='hub-card-title'>Gestion de Stock</div>"
         "<div class='hub-card-desc'>Control de ingresos, egresos, inventario y reportes.</div>"
         "</div>"
-        "<a class='hub-btn' id='hub-btn-stock'>Ver Modulo</a>"
+        "<a class='hub-btn' id='hub-btn-stock' style='text-decoration:none;color:#ffffff;'>Ver Modulo</a>"
         "</div>"
         # Card 2: Maquinaria
         + "<div class='hub-item'>"
@@ -3397,18 +3397,18 @@ def pantalla_hub():
         + "<div class='hub-card-desc'>Seguimiento de mantenimiento preventivo y correctivo.</div>"
         + maq_badge
         + "</div>"
-        + ("<a class='hub-btn' id='hub-btn-maq'>Ver Modulo</a>" if rol == "admin"
-           else "<a class='hub-btn' id='hub-btn-maq-dev'>Ver Modulo</a>")
+        + ("<a class='hub-btn' id='hub-btn-maq' style='text-decoration:none;color:#ffffff;'>Ver Modulo</a>" if rol == "admin"
+           else "<a class='hub-btn' id='hub-btn-maq-dev' style='text-decoration:none;color:#ffffff;'>Ver Modulo</a>")
         + "</div>"
         # Card 3: Indumentaria
         + "<div class='hub-item'>"
         + "<div class='" + ind_cls + "'>"
-        + "<div class='hub-card-icon'>&#129470;</div>"
+        + "<div class='hub-card-icon'>&#129406;</div>"
         + "<div class='hub-card-title'>Indumentaria</div>"
         + "<div class='hub-card-desc'>Talles, asignaciones, cotizaciones y costos por firma.</div>"
         + ind_badge
         + "</div>"
-        + ("<a class='hub-btn' id='hub-btn-ind'>Ver Modulo</a>" if rol == "admin"
+        + ("<a class='hub-btn' id='hub-btn-ind' style='text-decoration:none;color:#ffffff;'>Ver Modulo</a>" if rol == "admin"
            else "<span class='hub-btn-disabled'>&#128274; Solo Admin</span>")
         + "</div>"
         + "</div></div>"
