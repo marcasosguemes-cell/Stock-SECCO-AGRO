@@ -3348,8 +3348,16 @@ def pantalla_hub():
 
     maq_badge = '<div class="dev-badge">&#9881; En Desarrollo</div>' if rol != "admin" else ""
     maq_cls   = "hub-card hub-card-dev" if rol != "admin" else "hub-card"
-    ind_badge = "" if rol == "admin" else '<div class="dev-badge">🔒 Solo Admin</div>'
+    ind_badge = "" if rol == "admin" else '<div class="dev-badge">&#128274; Solo Admin</div>'
     ind_cls   = "hub-card" if rol == "admin" else "hub-card hub-card-dev"
+    ind_card_html = (
+        f'<div class="{ind_cls}">' +
+        '<div class="hub-card-icon">&#129695;</div>' +
+        '<div class="hub-card-title">Indumentaria</div>' +
+        '<div class="hub-card-desc">Talles, asignaciones, stock, cotizaciones y distribuci&#243;n de costos por firma.</div>' +
+        ind_badge +
+        '</div>'
+    )
 
     st.markdown(f"""
     <style>
@@ -3448,15 +3456,10 @@ def pantalla_hub():
                 <div class="hub-card-desc">Seguimiento de mantenimiento preventivo y correctivo de equipos.</div>
                 {maq_badge}
             </div>
-            <div class="{ind_cls}">
-                <div class="hub-card-icon">🧥</div>
-                <div class="hub-card-title">Indumentaria</div>
-                <div class="hub-card-desc">Talles, asignaciones, stock, cotizaciones y distribución de costos por firma.</div>
-                {ind_badge}
-            </div>
+            INDCARD_PLACEHOLDER
         </div>
     </div>
-    """, unsafe_allow_html=True)
+    """.replace("INDCARD_PLACEHOLDER", ind_card_html), unsafe_allow_html=True)
 
     c1, c2, c3 = st.columns(3)
     with c1:
