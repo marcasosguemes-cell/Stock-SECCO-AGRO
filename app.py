@@ -1037,6 +1037,7 @@ def sidebar():
         if es_consolidado and rol == "admin":
             paginas_menu = [
                 ("🌐", "Consolidado"),
+                ("📥", "Órdenes"),
                 ("⚠️", "Alertas"),
                 ("📈", "Reportes"),
                 ("🏭", "Proveedores"),
@@ -1049,6 +1050,7 @@ def sidebar():
                 ("📥", "Nuevo Ingreso"),
                 ("📤", "Nuevo Egreso"),
                 ("📋", "Historial"),
+                ("📥", "Órdenes"),
                 ("⚠️", "Alertas"),
                 ("📈", "Reportes"),
                 ("🏭", "Proveedores"),
@@ -1061,6 +1063,7 @@ def sidebar():
                 ("📥", "Nuevo Ingreso"),
                 ("📤", "Nuevo Egreso"),
                 ("📋", "Historial"),
+                ("📥", "Órdenes"),
                 ("⚠️", "Alertas"),
                 ("📈", "Reportes"),
             ]
@@ -1087,7 +1090,15 @@ def sidebar():
                     color: #f5e6b0 !important;
                     font-weight: 700 !important;
                 }}</style>""", unsafe_allow_html=True)
-            if st.button(f"{emoji}  {nombre}", key=f"nav_{nombre}"):
+            etiqueta = f"{emoji}  {nombre}"
+            if nombre == "Órdenes":
+                try:
+                    _n_ord = contar_ordenes_pendientes(None if rol == "admin" else st.session_state.get("establecimiento_id"))
+                except Exception:
+                    _n_ord = 0
+                if _n_ord > 0:
+                    etiqueta += f"  ({_n_ord})"
+            if st.button(etiqueta, key=f"nav_{nombre}"):
                 st.session_state["pagina"] = nombre
                 st.rerun()
 
@@ -3439,6 +3450,333 @@ def pagina_maquinaria():
     """, unsafe_allow_html=True)
 
 
+
+
+# ══════════════════════════════════════════════════════════════
+# PÁGINA ÓRDENES — solicitudes de la app mobile (tractoristas)
+# ══════════════════════════════════════════════════════════════
+
+UMBRAL_OK = 70   # confianza mínima para considerar una línea "lista"
+
+
+def contar_ordenes_pendientes(establecimiento_id=None):
+    """Cuenta órdenes pendientes (para el badge del menú)."""
+    try:
+        q = supabase.table("ordenes").select("id", count="exact").eq("estado", "pendiente")
+        if establecimiento_id:
+            q = q.eq("establecimiento_id", establecimiento_id)
+        return q.execute().count or 0
+    except Exception as e:
+        logger.warning(f"contar_ordenes_pendientes: {e}")
+        return 0
+
+
+def _linea_esta_lista(l):
+    """Una línea está lista si tiene producto asignado y buena confianza."""
+    if not l.get("producto_id"):
+        return False
+    conf = l.get("match_confianza")
+    if conf is None:
+        # Sin score (ej. carga manual): si tiene producto, la damos por lista.
+        return True
+    return conf >= UMBRAL_OK
+
+
+def pagina_ordenes():
+    st.markdown("""
+    <div>
+        <div class="title-bubble">
+            <h1>📥 Órdenes de Tractoristas</h1>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+    rol = st.session_state.get("rol", "")
+    mi_estab = st.session_state.get("establecimiento_id")
+
+    col_f1, col_f2 = st.columns([2, 1])
+    with col_f1:
+        estado_filtro = st.selectbox(
+            "Mostrar", ["Pendientes", "Aprobadas", "Rechazadas", "Todas"],
+            key="ord_estado_filtro"
+        )
+    with col_f2:
+        if st.button("🔄 Actualizar", use_container_width=True):
+            st.rerun()
+
+    try:
+        q = supabase.table("ordenes").select("*").order("creado_en", desc=True)
+        if rol != "admin" and mi_estab:
+            q = q.eq("establecimiento_id", mi_estab)
+        if estado_filtro == "Pendientes":
+            q = q.eq("estado", "pendiente")
+        elif estado_filtro == "Aprobadas":
+            q = q.eq("estado", "aprobada")
+        elif estado_filtro == "Rechazadas":
+            q = q.eq("estado", "rechazada")
+        ordenes = q.execute().data or []
+    except Exception as e:
+        logger.error(f"pagina_ordenes error: {e}")
+        st.error(f"Error al cargar órdenes: {e}")
+        return
+
+    if not ordenes:
+        st.info("📭 No hay órdenes para mostrar con este filtro.")
+        return
+
+    productos = get_productos()
+    prod_opciones = {
+        p["nombre"]
+        + (f" · {p.get('marca')}" if p.get('marca') else "")
+        + (f" · {p.get('presentacion')}" if p.get('presentacion') else ""): p["id"]
+        for p in productos
+    }
+    prod_id_a_label = {v: k for k, v in prod_opciones.items()}
+
+    st.markdown(f"**{len(ordenes)}** orden(es)")
+    for orden in ordenes:
+        _render_orden(orden, prod_opciones, prod_id_a_label, rol)
+
+
+def _badge_estado(estado):
+    colores = {
+        "pendiente": ("#f59e0b", "⏳ Pendiente"),
+        "aprobada":  ("#22c55e", "✅ Aprobada"),
+        "rechazada": ("#ef4444", "❌ Rechazada"),
+    }
+    color, txt = colores.get(estado, ("#a0a0b0", estado))
+    return (f'<span style="background:{color}22;color:{color};border:1px solid {color}66;'
+            f'border-radius:12px;padding:3px 12px;font-size:.8rem;font-weight:700;">{txt}</span>')
+
+
+def _render_orden(orden, prod_opciones, prod_id_a_label, rol):
+    oid = orden["id"]
+    estado = orden["estado"]
+    tipo = orden.get("tipo", "egreso")
+    tipo_ico = "↑ EGRESO" if tipo == "egreso" else "↓ INGRESO"
+
+    try:
+        lineas = supabase.table("ordenes_lineas").select("*").eq("orden_id", oid).execute().data or []
+    except Exception:
+        lineas = []
+
+    fecha = str(orden.get("creado_en", ""))[:16].replace("T", " ")
+    titulo = (f"{tipo_ico} · {orden.get('solicitante_nombre','?')} · "
+              f"{orden.get('establecimiento_nombre','?')} · {fecha}")
+
+    with st.expander(titulo, expanded=(estado == "pendiente")):
+        st.markdown(_badge_estado(estado), unsafe_allow_html=True)
+
+        if orden.get("remito_url"):
+            st.markdown(f"[📄 Ver foto del remito]({orden['remito_url']})")
+        if orden.get("observaciones"):
+            st.caption(f"📝 {orden['observaciones']}")
+
+        if estado == "pendiente" and rol in ("admin", "establecimiento"):
+            _render_orden_pendiente(orden, lineas, prod_opciones, prod_id_a_label, tipo)
+        else:
+            st.markdown("**Productos:**")
+            for l in lineas:
+                nombre = l.get("producto_nombre") or "(sin asignar)"
+                st.markdown(f"- {nombre} — **{l.get('cantidad')}**")
+            if estado == "rechazada" and orden.get("motivo_rechazo"):
+                st.error(f"Motivo del rechazo: {orden['motivo_rechazo']}")
+            if estado == "aprobada":
+                st.success(f"Aprobada por {orden.get('revisado_por_nombre','?')} "
+                           f"el {str(orden.get('revisado_en',''))[:16].replace('T',' ')}")
+
+
+def _render_orden_pendiente(orden, lineas, prod_opciones, prod_id_a_label, tipo):
+    """Muestra las líneas listas como texto y solo pide resolver las dudosas."""
+    oid = orden["id"]
+
+    listas = [l for l in lineas if _linea_esta_lista(l)]
+    dudosas = [l for l in lineas if not _linea_esta_lista(l)]
+
+    if listas:
+        st.markdown("**Listo para impactar:**")
+        for l in listas:
+            st.markdown(
+                f"<div style='background:rgba(34,197,94,.10);border:1px solid rgba(34,197,94,.35);"
+                f"border-radius:10px;padding:10px 14px;margin-bottom:6px;'>"
+                f"✓ <b>{l.get('producto_nombre')}</b> — <b>{l.get('cantidad')}</b>"
+                f"</div>", unsafe_allow_html=True
+            )
+
+    resoluciones = {}
+    if dudosas:
+        st.markdown(
+            "<div style='background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.45);"
+            "border-radius:10px;padding:10px 14px;margin:8px 0;color:#fcd34d;'>"
+            "⚠️ La IA no pudo identificar con seguridad estos productos. "
+            "Asignalos para poder aprobar.</div>", unsafe_allow_html=True
+        )
+        for idx, l in enumerate(dudosas):
+            txt = l.get("texto_original") or "(sin texto)"
+            c1, c2 = st.columns([3, 1])
+            with c1:
+                opciones_lista = ["— Elegir producto —"] + list(prod_opciones.keys())
+                default_label = prod_id_a_label.get(l.get("producto_id"), "— Elegir producto —")
+                try:
+                    default_idx = opciones_lista.index(default_label)
+                except ValueError:
+                    default_idx = 0
+                sel = st.selectbox(
+                    f'Remito dice: "{txt}"',
+                    opciones_lista, index=default_idx, key=f"ord_{oid}_dud_prod_{idx}"
+                )
+            with c2:
+                cant = st.number_input(
+                    "Cantidad", min_value=0.0, step=1.0,
+                    value=float(l.get("cantidad", 0) or 0),
+                    key=f"ord_{oid}_dud_cant_{idx}"
+                )
+            resoluciones[l["id"]] = {
+                "producto_id": prod_opciones.get(sel),
+                "producto_nombre": sel if sel != "— Elegir producto —" else None,
+                "cantidad": cant,
+            }
+
+    faltan = [lid for lid, r in resoluciones.items()
+              if not r["producto_id"] or r["cantidad"] <= 0]
+    puede_aprobar = (len(faltan) == 0)
+
+    st.divider()
+    col_a, col_b = st.columns(2)
+    with col_a:
+        label_btn = "✅ Aprobar e impactar stock" if puede_aprobar \
+                    else "🔒 Resolvé las líneas en amarillo"
+        if st.button(label_btn, key=f"ord_aprob_{oid}",
+                     use_container_width=True, type="primary",
+                     disabled=not puede_aprobar):
+            _aprobar_orden(orden, listas, dudosas, resoluciones, tipo)
+    with col_b:
+        motivo = st.text_input("Motivo (si rechazás)", key=f"ord_motivo_{oid}",
+                               placeholder="opcional")
+        if st.button("❌ Rechazar", key=f"ord_rech_{oid}", use_container_width=True):
+            _rechazar_orden(orden, motivo)
+
+
+def _aprobar_orden(orden, listas, dudosas, resoluciones, tipo):
+    """Inserta en movimientos (baja/sube stock) y marca la orden aprobada."""
+    oid = orden["id"]
+    establecimiento_id = orden.get("establecimiento_id")
+
+    finales = []
+    for l in listas:
+        finales.append({
+            "linea_id": l["id"],
+            "producto_id": l["producto_id"],
+            "producto_nombre": l.get("producto_nombre"),
+            "cantidad": float(l.get("cantidad", 0) or 0),
+        })
+    for l in dudosas:
+        r = resoluciones.get(l["id"], {})
+        finales.append({
+            "linea_id": l["id"],
+            "producto_id": r.get("producto_id"),
+            "producto_nombre": r.get("producto_nombre"),
+            "cantidad": float(r.get("cantidad", 0) or 0),
+        })
+
+    validas = [f for f in finales if f["producto_id"] and f["cantidad"] > 0]
+    if not validas:
+        st.error("❌ No hay líneas válidas para impactar.")
+        return
+
+    if tipo == "egreso":
+        stock_df = get_stock_por_producto(establecimiento_id)
+        errores = []
+        for f in validas:
+            disp = 0.0
+            if not stock_df.empty:
+                fila = stock_df[stock_df["producto_id"] == f["producto_id"]]
+                if not fila.empty:
+                    disp = float(fila.iloc[0]["stock"])
+            if disp < f["cantidad"]:
+                errores.append(f"{f['producto_nombre']}: stock insuficiente "
+                               f"(disp: {disp:.2f}, pide: {f['cantidad']:.2f})")
+        if errores:
+            for e in errores:
+                st.error(f"❌ {e}")
+            return
+
+    try:
+        now = now_arg()
+        admin_id = st.session_state.get("user_id")
+        admin_nombre = st.session_state.get("perfil", {}).get("nombre", "")
+        obs = orden.get("observaciones") or ""
+        obs_full = f"[Orden tractorista: {orden.get('solicitante_nombre','')}] {obs}".strip()
+
+        ids_mov = []
+        for f in validas:
+            payload = {
+                "tipo": tipo,
+                "producto_id": f["producto_id"],
+                "establecimiento_id": establecimiento_id,
+                "cantidad": f["cantidad"],
+                "fecha": now.isoformat(),
+                "observaciones": obs_full,
+                "usuario_id": admin_id,
+                "usuario_nombre": admin_nombre,
+            }
+            res = supabase.table("movimientos").insert(payload).execute()
+            mid = res.data[0]["id"] if res.data else None
+            if mid:
+                ids_mov.append(mid)
+                if orden.get("remito_url"):
+                    supabase.table("movimientos").update({
+                        "remito_url": orden.get("remito_path") or orden.get("remito_url")
+                    }).eq("id", mid).execute()
+
+        for f in finales:
+            supabase.table("ordenes_lineas").update({
+                "producto_id": f["producto_id"],
+                "producto_nombre": f["producto_nombre"],
+                "cantidad": f["cantidad"],
+            }).eq("id", f["linea_id"]).execute()
+
+        supabase.table("ordenes").update({
+            "estado": "aprobada",
+            "revisado_por_id": admin_id,
+            "revisado_por_nombre": admin_nombre,
+            "revisado_en": now.isoformat(),
+            "movimiento_ids": ",".join(ids_mov),
+        }).eq("id", oid).execute()
+
+        registrar_auditoria("orden_aprobada", {
+            "orden_id": oid, "movimientos": ids_mov, "tipo": tipo
+        })
+        if hasattr(get_movimientos, "clear"):
+            get_movimientos.clear()
+
+        st.success(f"✅ Stock actualizado. {len(ids_mov)} movimiento(s) registrado(s).")
+        st.rerun()
+
+    except Exception as e:
+        logger.error(f"Error al aprobar orden {oid}: {e}")
+        st.error(f"❌ Error al aprobar: {e}")
+
+
+def _rechazar_orden(orden, motivo):
+    oid = orden["id"]
+    try:
+        now = now_arg()
+        supabase.table("ordenes").update({
+            "estado": "rechazada",
+            "revisado_por_id": st.session_state.get("user_id"),
+            "revisado_por_nombre": st.session_state.get("perfil", {}).get("nombre", ""),
+            "revisado_en": now.isoformat(),
+            "motivo_rechazo": motivo or None,
+        }).eq("id", oid).execute()
+        registrar_auditoria("orden_rechazada", {"orden_id": oid, "motivo": motivo})
+        st.warning("Orden rechazada.")
+        st.rerun()
+    except Exception as e:
+        logger.error(f"Error al rechazar orden {oid}: {e}")
+        st.error(f"❌ Error: {e}")
+
+
 def main():
     if not check_auth():
         login()
@@ -3523,6 +3861,7 @@ def main():
     if consolidado and rol == "admin":
         rutas = {
             "Consolidado": pagina_consolidado,
+            "Órdenes": pagina_ordenes,
             "Alertas": pagina_alertas,
             "Reportes": pagina_reportes,
             "Proveedores": pagina_proveedores,
@@ -3536,6 +3875,7 @@ def main():
             "Nuevo Ingreso": pagina_ingreso,
             "Nuevo Egreso": pagina_egreso,
             "Historial": pagina_historial,
+            "Órdenes": pagina_ordenes,
             "Alertas": pagina_alertas,
             "Reportes": pagina_reportes,
             "Proveedores": pagina_proveedores,
@@ -3549,6 +3889,7 @@ def main():
             "Nuevo Ingreso": pagina_ingreso,
             "Nuevo Egreso": pagina_egreso,
             "Historial": pagina_historial,
+            "Órdenes": pagina_ordenes,
             "Alertas": pagina_alertas,
             "Reportes": pagina_reportes,
         }
