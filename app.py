@@ -49,7 +49,7 @@ st.set_page_config(
     page_title="Stock Agrícola - SECCO AGRO",
     page_icon="🌾",
     layout="wide",
-    initial_sidebar_state="expanded",
+    initial_sidebar_state="collapsed",
 )
 
 # ── Configuración central (Settings) ─────────────────────────
@@ -576,6 +576,135 @@ st.markdown("""
         .main-title-with-logo { font-size: 1.5rem !important; }
         .title-bubble h1 { font-size: 1.3rem !important; }
     }
+
+    /* ── TOPBAR (menú horizontal superior) ─────────────────── */
+    [data-testid="stSidebar"],
+    section[data-testid="stSidebar"] {
+        display: none !important;
+        width: 0 !important;
+        min-width: 0 !important;
+    }
+
+    .block-container {
+        padding-top: 1.1rem !important;
+        max-width: 96% !important;
+    }
+
+    .topbar-brand {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+    }
+
+    .topbar-logo-oval {
+        background: #f7f3e8;
+        border: 2px solid var(--gold-60);
+        border-radius: 50%;
+        width: 62px;
+        height: 62px;
+        min-width: 62px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        box-shadow: 0 4px 16px rgba(0,0,0,0.35);
+    }
+
+    .topbar-logo {
+        width: 100% !important;
+        height: auto !important;
+        display: block;
+        transform: scale(1.9);
+        transform-origin: center center;
+    }
+
+    .topbar-brand h1 {
+        font-family: 'Playfair Display', serif !important;
+        font-size: 1.35rem !important;
+        margin: 0;
+        color: var(--gold) !important;
+        letter-spacing: 0.04em;
+        font-weight: 700;
+        white-space: nowrap;
+    }
+
+    .topbar-profile {
+        background: var(--bg-surface) !important;
+        border: 1px solid var(--gold-25);
+        border-radius: 14px;
+        padding: 0.5rem 1rem;
+        text-align: center;
+        backdrop-filter: blur(8px);
+    }
+
+    .topbar-profile .profile-name {
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: var(--text-primary) !important;
+        margin-bottom: 2px;
+    }
+
+    .topbar-profile .profile-meta {
+        font-size: 0.75rem;
+        color: #b8b8c0 !important;
+    }
+
+    .topbar-estab-label {
+        font-size: 0.72rem;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        color: var(--text-gold) !important;
+        margin-bottom: 2px;
+    }
+
+    /* Botones de navegación (pastillas horizontales) */
+    div[class*="st-key-nav_"] button {
+        background: var(--bg-surface) !important;
+        border: 1px solid var(--gold-25) !important;
+        border-radius: 999px !important;
+        width: 100% !important;
+        padding: 0.45rem 0.35rem !important;
+        font-size: 0.8rem !important;
+        font-weight: 500 !important;
+        color: var(--text-secondary) !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        min-height: unset !important;
+        transition: all 0.2s ease !important;
+    }
+
+    div[class*="st-key-nav_"] button:hover {
+        background: var(--gold-18) !important;
+        border-color: var(--gold-60) !important;
+        color: #f0e8c8 !important;
+        transform: translateY(-2px) !important;
+    }
+
+    /* Botones de acción del topbar (inicio / salir) */
+    div[class*="st-key-btn_volver_hub"] button,
+    div[class*="st-key-btn_logout_top"] button {
+        background: var(--bg-surface) !important;
+        border: 1px solid var(--gold-25) !important;
+        border-radius: 12px !important;
+        width: 100% !important;
+        padding: 0.45rem 0.3rem !important;
+        font-size: 1.05rem !important;
+        min-height: unset !important;
+        transition: all 0.2s ease !important;
+    }
+
+    div[class*="st-key-btn_volver_hub"] button:hover,
+    div[class*="st-key-btn_logout_top"] button:hover {
+        background: var(--gold-18) !important;
+        border-color: var(--gold-60) !important;
+    }
+
+    .topbar-sep {
+        border-bottom: 1px solid var(--gold-40);
+        margin: 0.4rem 0 1.1rem 0;
+    }
+
 </style>
 """, unsafe_allow_html=True)
 
@@ -937,60 +1066,50 @@ def mostrar_cambio_password():
 
 
 # ══════════════════════════════════════════════════════════════
-# SIDEBAR
+# TOPBAR — menú horizontal superior
 # ══════════════════════════════════════════════════════════════
 
-def sidebar():
-    with st.sidebar:
+def topbar():
+    if "perfil" not in st.session_state:
+        st.warning("Cargando...")
+        return False
+
+    perfil = st.session_state.get("perfil", {})
+    rol = st.session_state.get("rol", "")
+
+    badge_class = "badge-admin" if rol == "admin" else "badge-operator"
+    badge_text = "Administrador" if rol == "admin" else "Operador"
+
+    establecimientos = get_establecimientos()
+
+    # ── Fila 1: logo · establecimiento · perfil · acciones ──────
+    try:
+        c_logo, c_estab, c_perfil, c_home, c_out = st.columns(
+            [3.0, 2.4, 3.4, 0.7, 0.7], vertical_alignment="center"
+        )
+    except TypeError:
+        c_logo, c_estab, c_perfil, c_home, c_out = st.columns(
+            [3.0, 2.4, 3.4, 0.7, 0.7]
+        )
+
+    with c_logo:
         st.markdown("""
-        <div class="sidebar-header">
-            <div class="sidebar-logo-oval">
-                <img src="https://raw.githubusercontent.com/marcasosguemes-cell/Stock-SECCO-AGRO/main/Logo.png" class="sidebar-logo" alt="Logo">
+        <div class="topbar-brand">
+            <div class="topbar-logo-oval">
+                <img src="https://raw.githubusercontent.com/marcasosguemes-cell/Stock-SECCO-AGRO/main/Logo.png" class="topbar-logo" alt="Logo">
             </div>
             <h1>Stock Agrícola</h1>
         </div>
         """, unsafe_allow_html=True)
 
-        if "perfil" not in st.session_state:
-            st.warning("Cargando...")
-            return
-
-        perfil = st.session_state.get("perfil", {})
-        rol = st.session_state.get("rol", "")
-
-        badge_class = "badge-admin" if rol == "admin" else "badge-operator"
-        badge_text = "Administrador" if rol == "admin" else "Operador"
-
-        st.markdown("### 🏢 ESTABLECIMIENTO")
-        establecimientos = get_establecimientos()
-
+    with c_estab:
         if rol == "admin":
             opciones_estab = ["🌐 Consolidado"] + [e["nombre"] for e in establecimientos]
-        else:
-            mi_estab_id = st.session_state.get("establecimiento_id")
-            mi_estab_nombre = st.session_state.get("establecimiento_nombre", "")
 
-            if not mi_estab_id or not mi_estab_nombre:
-                st.error("⚠️ Sin establecimiento asignado. Contactá al administrador.")
-                st.markdown("---")
-                if st.button("🚪 Cerrar sesión"):
-                    logout()
-                return
-
-            opciones_estab = [mi_estab_nombre]
-            st.session_state["estab_seleccionado"] = mi_estab_nombre
-            st.session_state["estab_activo_id"] = mi_estab_id
-            st.session_state["estab_activo_nombre"] = mi_estab_nombre
-            st.markdown(f"""
-            <div style="background:var(--gold-15);border-radius:10px;padding:0.5rem;text-align:center;margin-bottom:0.8rem;">
-                <span style="color:var(--gold);">📍 {html.escape(mi_estab_nombre)}</span>
-            </div>
-            """, unsafe_allow_html=True)
-
-        if rol == "admin":
             if "estab_seleccionado" not in st.session_state:
                 st.session_state["estab_seleccionado"] = "🌐 Consolidado"
 
+            st.markdown('<div class="topbar-estab-label">🏢 ESTABLECIMIENTO</div>', unsafe_allow_html=True)
             estab_sel = st.selectbox(
                 "Seleccionar",
                 opciones_estab,
@@ -1013,101 +1132,127 @@ def sidebar():
                 if match:
                     st.session_state["estab_activo_id"] = match["id"]
                     st.session_state["estab_activo_nombre"] = match["nombre"]
+        else:
+            mi_estab_id = st.session_state.get("establecimiento_id")
+            mi_estab_nombre = st.session_state.get("establecimiento_nombre", "")
 
-        estab_activo = st.session_state.get(
-            "estab_activo_nombre",
-            "Consolidado" if rol == "admin" else st.session_state.get("establecimiento_nombre", "")
-        )
-        es_consolidado = (estab_activo == "Consolidado")
+            if not mi_estab_id or not mi_estab_nombre:
+                st.error("⚠️ Sin establecimiento asignado. Contactá al administrador.")
+                if st.button("🚪 Cerrar sesión", key="btn_logout_sin_estab"):
+                    logout()
+                return False
 
+            st.session_state["estab_seleccionado"] = mi_estab_nombre
+            st.session_state["estab_activo_id"] = mi_estab_id
+            st.session_state["estab_activo_nombre"] = mi_estab_nombre
+            st.markdown(f"""
+            <div style="background:var(--gold-15);border-radius:10px;padding:0.55rem;text-align:center;">
+                <span style="color:var(--gold);">📍 {html.escape(mi_estab_nombre)}</span>
+            </div>
+            """, unsafe_allow_html=True)
+
+    estab_activo = st.session_state.get(
+        "estab_activo_nombre",
+        "Consolidado" if rol == "admin" else st.session_state.get("establecimiento_nombre", "")
+    )
+    es_consolidado = (estab_activo == "Consolidado")
+
+    with c_perfil:
         st.markdown(f"""
-        <div class="profile-card">
-            <div class="profile-name">👤 {html.escape(perfil.get('nombre', 'Usuario'))}</div>
-            <div class="profile-role"><span class="{badge_class}">{badge_text}</span></div>
-            <div class="profile-location">📍 {'🌐 Todos los establecimientos' if es_consolidado else html.escape(estab_activo)}</div>
+        <div class="topbar-profile">
+            <div class="profile-name">👤 {html.escape(perfil.get('nombre', 'Usuario'))} &nbsp;<span class="{badge_class}">{badge_text}</span></div>
+            <div class="profile-meta">📍 {'🌐 Todos los establecimientos' if es_consolidado else html.escape(estab_activo)}</div>
         </div>
         """, unsafe_allow_html=True)
 
-        st.markdown("---")
-        st.markdown("### 📌 MENÚ")
+    with c_home:
+        if st.button("🏠", key="btn_volver_hub", help="Volver al inicio"):
+            st.session_state["modulo"] = "hub"
+            st.rerun()
 
-        if rol != "admin":
-            st.info("📎 **Importante:** Al registrar ingresos o egresos debés adjuntar el remito en PDF.")
+    with c_out:
+        if st.button("🚪", key="btn_logout_top", help="Cerrar sesión"):
+            logout()
 
-        if es_consolidado and rol == "admin":
-            paginas_menu = [
-                ("🌐", "Consolidado"),
-                ("📥", "Órdenes"),
-                ("⚠️", "Alertas"),
-                ("📈", "Reportes"),
-                ("🏭", "Proveedores"),
-                ("📦", "Productos"),
-                ("👥", "Usuarios"),
-            ]
-        elif rol == "admin":
-            paginas_menu = [
-                ("📊", "Dashboard"),
-                ("📥", "Nuevo Ingreso"),
-                ("📤", "Nuevo Egreso"),
-                ("📋", "Historial"),
-                ("📥", "Órdenes"),
-                ("⚠️", "Alertas"),
-                ("📈", "Reportes"),
-                ("🏭", "Proveedores"),
-                ("📦", "Productos"),
-                ("👥", "Usuarios"),
-            ]
-        elif rol == "establecimiento" and st.session_state.get("establecimiento_id"):
-            paginas_menu = [
-                ("📊", "Dashboard"),
-                ("📥", "Nuevo Ingreso"),
-                ("📤", "Nuevo Egreso"),
-                ("📋", "Historial"),
-                ("📥", "Órdenes"),
-                ("⚠️", "Alertas"),
-                ("📈", "Reportes"),
-            ]
-        else:
-            st.error("⚠️ Configuración incompleta. Contactá al administrador.")
-            st.markdown("---")
-            if st.button("🚪 Cerrar sesión"):
-                logout()
-            return
+    # ── Fila 2: menú de navegación horizontal ───────────────────
+    if es_consolidado and rol == "admin":
+        paginas_menu = [
+            ("🌐", "Consolidado"),
+            ("📥", "Órdenes"),
+            ("⚠️", "Alertas"),
+            ("📈", "Reportes"),
+            ("🏭", "Proveedores"),
+            ("📦", "Productos"),
+            ("👥", "Usuarios"),
+        ]
+    elif rol == "admin":
+        paginas_menu = [
+            ("📊", "Dashboard"),
+            ("📥", "Nuevo Ingreso"),
+            ("📤", "Nuevo Egreso"),
+            ("📋", "Historial"),
+            ("📥", "Órdenes"),
+            ("⚠️", "Alertas"),
+            ("📈", "Reportes"),
+            ("🏭", "Proveedores"),
+            ("📦", "Productos"),
+            ("👥", "Usuarios"),
+        ]
+    elif rol == "establecimiento" and st.session_state.get("establecimiento_id"):
+        paginas_menu = [
+            ("📊", "Dashboard"),
+            ("📥", "Nuevo Ingreso"),
+            ("📤", "Nuevo Egreso"),
+            ("📋", "Historial"),
+            ("📥", "Órdenes"),
+            ("⚠️", "Alertas"),
+            ("📈", "Reportes"),
+        ]
+    else:
+        st.error("⚠️ Configuración incompleta. Contactá al administrador.")
+        if st.button("🚪 Cerrar sesión", key="btn_logout_sin_config"):
+            logout()
+        return False
 
-        pagina_actual = st.session_state.get("pagina", "Dashboard")
-        nombres_menu = [n for _, n in paginas_menu]
-        if pagina_actual not in nombres_menu:
-            st.session_state["pagina"] = nombres_menu[0]
+    pagina_actual = st.session_state.get("pagina", "Dashboard")
+    nombres_menu = [n for _, n in paginas_menu]
+    if pagina_actual not in nombres_menu:
+        st.session_state["pagina"] = nombres_menu[0]
+        pagina_actual = nombres_menu[0]
 
-        for emoji, nombre in paginas_menu:
-            es_activo = (nombre == pagina_actual)
-            if es_activo:
-                st.markdown(f"""<style>
-                [data-testid="stSidebar"] div[data-testid="stButton"]:has(button[key="nav_{nombre}"]) button {{
-                    background: linear-gradient(90deg,rgba(212,160,23,0.38) 0%,rgba(212,160,23,0.10) 100%) !important;
-                    border-left: 3px solid var(--gold) !important;
-                    border-color: var(--gold-75) !important;
-                    color: #f5e6b0 !important;
-                    font-weight: 700 !important;
-                }}</style>""", unsafe_allow_html=True)
-            etiqueta = f"{emoji}  {nombre}"
-            if nombre == "Órdenes":
-                try:
-                    _n_ord = contar_ordenes_pendientes(None if rol == "admin" else st.session_state.get("establecimiento_id"))
-                except Exception:
-                    _n_ord = 0
-                if _n_ord > 0:
-                    etiqueta += f"  ({_n_ord})"
-            if st.button(etiqueta, key=f"nav_{nombre}"):
+    nav_cols = st.columns(len(paginas_menu))
+    for col, (emoji, nombre) in zip(nav_cols, paginas_menu):
+        key_nav = "nav_" + nombre.replace(" ", "_")
+        es_activo = (nombre == pagina_actual)
+        if es_activo:
+            st.markdown(f"""<style>
+            div[class*="st-key-{key_nav}"] button {{
+                background: linear-gradient(90deg,rgba(212,160,23,0.42) 0%,rgba(212,160,23,0.12) 100%) !important;
+                border-color: var(--gold-75) !important;
+                color: #f5e6b0 !important;
+                font-weight: 700 !important;
+            }}</style>""", unsafe_allow_html=True)
+        etiqueta = f"{emoji} {nombre}"
+        if nombre == "Órdenes":
+            try:
+                _n_ord = contar_ordenes_pendientes(None if rol == "admin" else st.session_state.get("establecimiento_id"))
+            except Exception:
+                _n_ord = 0
+            if _n_ord > 0:
+                etiqueta += f" ({_n_ord})"
+        with col:
+            if st.button(etiqueta, key=key_nav, use_container_width=True):
                 st.session_state["pagina"] = nombre
                 st.rerun()
 
-        st.markdown("---")
-        if st.button("🏠 Inicio", key="btn_volver_hub"):
-            st.session_state["modulo"] = "hub"
-            st.rerun()
-        if st.button("🚪 Cerrar sesión"):
-            logout()
+    if rol != "admin":
+        st.markdown(
+            '<div style="font-size:0.78rem;color:#c8c8d4;margin-top:0.3rem;">📎 <b>Importante:</b> al registrar ingresos o egresos debés adjuntar el remito en PDF.</div>',
+            unsafe_allow_html=True
+        )
+
+    st.markdown('<div class="topbar-sep"></div>', unsafe_allow_html=True)
+    return True
 
 
 # ══════════════════════════════════════════════════════════════
@@ -3819,40 +3964,8 @@ def main():
 
     # ── A partir de acá: módulo "stock" ──────────────────────────
 
-    # Toggle sidebar
-    if "sidebar_open" not in st.session_state:
-        st.session_state["sidebar_open"] = True
-
-    st.markdown('<div class="sidebar-toggle-wrap">', unsafe_allow_html=True)
-    icono = "✕" if st.session_state["sidebar_open"] else "☰"
-    if st.button(icono, key="btn_toggle_sidebar"):
-        st.session_state["sidebar_open"] = not st.session_state["sidebar_open"]
-        st.rerun()
-    st.markdown('</div>', unsafe_allow_html=True)
-
-    if st.session_state["sidebar_open"]:
-        st.markdown("""
-        <style>
-            [data-testid="stSidebar"] {
-                display: flex !important;
-                width: 21rem !important;
-                min-width: 21rem !important;
-                transform: translateX(0) !important;
-                visibility: visible !important;
-            }
-        </style>""", unsafe_allow_html=True)
-    else:
-        st.markdown("""
-        <style>
-            [data-testid="stSidebar"] {
-                display: none !important;
-                width: 0 !important;
-                min-width: 0 !important;
-                visibility: hidden !important;
-            }
-        </style>""", unsafe_allow_html=True)
-
-    sidebar()
+    if not topbar():
+        return
 
     pagina = st.session_state.get("pagina", "Dashboard")
     rol = st.session_state.get("rol", "establecimiento")
