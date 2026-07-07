@@ -682,15 +682,29 @@ st.markdown("""
     }
 
     /* Botones de acción del topbar (inicio / salir) */
+    div[class*="st-key-btn_volver_hub"],
+    div[class*="st-key-btn_logout_top"] {
+        display: flex !important;
+        justify-content: center !important;
+    }
+
     div[class*="st-key-btn_volver_hub"] button,
     div[class*="st-key-btn_logout_top"] button {
         background: var(--bg-surface) !important;
         border: 1px solid var(--gold-25) !important;
-        border-radius: 12px !important;
-        width: 100% !important;
-        padding: 0.45rem 0.3rem !important;
-        font-size: 1.05rem !important;
-        min-height: unset !important;
+        border-radius: 14px !important;
+        width: 54px !important;
+        height: 54px !important;
+        min-width: 54px !important;
+        min-height: 54px !important;
+        padding: 0 !important;
+        font-size: 1.45rem !important;
+        line-height: 1 !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        margin: 0 auto !important;
+        box-shadow: 0 3px 10px rgba(0,0,0,0.35) !important;
         transition: all 0.2s ease !important;
     }
 
@@ -698,6 +712,7 @@ st.markdown("""
     div[class*="st-key-btn_logout_top"] button:hover {
         background: var(--gold-18) !important;
         border-color: var(--gold-60) !important;
+        transform: scale(1.07) !important;
     }
 
     .topbar-sep {
