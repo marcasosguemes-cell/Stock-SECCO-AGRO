@@ -553,11 +553,24 @@ st.markdown("""
 
     [data-testid="stForm"] .stButton > button,
     [data-testid="stForm"] [data-testid="stFormSubmitButton"] > button,
+    [data-testid="stFormSubmitButton"] > button {
+        background: linear-gradient(135deg,var(--gold),var(--gold-dark)) !important;
+        border: none !important;
+        border-radius: 12px !important;
+        font-weight: 700 !important;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.25) !important;
+    }
+    [data-testid="stForm"] .stButton > button,
+    [data-testid="stForm"] [data-testid="stFormSubmitButton"] > button,
     [data-testid="stFormSubmitButton"] > button,
     [data-testid="stFormSubmitButton"] > button > div,
     [data-testid="stFormSubmitButton"] button * {
-        color: #000000 !important;
-        -webkit-text-fill-color: #000000 !important;
+        color: #1a1a1f !important;
+        -webkit-text-fill-color: #1a1a1f !important;
+    }
+    [data-testid="stFormSubmitButton"] > button:hover {
+        background: linear-gradient(135deg,var(--gold-light),#c98a1a) !important;
+        transform: translateY(-2px) !important;
     }
 
     [data-testid="stForm"] h3,
@@ -718,6 +731,93 @@ st.markdown("""
     .topbar-sep {
         border-bottom: 1px solid var(--gold-40);
         margin: 0.4rem 0 1.1rem 0;
+    }
+
+    /* ── VISIBILIDAD FORZADA (independiente del tema del navegador) ── */
+
+    /* Inputs de texto, contraseña, número y textarea */
+    [data-testid="stTextInput"] input,
+    [data-testid="stNumberInput"] input,
+    [data-testid="stDateInput"] input,
+    [data-testid="stTextArea"] textarea,
+    [data-baseweb="input"] input,
+    [data-baseweb="base-input"] input,
+    [data-baseweb="textarea"] textarea {
+        background-color: rgba(55,55,65,0.95) !important;
+        color: #FFFFFF !important;
+        -webkit-text-fill-color: #FFFFFF !important;
+        caret-color: var(--gold) !important;
+    }
+    [data-baseweb="input"], [data-baseweb="base-input"], [data-baseweb="textarea"] {
+        background-color: rgba(55,55,65,0.95) !important;
+        border-color: var(--gold-40) !important;
+    }
+    [data-testid="stTextInput"] input::placeholder,
+    [data-testid="stNumberInput"] input::placeholder,
+    [data-testid="stTextArea"] textarea::placeholder,
+    [data-baseweb="input"] input::placeholder,
+    [data-baseweb="textarea"] textarea::placeholder {
+        color: #a0a0b0 !important;
+        -webkit-text-fill-color: #a0a0b0 !important;
+        opacity: 1 !important;
+    }
+
+    /* Menú desplegable de los selectbox (se renderiza fuera del contenedor) */
+    [data-baseweb="popover"] [data-baseweb="menu"],
+    ul[data-baseweb="menu"] {
+        background-color: #1e1e26 !important;
+        border: 1px solid var(--gold-40) !important;
+    }
+    [data-baseweb="menu"] li,
+    [data-baseweb="menu"] li div,
+    [data-baseweb="menu"] li span {
+        background-color: transparent !important;
+        color: #FFFFFF !important;
+        -webkit-text-fill-color: #FFFFFF !important;
+    }
+    [data-baseweb="menu"] li:hover,
+    [data-baseweb="menu"] li[aria-selected="true"] {
+        background-color: var(--gold-25) !important;
+    }
+
+    /* Alertas: st.info / st.success / st.warning / st.error */
+    [data-testid="stAlert"] {
+        background-color: rgba(40,40,50,0.92) !important;
+        border: 1px solid var(--gold-40) !important;
+        border-radius: 12px !important;
+    }
+    [data-testid="stAlert"] p,
+    [data-testid="stAlert"] span,
+    [data-testid="stAlert"] div,
+    [data-testid="stAlert"] [data-testid="stMarkdownContainer"] {
+        color: #FFFFFF !important;
+        -webkit-text-fill-color: #FFFFFF !important;
+    }
+
+    /* Expanders */
+    [data-testid="stExpander"] summary,
+    [data-testid="stExpander"] summary p,
+    [data-testid="stExpander"] summary span {
+        color: #FFFFFF !important;
+        -webkit-text-fill-color: #FFFFFF !important;
+    }
+    [data-testid="stExpander"] details {
+        background-color: rgba(40,40,50,0.75) !important;
+        border: 1px solid var(--gold-25) !important;
+        border-radius: 12px !important;
+    }
+
+    /* Texto general del área principal */
+    [data-testid="stAppViewContainer"] p,
+    [data-testid="stAppViewContainer"] li,
+    [data-testid="stMarkdownContainer"] p {
+        color: var(--text-primary);
+    }
+
+    /* Tooltips de ayuda */
+    [data-testid="stTooltipContent"] {
+        background-color: #1e1e26 !important;
+        color: #FFFFFF !important;
     }
 
 </style>
@@ -1063,14 +1163,37 @@ def mostrar_cambio_password():
                     try:
                         with st.spinner("Actualizando contraseña..."):
                             supabase.auth.update_user({"password": nueva_password})
-                            supabase.table("usuarios").update({"password_changed": True}).eq(
+
+                            # Marcar password_changed=true vía RPC (security definer,
+                            # no depende de políticas RLS sobre la tabla usuarios)
+                            try:
+                                supabase.rpc("marcar_password_cambiada").execute()
+                            except Exception as rpc_err:
+                                logger.warning(f"RPC marcar_password_cambiada falló: {rpc_err}")
+                                supabase.table("usuarios").update({"password_changed": True}).eq(
+                                    "id", st.session_state["user_id"]
+                                ).execute()
+
+                            # Verificar que la marca quedó guardada en la base
+                            check = supabase.table("usuarios").select("password_changed").eq(
                                 "id", st.session_state["user_id"]
                             ).execute()
+                            guardado = bool(check.data and check.data[0].get("password_changed"))
+
                             st.session_state["password_changed"] = True
                             st.session_state.pop("skip_password_check", None)
-                            st.toast("✅ Contraseña actualizada correctamente.")
-                            st.balloons()
-                            st.rerun()
+
+                            if guardado:
+                                st.toast("✅ Contraseña actualizada correctamente.")
+                                st.balloons()
+                                st.rerun()
+                            else:
+                                st.warning(
+                                    "⚠️ La contraseña se cambió, pero no se pudo guardar la marca "
+                                    "en la base de datos (revisá que exista la función "
+                                    "'marcar_password_cambiada' en Supabase). "
+                                    "El sistema puede volver a pedirte el cambio en el próximo ingreso."
+                                )
                     except Exception as e:
                         logger.error(f"Error al actualizar contraseña: {e}")
                         st.error(f"❌ Error al actualizar contraseña: {e}")
