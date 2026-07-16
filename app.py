@@ -948,31 +948,24 @@ def _validar_pdf(archivo_pdf) -> tuple[bool, str]:
     return True, ""
 
 
-def subir_remito_pdf(archivo_pdf, movimiento_ids, usuario_id, establecimiento_id):
-    """Sube PDF a Supabase Storage y lo asocia a uno o varios movimientos.
+def subir_remito_storage(archivo_pdf, establecimiento_id):
+    """Sube el PDF del remito a Supabase Storage ANTES de registrar movimientos.
 
-    movimiento_ids puede ser un UUID (str) o una lista de UUIDs.
-    El archivo se sube una sola vez y la misma ruta queda registrada en todos
-    los movimientos del lote, de modo que el botón PDF aparezca en cada fila
-    del historial.
+    Devuelve (ruta, nombre_archivo) si la subida fue exitosa, o (None, None)
+    si falló. Si falla, el movimiento NO debe registrarse: así nunca queda un
+    egreso/ingreso sin su remito asociado.
     """
     if archivo_pdf is None:
-        return None
+        return None, None
 
     ok, msg = _validar_pdf(archivo_pdf)
     if not ok:
         st.error(f"❌ {msg}")
-        return None
-
-    # Normalizar a lista
-    if isinstance(movimiento_ids, (str, int)):
-        movimiento_ids = [movimiento_ids]
+        return None, None
 
     try:
         now = datetime.now(ZoneInfo("America/Argentina/Buenos_Aires"))
-        # Nombre del archivo basado en el primer ID del lote
-        primer_id = movimiento_ids[0]
-        nombre_archivo = f"remito_{primer_id}_{uuid.uuid4().hex[:8]}.pdf"
+        nombre_archivo = f"remito_{now.strftime('%Y%m%d_%H%M%S')}_{uuid.uuid4().hex[:8]}.pdf"
         # Organización por carpetas: estab_id/año/mes/archivo
         ruta_completa = f"{establecimiento_id}/{now.year}/{now.month:02d}/{nombre_archivo}"
         archivo_bytes = archivo_pdf.getvalue()
@@ -982,20 +975,12 @@ def subir_remito_pdf(archivo_pdf, movimiento_ids, usuario_id, establecimiento_id
             file=archivo_bytes,
             file_options={"content-type": "application/pdf"}
         )
-
-        # Asociar la misma ruta a TODOS los movimientos del lote
-        for mov_id in movimiento_ids:
-            supabase.table("movimientos").update({
-                "remito_url": ruta_completa,
-                "remito_filename": nombre_archivo
-            }).eq("id", mov_id).execute()
-
-        return ruta_completa
+        return ruta_completa, nombre_archivo
 
     except Exception as e:
         logger.error(f"Error al subir remito: {type(e).__name__}: {e}")
         st.error(f"❌ Error al subir el remito: {e}")
-        return None
+        return None, None
 
 
 def get_signed_url(ruta: str) -> str | None:
@@ -2230,6 +2215,17 @@ def pagina_ingreso():
                 usuario_id = st.session_state.get("user_id")
                 usuario_nombre = st.session_state.get("perfil", {}).get("nombre", "")
 
+                # Subir el remito PRIMERO: si falla, no se registra nada
+                ruta_remito, nombre_remito = (None, None)
+                if archivo_remito is not None:
+                    ruta_remito, nombre_remito = subir_remito_storage(archivo_remito, establecimiento_id)
+                    if ruta_remito is None:
+                        st.error(
+                            "❌ No se registró ningún movimiento porque el remito no se pudo subir. "
+                            "Reintentá y, si sigue fallando, avisá al administrador."
+                        )
+                        return
+
                 ids_movimientos = []
                 for linea in lineas_validas:
                     payload = {
@@ -2243,6 +2239,8 @@ def pagina_ingreso():
                         "usuario_id": usuario_id,
                         "usuario_nombre": usuario_nombre,
                         "fecha_vencimiento": linea["fecha_vencimiento"].isoformat() if linea["fecha_vencimiento"] else None,
+                        "remito_url": ruta_remito,
+                        "remito_filename": nombre_remito,
                     }
                     prod_obj = linea["prod_obj"]
                     if linea["marca"].strip() != (prod_obj.get("marca") or "") or \
@@ -2259,9 +2257,6 @@ def pagina_ingreso():
                         ids_movimientos.append(mov_id)
                     registrar_auditoria("ingreso_registrado", {"movimiento_id": mov_id, "producto": linea["prod_sel"]})
 
-                # Subir el PDF una sola vez y asociarlo a TODOS los movimientos del lote
-                if ids_movimientos and archivo_remito is not None:
-                    subir_remito_pdf(archivo_remito, ids_movimientos, usuario_id, establecimiento_id)
 
                 get_movimientos.clear() if hasattr(get_movimientos, "clear") else None
                 # Incrementar versión: fuerza recreación completa de todos los widgets del formulario
@@ -2520,6 +2515,17 @@ def pagina_egreso():
                 usuario_id = st.session_state.get("user_id")
                 usuario_nombre = st.session_state.get("perfil", {}).get("nombre", "")
 
+                # Subir el remito PRIMERO: si falla, no se registra nada
+                ruta_remito, nombre_remito = (None, None)
+                if archivo_remito is not None:
+                    ruta_remito, nombre_remito = subir_remito_storage(archivo_remito, establecimiento_id)
+                    if ruta_remito is None:
+                        st.error(
+                            "❌ No se registró ningún movimiento porque el remito no se pudo subir. "
+                            "Reintentá y, si sigue fallando, avisá al administrador."
+                        )
+                        return
+
                 ids_movimientos = []
                 for linea in lineas_validas:
                     payload = {
@@ -2531,6 +2537,8 @@ def pagina_egreso():
                         "observaciones": observaciones_full,
                         "usuario_id": usuario_id,
                         "usuario_nombre": usuario_nombre,
+                        "remito_url": ruta_remito,
+                        "remito_filename": nombre_remito,
                     }
                     resultado = supabase.table("movimientos").insert(payload).execute()
                     mov_id = resultado.data[0]["id"] if resultado.data else None
@@ -2538,9 +2546,6 @@ def pagina_egreso():
                         ids_movimientos.append(mov_id)
                     registrar_auditoria("egreso_registrado", {"movimiento_id": mov_id, "producto": linea["prod_sel"]})
 
-                # Subir el PDF una sola vez y asociarlo a TODOS los movimientos del lote
-                if ids_movimientos and archivo_remito is not None:
-                    subir_remito_pdf(archivo_remito, ids_movimientos, usuario_id, establecimiento_id)
 
                 get_movimientos.clear() if hasattr(get_movimientos, "clear") else None
                 # Incrementar versión: fuerza recreación completa de todos los widgets del formulario
